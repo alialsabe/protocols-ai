@@ -1,0 +1,45 @@
+{
+  "conflicts": [
+    {
+      "supplements": ["Iron", "Calcium"],
+      "rule": "Do not take within 2 hours of each other. Calcium inhibits iron absorption.",
+      "severity": "high",
+      "symptoms": ["Gastrointestinal Upset", "Constipation"]
+    },
+    {
+      "supplements": ["Zinc", "Copper"],
+      "rule": "High doses of Zinc deplete Copper. Take separately or supplement Copper if taking >30mg Zinc.",
+      "severity": "moderate"
+    },
+    {
+      "supplements": ["Vitamin D", "Magnesium"],
+      "rule": "Vitamin D requires Magnesium for activation. Synergistic pairing, take together.",
+      "severity": "synergy"
+    }
+  ],
+  "drug_interactions": [
+    {
+      "supplement": "Ashwagandha",
+      "medication_classes": ["Immunosuppressants", "Sedatives", "Thyroid Hormone"],
+      "rule": "May stimulate immune system. Additive sedative effects with benzos. May increase T3/T4 synthesis.",
+      "severity": "high"
+    },
+    {
+      "supplement": "St. John's Wort",
+      "medication_classes": ["SSRIs", "Oral Contraceptives"],
+      "rule": "CYP3A4 inducer. Will drastically reduce efficacy of birth control. Risk of serotonin syndrome with SSRIs.",
+      "severity": "critical"
+    }
+  ],
+  "timing": {
+    "Fat_Soluble": ["Vitamin A", "Vitamin D", "Vitamin E", "Vitamin K", "Omega-3"],
+    "rule_fat_soluble": "Must be taken with a meal containing dietary fat."
+  },
+  "metrics": {
+    "stomach_upset_incidence": {
+      "Ashwagandha": "14%",
+      "Iron_Sulfate": "40%",
+      "Zinc_Empty_Stomach": "60%"
+    }
+  }
+}

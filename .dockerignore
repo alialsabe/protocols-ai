@@ -1,0 +1,10 @@
+.next
+node_modules
+.git
+.openclaw
+dist
+coverage
+*.log
+.env*
+tsconfig.tsbuildinfo
+README.md
