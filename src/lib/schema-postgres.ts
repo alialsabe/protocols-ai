@@ -1,9 +1,9 @@
-import { boolean, doublePrecision, integer, pgTable, text } from 'drizzle-orm/pg-core';
+import { pgTable, text, integer, real } from 'drizzle-orm/pg-core';
 
+// ── helpers ─────────────────────────────────────────────────────────
 function id() {
   return text('id').primaryKey();
 }
-
 function timestamps() {
   return {
     createdAt: text('created_at').notNull().default(''),
@@ -11,6 +11,7 @@ function timestamps() {
   } as const;
 }
 
+// ── supplements ─────────────────────────────────────────────────────
 export const supplements = pgTable('supplements', {
   id: id(),
   slug: text('slug').notNull().unique(),
@@ -21,6 +22,7 @@ export const supplements = pgTable('supplements', {
   ...timestamps(),
 });
 
+// ── supplement_science ──────────────────────────────────────────────
 export const supplementScience = pgTable('supplement_science', {
   id: id(),
   supplementId: text('supplement_id').notNull().references(() => supplements.id),
@@ -32,6 +34,7 @@ export const supplementScience = pgTable('supplement_science', {
   medicineInteractions: text('medicine_interactions').notNull().default('[]'),
 });
 
+// ── supplement_social ───────────────────────────────────────────────
 export const supplementSocial = pgTable('supplement_social', {
   id: id(),
   supplementId: text('supplement_id').notNull().references(() => supplements.id),
@@ -39,16 +42,18 @@ export const supplementSocial = pgTable('supplement_social', {
   anecdotes: text('anecdotes').notNull().default('[]'),
 });
 
+// ── supplement_sentiment ────────────────────────────────────────────
 export const supplementSentiment = pgTable('supplement_sentiment', {
   id: id(),
   supplementId: text('supplement_id').notNull().references(() => supplements.id),
-  positive: doublePrecision('positive').notNull().default(0),
-  neutral: doublePrecision('neutral').notNull().default(0),
-  negative: doublePrecision('negative').notNull().default(0),
+  positive: real('positive').notNull().default(0),
+  neutral: real('neutral').notNull().default(0),
+  negative: real('negative').notNull().default(0),
   topPositive: text('top_positive').notNull().default(''),
   topNegative: text('top_negative').notNull().default(''),
 });
 
+// ── supplement_dosage ───────────────────────────────────────────────
 export const supplementDosage = pgTable('supplement_dosage', {
   id: id(),
   supplementId: text('supplement_id').notNull().references(() => supplements.id),
@@ -56,31 +61,34 @@ export const supplementDosage = pgTable('supplement_dosage', {
   maintenance: text('maintenance').notNull(),
   formula: text('formula').notNull().default(''),
   unit: text('unit').notNull().default('mg'),
-  perKgFactor: doublePrecision('per_kg_factor'),
+  perKgFactor: real('per_kg_factor'),
 });
 
+// ── supplement_schedule_rules ───────────────────────────────────────
 export const supplementScheduleRules = pgTable('schedule_rules', {
   id: id(),
   supplementId: text('supplement_id').notNull().references(() => supplements.id),
   preferredTime: text('preferred_time').notNull().default('any'),
-  withFood: boolean('with_food').notNull().default(false),
+  withFood: integer('with_food').notNull().default(0),
   foodType: text('food_type'),
-  emptyStomach: boolean('empty_stomach').notNull().default(false),
-  fatSoluble: boolean('fat_soluble').notNull().default(false),
-  stimulant: boolean('stimulant').notNull().default(false),
-  sedating: boolean('sedating').notNull().default(false),
+  emptyStomach: integer('empty_stomach').notNull().default(0),
+  fatSoluble: integer('fat_soluble').notNull().default(0),
+  stimulant: integer('stimulant').notNull().default(0),
+  sedating: integer('sedating').notNull().default(0),
 });
 
+// ── supplement_conflicts ────────────────────────────────────────────
 export const supplementConflicts = pgTable('conflicts', {
   id: id(),
   supplementAId: text('supplement_a_id').notNull().references(() => supplements.id),
   supplementBId: text('supplement_b_id').notNull().references(() => supplements.id),
   conflictType: text('conflict_type').notNull(),
-  minSpacingHours: doublePrecision('min_spacing_hours'),
+  minSpacingHours: real('min_spacing_hours'),
   mechanism: text('mechanism').notNull().default(''),
   severity: text('severity').notNull().default('low'),
 });
 
+// ── medicine_interactions ───────────────────────────────────────────
 export const medicineInteractions = pgTable('medicine_interactions', {
   id: id(),
   supplementId: text('supplement_id').notNull().references(() => supplements.id),
@@ -92,6 +100,7 @@ export const medicineInteractions = pgTable('medicine_interactions', {
   source: text('source'),
 });
 
+// ── affiliate_options ───────────────────────────────────────────────
 export const affiliateOptions = pgTable('affiliate_options', {
   id: id(),
   supplementId: text('supplement_id').notNull().references(() => supplements.id),
@@ -104,13 +113,14 @@ export const affiliateOptions = pgTable('affiliate_options', {
   productForm: text('product_form').notNull().default('capsule'),
   trustScore: integer('trust_score').notNull().default(5),
   priorityScore: integer('priority_score').notNull().default(0),
-  isPrimary: boolean('is_primary').notNull().default(false),
-  isActive: boolean('is_active').notNull().default(true),
+  isPrimary: integer('is_primary').notNull().default(0),
+  isActive: integer('is_active').notNull().default(1),
   complianceStatus: text('compliance_status').notNull().default('pending'),
   countryCode: text('country_code').notNull().default('US'),
   lastVerifiedAt: text('last_verified_at'),
 });
 
+// ── fallback_queue ──────────────────────────────────────────────────
 export const fallbackQueue = pgTable('fallback_queue', {
   id: id(),
   query: text('query').notNull(),
@@ -122,6 +132,7 @@ export const fallbackQueue = pgTable('fallback_queue', {
   reviewerNotes: text('reviewer_notes'),
 });
 
+// ── companion_stacks ────────────────────────────────────────────────
 export const companionStacks = pgTable('companion_stacks', {
   id: id(),
   supplementId: text('supplement_id').notNull().references(() => supplements.id),

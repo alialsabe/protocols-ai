@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(wsl --list --verbose)",
+      "Bash(ps aux:*)",
+      "Bash(ps -eo pid,pmem,pcpu,comm --sort=-pmem)",
+      "Bash(wsl --list --running)",
+      "Bash(tasklist /FI \"IMAGENAME eq wsl.exe\")",
+      "Bash(tasklist)",
+      "Bash(tasklist /FO CSV)",
+      "Bash(sort -t',' -k5 -rn)",
+      "Bash(wmic process:*)",
+      "Bash(sort -k2 -rn)",
+      "Read(///wsl.localhost/Ubuntu/proc/**)",
+      "Read(///wsl.localhost/Ubuntu//**)",
+      "Bash(powershell:*)"
+    ]
+  }
+}

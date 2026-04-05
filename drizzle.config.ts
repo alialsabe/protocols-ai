@@ -1,49 +1,24 @@
-import fs from 'node:fs';
-import path from 'node:path';
 import { defineConfig } from 'drizzle-kit';
+import { getConfiguredDatabaseDialect, getPoolerUrl, loadLocalEnv } from './src/lib/database-env';
 
-const envPath = path.join(process.cwd(), '.env.local');
-if (fs.existsSync(envPath)) {
-  const env = fs.readFileSync(envPath, 'utf8');
-  for (const line of env.split('\n')) {
-    const trimmed = line.trim();
-    if (!trimmed || trimmed.startsWith('#') || !trimmed.includes('=')) continue;
-    const index = trimmed.indexOf('=');
-    const key = trimmed.slice(0, index).trim();
-    const value = trimmed.slice(index + 1).trim().replace(/^['"]|['"]$/g, '');
-    if (!(key in process.env)) process.env[key] = value;
-  }
+loadLocalEnv();
+
+const dialect = getConfiguredDatabaseDialect() === 'postgres' ? 'postgresql' : 'sqlite';
+const postgresUrl = getPoolerUrl();
+
+if (dialect === 'postgresql' && !postgresUrl) {
+  throw new Error('Missing SUPABASE_POOLER_URL. Production postgres bootstrap/config now requires the pooler URL and will not fall back to a direct host.');
 }
 
-const explicitDialect = process.env.DATABASE_DIALECT?.trim().toLowerCase();
-const dialect = explicitDialect === 'sqlite'
-  ? 'sqlite'
-  : explicitDialect === 'postgres' || explicitDialect === 'postgresql'
-    ? 'postgresql'
-    : process.env.DATABASE_URL || process.env.SUPABASE_POOLER_URL || process.env.SUPABASE_POOLER_CONNECTION_STRING || process.env.SUPABASE_DB_URL || process.env.SUPABASE_DIRECT_URL
-      ? 'postgresql'
-      : 'sqlite';
-
-const preferPooler = (process.env.SUPABASE_PREFER_POOLER ?? 'true').trim().toLowerCase() !== 'false';
-const supabasePoolerUrl = process.env.SUPABASE_POOLER_URL?.trim() || process.env.SUPABASE_POOLER_CONNECTION_STRING?.trim();
-const supabaseDirectUrl = process.env.SUPABASE_DB_URL?.trim() || process.env.SUPABASE_DIRECT_URL?.trim();
-const postgresUrl = process.env.DATABASE_URL?.trim()
-  || (preferPooler
-    ? supabasePoolerUrl || supabaseDirectUrl
-    : supabaseDirectUrl || supabasePoolerUrl);
-
 export default defineConfig({
-  schema: dialect === 'sqlite' ? './src/lib/schema.ts' : './src/lib/schema-postgres.ts',
+  schema: './src/lib/schema-postgres.ts',
   out: './drizzle',
   dialect,
-  dbCredentials: dialect === 'sqlite'
-    ? {
-        url: process.env.DATABASE_PATH || './data/protocols.db',
-      }
-    : {
-        url: postgresUrl || '',
-        ssl: process.env.POSTGRES_SSL === 'disable' ? false : 'require',
-      },
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  dbCredentials: {
+    url: postgresUrl!,
+    ssl: process.env.POSTGRES_SSL === 'disable' ? false : 'require',
+  },
   verbose: true,
   strict: true,
 });
