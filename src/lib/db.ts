@@ -28,6 +28,11 @@ type AppDb = SqliteDb | PostgresDb;
 type AppSchema = typeof sqliteSchema | typeof postgresSchema;
 type RawDb = BetterSqliteDatabase | unknown;
 
+type DatabaseUrlResolution = {
+  url: string;
+  source: 'DATABASE_URL' | 'SUPABASE_POOLER_URL' | 'SUPABASE_POOLER_CONNECTION_STRING' | 'SUPABASE_DIRECT_URL' | 'SUPABASE_DB_URL';
+};
+
 type SqliteQueryAll<T> = { all: () => T[] };
 type SqliteQueryGet<T> = { get: () => T | undefined };
 type PostgresLimitedQuery<T> = Promise<T[]> & { limit: (count: number) => Promise<T[]> };
@@ -66,12 +71,81 @@ function getSqlitePath(): string {
   return process.env.DATABASE_PATH || path.join(process.cwd(), 'data', 'protocols.db');
 }
 
+function getEnvBoolean(name: string): boolean | undefined {
+  const value = process.env[name]?.trim().toLowerCase();
+  if (value == null || value === '') return undefined;
+  if (['1', 'true', 'yes', 'on'].includes(value)) return true;
+  if (['0', 'false', 'no', 'off'].includes(value)) return false;
+  return undefined;
+}
+
 function shouldAutoBootstrap(dialect: DatabaseDialect): boolean {
   if (process.env.DB_AUTO_BOOTSTRAP != null) {
     return process.env.DB_AUTO_BOOTSTRAP === 'true';
   }
 
   return dialect === 'sqlite' || process.env.NODE_ENV !== 'production';
+}
+
+function shouldRequireExplicitBootstrapTarget(): boolean {
+  return process.env.DB_REQUIRE_EXPLICIT_BOOTSTRAP_TARGET === 'true';
+}
+
+function getDatabaseUrlResolution(): DatabaseUrlResolution | null {
+  const explicit = process.env.DATABASE_URL?.trim();
+  if (explicit) {
+    return { url: explicit, source: 'DATABASE_URL' };
+  }
+
+  const preferPooler = getEnvBoolean('SUPABASE_PREFER_POOLER') !== false;
+  const envCandidates: Array<[DatabaseUrlResolution['source'], string | undefined]> = preferPooler
+    ? [
+        ['SUPABASE_POOLER_URL', process.env.SUPABASE_POOLER_URL],
+        ['SUPABASE_POOLER_CONNECTION_STRING', process.env.SUPABASE_POOLER_CONNECTION_STRING],
+        ['SUPABASE_DB_URL', process.env.SUPABASE_DB_URL],
+        ['SUPABASE_DIRECT_URL', process.env.SUPABASE_DIRECT_URL],
+      ]
+    : [
+        ['SUPABASE_DIRECT_URL', process.env.SUPABASE_DIRECT_URL],
+        ['SUPABASE_DB_URL', process.env.SUPABASE_DB_URL],
+        ['SUPABASE_POOLER_URL', process.env.SUPABASE_POOLER_URL],
+        ['SUPABASE_POOLER_CONNECTION_STRING', process.env.SUPABASE_POOLER_CONNECTION_STRING],
+      ];
+
+  for (const [source, value] of envCandidates) {
+    const url = value?.trim();
+    if (url) return { url, source };
+  }
+
+  return null;
+}
+
+function getDatabaseEndpointLabel(): string {
+  if ((process.env.DATABASE_DIALECT ?? '').trim().toLowerCase() === 'sqlite') {
+    return getSqlitePath();
+  }
+
+  const resolution = getDatabaseUrlResolution();
+  if (!resolution) return 'unset';
+
+  try {
+    const parsed = new URL(resolution.url);
+    return `${resolution.source}:${parsed.protocol}//${parsed.username ? `${parsed.username}:***@` : ''}${parsed.host}${parsed.pathname}`;
+  } catch {
+    return `${resolution.source}:invalid-url`;
+  }
+}
+
+function getBootstrapTargetName(ctx: DatabaseContext): string {
+  return ctx.dialect === 'sqlite' ? `sqlite:${getSqlitePath()}` : `postgres:${getDatabaseEndpointLabel()}`;
+}
+
+function verifyBootstrapTarget(ctx: DatabaseContext): void {
+  if (ctx.dialect !== 'postgres' && shouldRequireExplicitBootstrapTarget()) {
+    throw new Error(
+      `Refusing to bootstrap non-Postgres database (${getBootstrapTargetName(ctx)}). Set DATABASE_DIALECT=postgres and DB_AUTO_BOOTSTRAP=true for a Supabase run.`,
+    );
+  }
 }
 
 function getPostgresSslMode(): 'require' | undefined {
@@ -108,20 +182,27 @@ async function createDatabaseContext(): Promise<DatabaseContext> {
     };
   }
 
-  const databaseUrl = process.env.DATABASE_URL;
+  const resolution = getDatabaseUrlResolution();
 
-  if (!databaseUrl) {
-    throw new Error('DATABASE_URL is required when DATABASE_DIALECT=postgres.');
+  if (!resolution) {
+    throw new Error(
+      'No PostgreSQL connection string found. Set DATABASE_URL, or provide SUPABASE_POOLER_URL/SUPABASE_POOLER_CONNECTION_STRING for WSL-friendly access.',
+    );
+  }
+
+  if (process.env.DATABASE_DIALECT?.trim().toLowerCase() === 'postgres' && getEnvBoolean('SUPABASE_PREFER_POOLER') !== false) {
+    console.log(`[db] postgres connection source=${resolution.source} target=${getDatabaseEndpointLabel()}`);
   }
 
   const postgres = (await import('postgres')).default;
   const { drizzle } = await import('drizzle-orm/postgres-js');
-  const raw = postgres(databaseUrl, {
+  const raw = postgres(resolution.url, {
     ssl: getPostgresSslMode(),
     prepare: false,
     max: Number(process.env.POSTGRES_MAX_CONNECTIONS || 1),
     idle_timeout: 20,
     connect_timeout: 15,
+    fetch_types: false,
   });
 
   return {
@@ -429,10 +510,15 @@ export async function ensureDatabaseReady(): Promise<void> {
         return;
       }
 
+      verifyBootstrapTarget(ctx);
+      console.log(`[db] bootstrap target=${getBootstrapTargetName(ctx)} dialect=${ctx.dialect} autoBootstrap=${process.env.DB_AUTO_BOOTSTRAP ?? 'default'}`);
       await executeBootstrapSql(ctx);
 
-      if ((await getSupplementCount(ctx)) === 0) {
+      const count = await getSupplementCount(ctx);
+      console.log(`[db] bootstrap post-check target=${getBootstrapTargetName(ctx)} supplementCount=${count}`);
+      if (count === 0) {
         await seedDatabase(ctx);
+        console.log(`[db] seed written target=${getBootstrapTargetName(ctx)} supplementCount=${await getSupplementCount(ctx)}`);
       }
     })();
   }
@@ -746,11 +832,16 @@ export async function updateFallbackQueueItem(id: string, updates: { status?: st
 
 export async function seedDatabaseIfEmpty() {
   const ctx = await getContext();
+  verifyBootstrapTarget(ctx);
+  console.log(`[db] bootstrap target=${getBootstrapTargetName(ctx)} dialect=${ctx.dialect} databaseUrlConfigured=${Boolean(process.env.DATABASE_URL)}`);
   await executeBootstrapSql(ctx);
 
-  if ((await getSupplementCount(ctx)) === 0) {
+  const before = await getSupplementCount(ctx);
+  console.log(`[db] bootstrap pre-seed target=${getBootstrapTargetName(ctx)} supplementCount=${before}`);
+  if (before === 0) {
     await seedDatabase(ctx);
   }
+  console.log(`[db] bootstrap complete target=${getBootstrapTargetName(ctx)} supplementCount=${await getSupplementCount(ctx)}`);
 }
 
 export async function resetAndSeedDatabase() {

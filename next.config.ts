@@ -1,9 +1,9 @@
-import type { NextConfig } from "next";
+import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
-  output: "standalone",
-  turbopack: {
-    root: process.cwd(),
+  output: 'standalone',
+  experimental: {
+    serverComponentsExternalPackages: ['better-sqlite3', 'postgres'],
   },
 };
 

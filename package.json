@@ -11,7 +11,8 @@
     "db:seed": "tsx scripts/seed.ts",
     "db:bootstrap": "tsx scripts/bootstrap-db.ts",
     "db:reset": "tsx scripts/seed.ts --reset",
-    "test:golden": "tsx scripts/golden-set.ts"
+    "test:golden": "tsx scripts/golden-set.ts",
+    "vercel-build": "npm run db:bootstrap && npm run build"
   },
   "dependencies": {
     "@radix-ui/react-label": "^2.1.8",

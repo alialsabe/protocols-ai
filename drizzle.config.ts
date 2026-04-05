@@ -20,9 +20,17 @@ const dialect = explicitDialect === 'sqlite'
   ? 'sqlite'
   : explicitDialect === 'postgres' || explicitDialect === 'postgresql'
     ? 'postgresql'
-    : process.env.DATABASE_URL
+    : process.env.DATABASE_URL || process.env.SUPABASE_POOLER_URL || process.env.SUPABASE_POOLER_CONNECTION_STRING || process.env.SUPABASE_DB_URL || process.env.SUPABASE_DIRECT_URL
       ? 'postgresql'
       : 'sqlite';
+
+const preferPooler = (process.env.SUPABASE_PREFER_POOLER ?? 'true').trim().toLowerCase() !== 'false';
+const supabasePoolerUrl = process.env.SUPABASE_POOLER_URL?.trim() || process.env.SUPABASE_POOLER_CONNECTION_STRING?.trim();
+const supabaseDirectUrl = process.env.SUPABASE_DB_URL?.trim() || process.env.SUPABASE_DIRECT_URL?.trim();
+const postgresUrl = process.env.DATABASE_URL?.trim()
+  || (preferPooler
+    ? supabasePoolerUrl || supabaseDirectUrl
+    : supabaseDirectUrl || supabasePoolerUrl);
 
 export default defineConfig({
   schema: dialect === 'sqlite' ? './src/lib/schema.ts' : './src/lib/schema-postgres.ts',
@@ -33,7 +41,7 @@ export default defineConfig({
         url: process.env.DATABASE_PATH || './data/protocols.db',
       }
     : {
-        url: process.env.DATABASE_URL || '',
+        url: postgresUrl || '',
         ssl: process.env.POSTGRES_SSL === 'disable' ? false : 'require',
       },
   verbose: true,
