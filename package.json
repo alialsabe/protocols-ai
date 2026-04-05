@@ -9,6 +9,7 @@
     "lint": "eslint",
     "db:push": "drizzle-kit push --force",
     "db:seed": "tsx scripts/seed.ts",
+    "db:bootstrap": "tsx scripts/bootstrap-db.ts",
     "db:reset": "tsx scripts/seed.ts --reset",
     "test:golden": "tsx scripts/golden-set.ts"
   },
