@@ -1,13 +1,13 @@
-import { getRawDb } from '../src/lib/db';
-import { lookupSupplement, logFallbackMiss } from '../src/lib/supplement-lookup';
+import { closeDatabaseConnections, listFallbackQueueByStatus } from '../src/lib/db';
+import { logFallbackMiss, lookupSupplement } from '../src/lib/supplement-lookup';
 import { generateSchedule } from '../src/lib/scheduler-engine';
 
 function assert(condition: boolean, message: string) {
   if (!condition) throw new Error(message);
 }
 
-function testLookup(query: string) {
-  const report = lookupSupplement(query, { weightKg: 80, age: 30, sex: 'male' });
+async function testLookup(query: string) {
+  const report = await lookupSupplement(query, { weightKg: 80, age: 30, sex: 'male' });
   assert(!!report, `lookup failed for: ${query}`);
   assert(!!report?.science?.summary, `science summary missing for: ${query}`);
   assert((report?.science?.findings?.length || 0) > 0, `findings missing for: ${query}`);
@@ -22,7 +22,7 @@ function testLookup(query: string) {
   return report;
 }
 
-function run() {
+async function run() {
   const goldenSupps = [
     'Magnesium Glycinate',
     'Creatine Monohydrate',
@@ -46,7 +46,9 @@ function run() {
     'Turkey Tail Mushroom',
   ];
 
-  for (const s of goldenSupps) testLookup(s);
+  for (const supplement of goldenSupps) {
+    await testLookup(supplement);
+  }
 
   const abbreviationChecks: [string, string][] = [
     ['b12', 'Vitamin B12 (Methylcobalamin)'],
@@ -64,12 +66,12 @@ function run() {
   ];
 
   for (const [alias, expectedName] of abbreviationChecks) {
-    const report = lookupSupplement(alias, { weightKg: 80 });
+    const report = await lookupSupplement(alias, { weightKg: 80 });
     assert(!!report, `abbreviation/token lookup failed for: ${alias}`);
     assert(report?.name === expectedName, `alias "${alias}" returned "${report?.name}" instead of "${expectedName}"`);
   }
 
-  const schedule = generateSchedule({
+  const schedule = await generateSchedule({
     supplements: ['Iron', 'Zinc Picolinate', 'Vitamin D3', 'Omega-3 Fish Oil (EPA/DHA)', 'Melatonin', 'Berberine HCl', 'Turkey Tail Mushroom'],
     medications: ['levothyroxine', 'warfarin', 'metformin', 'immunosuppressants'],
     routine: {
@@ -86,21 +88,20 @@ function run() {
   assert(schedule.blocks.length > 0, 'scheduler returned no blocks');
   assert(schedule.warnings.length > 0, 'scheduler returned no warnings');
   assert(
-    schedule.warnings.some((w) => w.type === 'spacing' || (w.message || '').toLowerCase().includes('spacing')),
-    'scheduler spacing warning missing'
+    schedule.warnings.some((warning) => warning.type === 'spacing' || (warning.message || '').toLowerCase().includes('spacing')),
+    'scheduler spacing warning missing',
   );
-  assert(schedule.warnings.some((w) => w.type === 'medication'), 'scheduler medication warning missing');
+  assert(schedule.warnings.some((warning) => warning.type === 'medication'), 'scheduler medication warning missing');
 
-  const raw = getRawDb();
-  const before = raw.prepare('SELECT COUNT(*) as count FROM fallback_queue').get() as { count: number };
-  const fallbackId = logFallbackMiss('methylene blue nootropic');
+  const before = (await listFallbackQueueByStatus('pending')) as Array<{ id: string; status: string; hitCount: number }>;
+  const fallbackId = await logFallbackMiss('methylene blue nootropic');
   assert(!!fallbackId, 'fallback miss logging did not return an id');
-  const after = raw.prepare('SELECT COUNT(*) as count FROM fallback_queue').get() as { count: number };
-  assert(after.count >= before.count, 'fallback queue count moved backwards');
-  const fallbackRow = raw.prepare('SELECT status, hit_count FROM fallback_queue WHERE id = ?').get(fallbackId) as { status: string; hit_count: number } | undefined;
+  const after = (await listFallbackQueueByStatus('pending')) as Array<{ id: string; status: string; hitCount: number }>;
+  assert(after.length >= before.length, 'fallback queue count moved backwards');
+  const fallbackRow = after.find((row) => row.id === fallbackId);
   assert(!!fallbackRow, 'fallback row not created');
   assert(fallbackRow?.status === 'pending', 'fallback row must default to pending review');
-  assert((fallbackRow?.hit_count || 0) >= 1, 'fallback row hit count missing');
+  assert((fallbackRow?.hitCount || 0) >= 1, 'fallback row hit count missing');
 
   console.log('✅ Golden set checks passed');
   console.log(`Supplements checked: ${goldenSupps.length}`);
@@ -110,4 +111,10 @@ function run() {
   console.log(`Fallback review queue entry: ${fallbackId}`);
 }
 
-run();
+run()
+  .then(() => closeDatabaseConnections())
+  .catch(async (error) => {
+    console.error(error);
+    await closeDatabaseConnections();
+    process.exit(1);
+  });

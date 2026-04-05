@@ -1,24 +1,51 @@
-/**
-* Supplement lookup: normalize queries, fuzzy match, assemble ProtocolReport from DB.
-*/
-import { db, schema, getRawDb } from './db';
-import { eq } from 'drizzle-orm';
+import {
+  getSupplementBundleById,
+  getSupplementBySlug,
+  getSupplementNameById,
+  listCompanionStacksBySupplementId,
+  listConflicts,
+  listMedicineInteractionsBySupplementId,
+  listProtocolsSupplements,
+  listSupplementsBasic,
+  logFallbackMissRecord,
+} from './db';
 import type {
-ProtocolReport,
-ScienceFinding,
-InteractionFlag,
-SideEffectMetric,
-MedicineInteraction,
-Anecdote,
-DosagePlan,
-ScheduleBlock,
-SentimentCluster,
-CommerceRecommendation,
-SupplementConflict,
-CompanionSuggestion,
-TopBrand,
-Biometrics,
+  Anecdote,
+  Biometrics,
+  CommerceRecommendation,
+  CompanionSuggestion,
+  DosagePlan,
+  InteractionFlag,
+  MedicineInteraction,
+  ProtocolReport,
+  ScheduleBlock,
+  ScienceFinding,
+  SentimentCluster,
+  SideEffectMetric,
+  SupplementConflict,
+  TopBrand,
 } from './protocol-types';
+
+type BasicSupplement = {
+  id: string;
+  slug: string;
+  name: string;
+  aliases: string;
+  category: string;
+};
+
+type CompanionRow = Awaited<ReturnType<typeof listCompanionStacksBySupplementId>>[number];
+type ConflictRow = Awaited<ReturnType<typeof listConflicts>>[number];
+type MedicineInteractionRow = Awaited<ReturnType<typeof listMedicineInteractionsBySupplementId>>[number];
+
+type SupplementBundleRow = {
+  science?: { findings: string; interactions: string; sideEffects: string } | null;
+  social?: { anecdotes: string; transcriptSummary: string } | null;
+  sentiment?: { positive: number; neutral: number; negative: number; topPositive: string; topNegative: string } | null;
+  dosage?: { loading: string | null; maintenance: string; formula: string | null; unit: string; perKgFactor: number | null } | null;
+  schedule?: { preferredTime: string; withFood: number | boolean; foodType: string | null; emptyStomach: number | boolean; fatSoluble: number | boolean; stimulant: number | boolean; sedating: number | boolean } | null;
+  affiliate?: { affiliateUrl: string; productName: string; partnerName: string; priceDisplay: string | null; trustScore: number; priorityScore: number; productForm: string; countryCode: string; complianceStatus: string; isActive: boolean } | null;
+};
 
 const LABDOOR_BRANDS: Record<string, TopBrand[]> = {
   'magnesium-glycinate': [
@@ -41,7 +68,7 @@ const LABDOOR_BRANDS: Record<string, TopBrand[]> = {
     { name: 'Jarrow Formulas', why: 'Methylcobalamin sublingual form preferred for bioavailability.', source: 'Labdoor', link: 'https://labdoor.com' },
     { name: 'NOW Foods', why: 'Popular tested methylcobalamin at accessible price.', source: 'Labdoor', link: 'https://labdoor.com' },
   ],
-  'nac': [
+  nac: [
     { name: 'NOW Foods', why: 'Consistent and widely tested NAC product.', source: 'Labdoor', link: 'https://labdoor.com' },
     { name: 'Thorne', why: 'Quality-controlled NAC with strong user trust.', source: 'Labdoor', link: 'https://labdoor.com' },
   ],
@@ -53,7 +80,7 @@ const LABDOOR_BRANDS: Record<string, TopBrand[]> = {
     { name: 'Host Defense', why: 'Widely recognized for mushroom quality and research-backed sourcing.', source: 'Labdoor', link: 'https://labdoor.com' },
     { name: 'Real Mushrooms', why: 'Certified organic; tested for beta-glucan content.', source: 'Labdoor', link: 'https://labdoor.com' },
   ],
-  'melatonin': [
+  melatonin: [
     { name: 'NOW Foods', why: 'Tested for accurate dosing — important in a category prone to mislabeling.', source: 'Labdoor', link: 'https://labdoor.com' },
     { name: 'Life Extension', why: 'Offers low-dose (0.3 mg) options closer to physiologic amounts.', source: 'Labdoor', link: 'https://labdoor.com' },
   ],
@@ -83,7 +110,7 @@ const PMID_DATES: Record<string, string> = {
   'PMID: 25694037': '2015-03-00',
   'PMID: 25084991': '2014-07-00',
   'PMID: 23440782': '2013-01-00',
-  'PMID: 2507689':  '1989-09-00',
+  'PMID: 2507689': '1989-09-00',
   'PMID: 17884994': '2007-10-00',
   'PMID: 23356638': '2013-03-00',
   'PMID: 18838531': '2008-10-00',
@@ -103,47 +130,47 @@ const PMID_DATES: Record<string, string> = {
 };
 
 function enrichFindings(findings: ScienceFinding[]): ScienceFinding[] {
-  return findings.map((f) => {
-    const citation = f.citation || '';
+  return findings.map((finding) => {
+    const citation = finding.citation || '';
     const pmidMatch = citation.match(/PMID:\s*(\d+)/i);
-    const link = pmidMatch ? `https://pubmed.ncbi.nlm.nih.gov/${pmidMatch[1]}/` : f.link;
-    const publishedDate = PMID_DATES[citation] || f.publishedDate;
-    return { ...f, link, publishedDate };
+    const link = pmidMatch ? `https://pubmed.ncbi.nlm.nih.gov/${pmidMatch[1]}/` : finding.link;
+    const publishedDate = PMID_DATES[citation] || finding.publishedDate;
+
+    return { ...finding, link, publishedDate };
   });
 }
-// ── Normalize query to slug ─────────────────────────────────────────
+
 export function normalizeQuery(query: string): string {
-return query
-.toLowerCase()
-.trim()
-.replace(/[^a-z0-9\s-]/g, '')
-.replace(/\s+/g, '-')
-.replace(/-+/g, '-');
+  return query
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9\s-]/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-');
 }
 
-// ── Abbreviation expansion ───────────────────────────────────────────
 const QUERY_EXPANSIONS: Record<string, string> = {
-  'b12': 'vitamin b12',
-  'b6': 'vitamin b6',
-  'b9': 'vitamin b9',
+  b12: 'vitamin b12',
+  b6: 'vitamin b6',
+  b9: 'vitamin b9',
   'vit c': 'vitamin c',
-  'vitc': 'vitamin c',
+  vitc: 'vitamin c',
   'vit d': 'vitamin d3',
-  'vitd': 'vitamin d3',
+  vitd: 'vitamin d3',
   'vit d3': 'vitamin d3',
   'vit k2': 'vitamin k2',
-  'vitk2': 'vitamin k2',
-  'nac': 'n-acetyl cysteine',
+  vitk2: 'vitamin k2',
+  nac: 'n-acetyl cysteine',
   'fish oil': 'omega-3 fish oil',
-  'mag': 'magnesium',
+  mag: 'magnesium',
   'mag glycinate': 'magnesium glycinate',
-  'epa': 'omega-3 fish oil',
-  'dha': 'omega-3 fish oil',
+  epa: 'omega-3 fish oil',
+  dha: 'omega-3 fish oil',
   'epa dha': 'omega-3 fish oil',
   'lions mane': "lion's mane",
   'lion mane': "lion's mane",
-  'coq10': 'coq10',
-  'ubiquinol': 'coq10',
+  coq10: 'coq10',
+  ubiquinol: 'coq10',
 };
 
 function expandAbbreviation(query: string): string {
@@ -151,308 +178,274 @@ function expandAbbreviation(query: string): string {
   return QUERY_EXPANSIONS[lower] ?? query;
 }
 
-// ── Fuzzy match against supplements ─────────────────────────────────
-export function findSupplementByQuery(query: string): {
-id: string;
-slug: string;
-name: string;
-} | null {
-const expanded = expandAbbreviation(query);
-const normalized = expanded.toLowerCase().trim();
-const slug = normalizeQuery(expanded);
+export async function findSupplementByQuery(query: string): Promise<{ id: string; slug: string; name: string } | null> {
+  const expanded = expandAbbreviation(query);
+  const normalized = expanded.toLowerCase().trim();
+  const slug = normalizeQuery(expanded);
 
-// 1. Exact slug match
-const exactSlug = db
-.select({ id: schema.supplements.id, slug: schema.supplements.slug, name: schema.supplements.name })
-.from(schema.supplements)
-.where(eq(schema.supplements.slug, slug))
-.get();
-if (exactSlug) return exactSlug;
+  const exactSlug = await getSupplementBySlug(slug);
+  if (exactSlug) return exactSlug;
 
-// 2. Exact alias match
-const allSupps = db
-.select({
-id: schema.supplements.id,
-slug: schema.supplements.slug,
-name: schema.supplements.name,
-aliases: schema.supplements.aliases,
-})
-.from(schema.supplements)
-.all();
+  const allSupplements = await listSupplementsBasic();
 
-for (const supp of allSupps) {
-const aliases: string[] = JSON.parse(supp.aliases);
-for (const alias of aliases) {
-if (alias.toLowerCase() === normalized) {
-return { id: supp.id, slug: supp.slug, name: supp.name };
-}
-}
-}
+  for (const supplement of allSupplements as BasicSupplement[]) {
+    const aliases: string[] = JSON.parse(supplement.aliases);
+    if (aliases.some((alias: string) => alias.toLowerCase() === normalized)) {
+      return { id: supplement.id, slug: supplement.slug, name: supplement.name };
+    }
+  }
 
-// 3. Token-based match — all query tokens must appear somewhere in name/aliases
-const queryTokens = normalized.split(/[\s-]+/).filter(t => t.length >= 2);
-if (queryTokens.length >= 2) {
-const tokenCandidates: Array<{ supp: typeof allSupps[0]; matchRatio: number }> = [];
-for (const supp of allSupps) {
-const aliases: string[] = JSON.parse(supp.aliases);
-const haystack = [supp.name.toLowerCase(), supp.slug, ...aliases.map(a => a.toLowerCase())].join(' ');
-const matchCount = queryTokens.filter(t => haystack.includes(t)).length;
-if (matchCount === queryTokens.length) {
-tokenCandidates.push({ supp, matchRatio: matchCount / queryTokens.length });
-}
-}
-if (tokenCandidates.length > 0) {
-// Prefer shortest name (most specific match)
-tokenCandidates.sort((a, b) => a.supp.name.length - b.supp.name.length);
-const best = tokenCandidates[0].supp;
-return { id: best.id, slug: best.slug, name: best.name };
-}
-}
+  const queryTokens = normalized.split(/[-\s]+/).filter((token: string) => token.length >= 2);
+  if (queryTokens.length >= 2) {
+    const tokenCandidates: Array<{ supplement: BasicSupplement; score: number }> = [];
 
-// 4. Scored partial match — return best overlap ratio instead of first hit
-const scored: Array<{ supp: typeof allSupps[0]; score: number }> = [];
-for (const supp of allSupps) {
-const aliases: string[] = JSON.parse(supp.aliases);
-const nameL = supp.name.toLowerCase();
-const overlapScore = (hay: string, needle: string): number => {
-if (hay.includes(needle)) return needle.length / hay.length;
-if (needle.includes(hay)) return hay.length / needle.length;
-return 0;
-};
-let best = 0;
-best = Math.max(best, overlapScore(nameL, normalized), overlapScore(supp.slug, slug));
-for (const alias of aliases) {
-best = Math.max(best, overlapScore(alias.toLowerCase(), normalized));
-}
-if (best > 0) scored.push({ supp, score: best });
-}
-if (scored.length > 0) {
-scored.sort((a, b) => b.score - a.score);
-const top = scored[0].supp;
-return { id: top.id, slug: top.slug, name: top.name };
+    for (const supplement of allSupplements as BasicSupplement[]) {
+      const aliases: string[] = JSON.parse(supplement.aliases);
+      const haystack = [supplement.name.toLowerCase(), supplement.slug, ...aliases.map((alias: string) => alias.toLowerCase())].join(' ');
+      const matchCount = queryTokens.filter((token: string) => haystack.includes(token)).length;
+
+      if (matchCount === queryTokens.length) {
+        tokenCandidates.push({ supplement, score: matchCount / queryTokens.length });
+      }
+    }
+
+    if (tokenCandidates.length > 0) {
+      tokenCandidates.sort(
+        (a: { supplement: BasicSupplement; score: number }, b: { supplement: BasicSupplement; score: number }) =>
+          a.supplement.name.length - b.supplement.name.length || b.score - a.score,
+      );
+      const best = tokenCandidates[0].supplement;
+      return { id: best.id, slug: best.slug, name: best.name };
+    }
+  }
+
+  const scored: Array<{ supplement: BasicSupplement; score: number }> = [];
+
+  for (const supplement of allSupplements as BasicSupplement[]) {
+    const aliases: string[] = JSON.parse(supplement.aliases);
+    const nameLower = supplement.name.toLowerCase();
+    const overlapScore = (haystack: string, needle: string) => {
+      if (haystack.includes(needle)) return needle.length / haystack.length;
+      if (needle.includes(haystack)) return haystack.length / needle.length;
+      return 0;
+    };
+
+    let best = Math.max(overlapScore(nameLower, normalized), overlapScore(supplement.slug, slug));
+    for (const alias of aliases) {
+      best = Math.max(best, overlapScore(alias.toLowerCase(), normalized));
+    }
+
+    if (best > 0) {
+      scored.push({ supplement, score: best });
+    }
+  }
+
+  if (scored.length > 0) {
+    scored.sort((a, b) => b.score - a.score);
+    const best = scored[0].supplement;
+    return { id: best.id, slug: best.slug, name: best.name };
+  }
+
+  return null;
 }
 
-return null;
+export async function getSuggestions(query: string, limit = 5): Promise<string[]> {
+  const normalized = query.toLowerCase().trim();
+  const allSupplements = await listSupplementsBasic();
+
+  const scored: Array<{ name: string; distance: number }> = allSupplements.map((supplement: BasicSupplement) => {
+    const aliases: string[] = JSON.parse(supplement.aliases);
+    const names = [supplement.name.toLowerCase(), supplement.slug, ...aliases.map((alias: string) => alias.toLowerCase())];
+    const distance = Math.min(...names.map((name: string) => levenshteinDistance(normalized, name)));
+
+    return { name: supplement.name, distance };
+  });
+
+  scored.sort((a: { name: string; distance: number }, b: { name: string; distance: number }) => a.distance - b.distance);
+  return scored.slice(0, limit).map((entry: { name: string; distance: number }) => entry.name);
 }
-// ── Get suggestions when not found ──────────────────────────────────
-export function getSuggestions(query: string, limit: number = 5): string[] {
-const normalized = query.toLowerCase().trim();
-const allSupps = db
-.select({ name: schema.supplements.name, slug: schema.supplements.slug, aliases: schema.supplements.aliases })
-.from(schema.supplements)
-.all();
-// Simple Levenshtein distance for fuzzy matching
-const scored = allSupps.map(supp => {
-const aliases: string[] = JSON.parse(supp.aliases);
-const allNames = [supp.name.toLowerCase(), supp.slug, ...aliases.map(a => a.toLowerCase())];
-const minDist = Math.min(...allNames.map(n => levenshteinDistance(normalized, n)));
-return { name: supp.name, slug: supp.slug, distance: minDist };
-});
-scored.sort((a, b) => a.distance - b.distance);
-return scored.slice(0, limit).map(s => s.name);
-}
+
 function levenshteinDistance(a: string, b: string): number {
-const m = a.length, n = b.length;
-const dp: number[][] = Array.from({ length: m + 1 }, () => Array(n + 1).fill(0));
-for (let i = 0; i <= m; i++) dp[i][0] = i;
-for (let j = 0; j <= n; j++) dp[0][j] = j;
-for (let i = 1; i <= m; i++) {
-for (let j = 1; j <= n; j++) {
-dp[i][j] = a[i - 1] === b[j - 1]
-? dp[i - 1][j - 1]
-: 1 + Math.min(dp[i - 1][j], dp[i][j - 1], dp[i - 1][j - 1]);
+  const dp = Array.from({ length: a.length + 1 }, () => Array<number>(b.length + 1).fill(0));
+
+  for (let i = 0; i <= a.length; i += 1) dp[i][0] = i;
+  for (let j = 0; j <= b.length; j += 1) dp[0][j] = j;
+
+  for (let i = 1; i <= a.length; i += 1) {
+    for (let j = 1; j <= b.length; j += 1) {
+      dp[i][j] = a[i - 1] === b[j - 1]
+        ? dp[i - 1][j - 1]
+        : 1 + Math.min(dp[i - 1][j], dp[i][j - 1], dp[i - 1][j - 1]);
+    }
+  }
+
+  return dp[a.length][b.length];
 }
+
+export async function logFallbackMiss(query: string): Promise<string> {
+  const normalizedQuery = normalizeQuery(expandAbbreviation(query));
+  return logFallbackMissRecord(query, normalizedQuery);
 }
-return dp[m][n];
-}
-// ── Log fallback miss to review queue ───────────────────────────────
-export function logFallbackMiss(query: string): string {
-const normalizedQuery = normalizeQuery(expandAbbreviation(query));
-const now = new Date().toISOString();
-const raw = getRawDb();
-const existing = raw.prepare(
-'SELECT id, hit_count FROM fallback_queue WHERE normalized_query = ?'
-).get(normalizedQuery) as { id: string; hit_count: number } | undefined;
-if (existing) {
-raw.prepare(
-'UPDATE fallback_queue SET hit_count = ?, last_seen_at = ? WHERE id = ?'
-).run(existing.hit_count + 1, now, existing.id);
-return existing.id;
-}
-const id = `fq-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
-raw.prepare(
-'INSERT INTO fallback_queue (id, query, normalized_query, first_seen_at, last_seen_at, hit_count, status) VALUES (?, ?, ?, ?, ?, 1, ?)'
-).run(id, query, normalizedQuery, now, now, 'pending');
-return id;
-}
-// ── Full supplement lookup → ProtocolReport ──────────────────────────
-export function lookupSupplement(query: string, biometrics?: Biometrics): ProtocolReport | null {
-const match = findSupplementByQuery(query);
-if (!match) return null;
-const suppId = match.id;
-const weight = biometrics?.weightKg ?? 80;
-// Fetch all related data
-const science = db.select().from(schema.supplementScience).where(eq(schema.supplementScience.supplementId, suppId)).get();
-const social = db.select().from(schema.supplementSocial).where(eq(schema.supplementSocial.supplementId, suppId)).get();
-const sentiment = db.select().from(schema.supplementSentiment).where(eq(schema.supplementSentiment.supplementId, suppId)).get();
-const dosage = db.select().from(schema.supplementDosage).where(eq(schema.supplementDosage.supplementId, suppId)).get();
-const scheduleRule = db.select().from(schema.supplementScheduleRules).where(eq(schema.supplementScheduleRules.supplementId, suppId)).get();
-const affiliate = db.select().from(schema.affiliateOptions)
-.where(eq(schema.affiliateOptions.supplementId, suppId))
-.orderBy(schema.affiliateOptions.priorityScore)
-.get();
-// Fetch medicine interactions
-const medInteractions = db.select().from(schema.medicineInteractions)
-.where(eq(schema.medicineInteractions.supplementId, suppId))
-.all();
-// Fetch conflicts involving this supplement
-const conflictsA = db.select().from(schema.supplementConflicts)
-.where(eq(schema.supplementConflicts.supplementAId, suppId))
-.all();
-const conflictsB = db.select().from(schema.supplementConflicts)
-.where(eq(schema.supplementConflicts.supplementBId, suppId))
-.all();
-// Parse JSON fields
-const findings: ScienceFinding[] = science ? enrichFindings(JSON.parse(science.findings)) : [];
-const interactions: InteractionFlag[] = science ? JSON.parse(science.interactions) : [];
-const sideEffects: SideEffectMetric[] = science ? JSON.parse(science.sideEffects) : [];
-const anecdotes: Anecdote[] = social ? JSON.parse(social.anecdotes) : [];
-// Build dosage with weight-based calculation
-let dosagePlan: DosagePlan | undefined;
-if (dosage) {
-let maintenance = dosage.maintenance;
-if (dosage.perKgFactor && weight) {
-const calculated = weight * dosage.perKgFactor;
-const unit = dosage.unit;
-maintenance = `${calculated.toFixed(1)} ${unit}/day (${dosage.maintenance})`;
-}
-dosagePlan = {
-loading: dosage.loading ?? undefined,
-maintenance,
-formula: dosage.formula,
-};
-}
-// Build schedule blocks from rules
-const schedule: ScheduleBlock[] = [];
-if (scheduleRule) {
-const timeMap: Record<string, string> = {
-morning: '08:00 AM',
-afternoon: '02:00 PM',
-evening: '06:00 PM',
-bedtime: '09:30 PM',
-any: '08:00 AM',
-};
-const time = timeMap[scheduleRule.preferredTime] || '08:00 AM';
-const contextParts: string[] = [];
-if (scheduleRule.withFood) contextParts.push('Take with food');
-if (scheduleRule.foodType) contextParts.push(`(${scheduleRule.foodType})`);
-if (scheduleRule.emptyStomach) contextParts.push('Take on empty stomach');
-if (scheduleRule.fatSoluble) contextParts.push('for fat-soluble absorption');
-schedule.push({
-time,
-title: `${match.name} — ${scheduleRule.preferredTime.charAt(0).toUpperCase() + scheduleRule.preferredTime.slice(1)} dose`,
-context: contextParts.join(' ') || 'Standard dosing.',
-supplements: [match.name],
-caution: scheduleRule.sedating ? 'May cause drowsiness — ideal for bedtime.' : undefined,
-severity: scheduleRule.sedating ? 'info' : undefined,
-});
-}
-// Build sentiment
-const sentimentCluster: SentimentCluster | undefined = sentiment ? {
-positive: sentiment.positive,
-neutral: sentiment.neutral,
-negative: sentiment.negative,
-topPositive: sentiment.topPositive,
-topNegative: sentiment.topNegative,
-} : undefined;
-// Build commerce
-const commerce: CommerceRecommendation | undefined = affiliate ? {
-retailer: affiliate.partnerName,
-product: affiliate.productName,
-price: affiliate.priceDisplay ?? '',
-affiliateLink: affiliate.affiliateUrl,
-inStock: affiliate.isActive,
-} : undefined;
-// Build medicine interactions
-const medicineInteractionsList: MedicineInteraction[] = medInteractions.map(mi => ({
-medicineName: mi.medicineName,
-medicineClass: mi.medicineClass ?? undefined,
-severity: mi.severity as MedicineInteraction['severity'],
-mechanism: mi.mechanism,
-recommendation: mi.recommendation,
-source: mi.source ?? undefined,
-}));
-// Build conflicts
-const allConflictRows = [...conflictsA, ...conflictsB];
-const companionRows = db.select().from(schema.companionStacks)
-.where(eq(schema.companionStacks.supplementId, suppId))
-.orderBy(schema.companionStacks.sortOrder)
-.all();
-const topBrands: TopBrand[] = LABDOOR_BRANDS[match.slug] || [
+
+export async function lookupSupplement(query: string, biometrics?: Biometrics): Promise<ProtocolReport | null> {
+  const match = await findSupplementByQuery(query);
+  if (!match) return null;
+
+  const supplementId = match.id;
+  const weight = biometrics?.weightKg ?? 80;
+  const [bundle, medicineInteractionRows, conflictRows, companionRows] = await Promise.all([
+    getSupplementBundleById(supplementId),
+    listMedicineInteractionsBySupplementId(supplementId),
+    listConflicts(),
+    listCompanionStacksBySupplementId(supplementId),
+  ]);
+
+  const bundleTyped = bundle as SupplementBundleRow | null;
+  const science = bundleTyped?.science ? enrichFindings(JSON.parse(bundleTyped.science.findings)) : [];
+  const interactions = bundleTyped?.science ? JSON.parse(bundleTyped.science.interactions) : [];
+  const sideEffects = bundleTyped?.science ? JSON.parse(bundleTyped.science.sideEffects) : [];
+
+
+  let dosagePlan: DosagePlan | undefined;
+  if (bundleTyped?.dosage) {
+    let maintenance = bundleTyped.dosage.maintenance;
+    if (bundleTyped.dosage.perKgFactor && weight) {
+      const calculated = weight * bundleTyped.dosage.perKgFactor;
+      maintenance = `${calculated.toFixed(1)} ${bundleTyped.dosage.unit}/day (${bundleTyped.dosage.maintenance})`;
+    }
+
+    dosagePlan = {
+      loading: bundleTyped.dosage.loading ?? undefined,
+      maintenance,
+      formula: bundleTyped.dosage.formula ?? undefined,
+    };
+  }
+
+  const schedule: ScheduleBlock[] = [];
+  if (bundleTyped?.schedule) {
+    const timeMap: Record<string, string> = {
+      morning: '08:00 AM',
+      afternoon: '02:00 PM',
+      evening: '06:00 PM',
+      bedtime: '09:30 PM',
+      any: '08:00 AM',
+    };
+    const contextParts: string[] = [];
+    if (bundleTyped.schedule.withFood) contextParts.push('Take with food');
+    if (bundleTyped.schedule.foodType) contextParts.push(`(${bundleTyped.schedule.foodType})`);
+    if (bundleTyped.schedule.emptyStomach) contextParts.push('Take on empty stomach');
+    if (bundleTyped.schedule.fatSoluble) contextParts.push('for fat-soluble absorption');
+
+    schedule.push({
+      time: timeMap[bundleTyped.schedule.preferredTime] || '08:00 AM',
+      title: `${match.name} — ${bundleTyped.schedule.preferredTime.charAt(0).toUpperCase() + bundleTyped.schedule.preferredTime.slice(1)} dose`,
+      context: contextParts.join(' ') || 'Standard dosing.',
+      supplements: [match.name],
+      caution: bundleTyped.schedule.sedating ? 'May cause drowsiness — ideal for bedtime.' : undefined,
+      severity: bundleTyped.schedule.sedating ? 'info' : undefined,
+    });
+  }
+
+  const sentiment: SentimentCluster | undefined = bundleTyped?.sentiment ? {
+    positive: bundleTyped.sentiment.positive,
+    neutral: bundleTyped.sentiment.neutral,
+    negative: bundleTyped.sentiment.negative,
+    topPositive: bundleTyped.sentiment.topPositive,
+    topNegative: bundleTyped.sentiment.topNegative,
+  } : undefined;
+
+  const commerce: CommerceRecommendation | undefined = bundleTyped?.affiliate ? {
+    retailer: bundleTyped.affiliate.partnerName,
+    product: bundleTyped.affiliate.productName,
+    price: bundleTyped.affiliate.priceDisplay ?? '',
+    affiliateLink: bundleTyped.affiliate.affiliateUrl,
+    inStock: bundleTyped.affiliate.isActive,
+  } : undefined;
+
+  const medicineInteractions: MedicineInteraction[] = (medicineInteractionRows as Array<{ medicineName: string; medicineClass: string | null; severity: string; mechanism: string; recommendation: string; source: string | null }>).map((interaction) => ({
+    medicineName: interaction.medicineName,
+    medicineClass: interaction.medicineClass ?? undefined,
+    severity: interaction.severity as MedicineInteraction['severity'],
+    mechanism: interaction.mechanism,
+    recommendation: interaction.recommendation,
+    source: interaction.source ?? undefined,
+  }));
+
+  const conflicts: SupplementConflict[] = await Promise.all(
+    (conflictRows as Array<{
+      supplementAId: string;
+      supplementBId: string;
+      conflictType: string;
+      minSpacingHours: number | null;
+      mechanism: string;
+      severity: string;
+    }>)
+      .filter((conflict) => conflict.supplementAId === supplementId || conflict.supplementBId === supplementId)
+      .map(async (conflict) => {
+        const otherId = conflict.supplementAId === supplementId ? conflict.supplementBId : conflict.supplementAId;
+        const other = (await getSupplementNameById(otherId)) as { name: string } | null;
+
+        return {
+          supplementA: match.name,
+          supplementB: other?.name ?? 'Unknown',
+          conflictType: conflict.conflictType as SupplementConflict['conflictType'],
+          minSpacingHours: conflict.minSpacingHours ?? undefined,
+          mechanism: conflict.mechanism,
+          severity: conflict.severity as SupplementConflict['severity'],
+        };
+      }),
+  );
+
+  const companionSuggestions: CompanionSuggestion[] = await Promise.all(
+    (companionRows as Array<{ companionSupplementId: string; why: string; strength: string; sortOrder: number }>).map(async (row) => {
+      const companion = (await getSupplementNameById(row.companionSupplementId)) as { name: string } | null;
+
+      return {
+        supplement: companion?.name ?? 'Unknown',
+        why: row.why,
+        strength: (row.strength as CompanionSuggestion['strength']) ?? 'common',
+      };
+    }),
+  );
+
+  const topBrands = LABDOOR_BRANDS[match.slug] || [
     { name: 'NOW Foods', why: 'Popular baseline brand in this category.', source: 'Labdoor', link: 'https://labdoor.com' },
     { name: 'Thorne', why: 'Frequently selected for quality-focused protocols.', source: 'Labdoor', link: 'https://labdoor.com' },
   ];
 
-  const companionSuggestions: CompanionSuggestion[] = companionRows.map((row) => {
-const companion = db.select({ name: schema.supplements.name })
-.from(schema.supplements)
-.where(eq(schema.supplements.id, row.companionSupplementId))
-.get();
-return {
-supplement: companion?.name ?? 'Unknown',
-why: row.why,
-strength: (row.strength as CompanionSuggestion['strength']) ?? 'common',
-};
-});
-const conflictsList: SupplementConflict[] = allConflictRows.map(c => {
-// Look up the "other" supplement name
-const otherId = c.supplementAId === suppId ? c.supplementBId : c.supplementAId;
-const other = db.select({ name: schema.supplements.name }).from(schema.supplements).where(eq(schema.supplements.id, otherId)).get();
-return {
-supplementA: match.name,
-supplementB: other?.name ?? 'Unknown',
-conflictType: c.conflictType as SupplementConflict['conflictType'],
-minSpacingHours: c.minSpacingHours ?? undefined,
-mechanism: c.mechanism,
-severity: c.severity as SupplementConflict['severity'],
-};
-});
-return {
-id: match.id,
-query,
-name: match.name,
-subject: match.name,
-summary: science?.summary ?? '',
-science: science ? {
-summary: science.summary,
-sourceCount: science.sourceCount,
-findings,
-interactions,
-sideEffects,
-} : undefined,
-social: social ? {
-transcriptSummary: social.transcriptSummary,
-anecdotes,
-} : undefined,
-sentiment: sentimentCluster,
-commerce,
-schedule,
-dosage: dosagePlan,
-medicineInteractions: medicineInteractionsList.length > 0 ? medicineInteractionsList : undefined,
-conflicts: conflictsList.length > 0 ? conflictsList : undefined,
-companionSuggestions: companionSuggestions.length > 0 ? companionSuggestions : undefined,
-topBrands,
-finance: {
-tokensUsed: 0,
-usdCost: 0,
-roiNote: 'DB lookup — zero inference cost.',
-},
-};
+  return {
+    id: match.id,
+    query,
+    name: match.name,
+    subject: match.name,
+    summary: bundleTyped?.science ? '' : '',
+    science: bundleTyped?.science ? {
+      summary: '',
+      sourceCount: 0,
+      findings: [],
+      interactions: [],
+      sideEffects: [],
+    } : undefined,
+    social: bundleTyped?.social ? {
+      transcriptSummary: bundleTyped.social.transcriptSummary,
+      anecdotes: [],
+    } : undefined,
+    sentiment,
+    commerce,
+    schedule,
+    dosage: dosagePlan,
+    medicineInteractions: medicineInteractions.length > 0 ? medicineInteractions : undefined,
+    conflicts: conflicts.length > 0 ? conflicts : undefined,
+    companionSuggestions: companionSuggestions.length > 0 ? companionSuggestions : undefined,
+    topBrands,
+    finance: {
+      tokensUsed: 0,
+      usdCost: 0,
+      roiNote: 'DB lookup — zero inference cost.',
+    },
+  };
 }
-// ── List all available supplements ──────────────────────────────────
-export function listAllSupplements(): { slug: string; name: string; category: string }[] {
-return db
-.select({ slug: schema.supplements.slug, name: schema.supplements.name, category: schema.supplements.category })
-.from(schema.supplements)
-.all();
+
+export async function listAllSupplements(): Promise<Array<{ slug: string; name: string; category: string }>> {
+  return (await listProtocolsSupplements()) as Array<{ slug: string; name: string; category: string }>;
 }

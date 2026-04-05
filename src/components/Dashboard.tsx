@@ -2,8 +2,9 @@
 import React from 'react';
 import * as TabsPrimitive from '@radix-ui/react-tabs';
 import { cn } from '@/lib/utils';
-import { Search, FlaskConical, Activity, Calendar, ShoppingCart, AlertTriangle, Fingerprint, Plus, Pill, User } from 'lucide-react';
-import type { ProtocolReport, SchedulerOutput } from '@/lib/protocol-types';
+import { Search, FlaskConical, Activity, Calendar, Fingerprint, Plus, Pill, User } from 'lucide-react';
+import type { Biometrics, ProtocolReport, SchedulerOutput } from '@/lib/protocol-types';
+
 const Card = ({ className, children }: { className?: string; children: React.ReactNode }) => (
 <div className="relative group">
 <div className="absolute -inset-[1px] bg-gradient-to-r from-cyan-500/20 via-indigo-500/20 to-emerald-500/20 rounded-2xl blur-md opacity-50 group-hover:opacity-100 transition duration-500" />
@@ -16,17 +17,30 @@ const Input = (props: React.InputHTMLAttributes<HTMLInputElement>) => (
 className={cn('flex h-12 w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500 transition-all', props.className)}
 />
 );
-const Button = ({ children, variant = 'default', className, ...props }: any) => {
+
+type ButtonVariant = 'default' | 'primary' | 'ghost';
+
+type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
+children: React.ReactNode;
+variant?: ButtonVariant;
+};
+
+const Button = ({ children, variant = 'default', className, ...props }: ButtonProps) => {
 const base = 'inline-flex items-center justify-center rounded-xl text-sm font-bold transition-all focus:outline-none focus:ring-2 focus:ring-cyan-500/50 disabled:opacity-50 disabled:pointer-events-none h-12 px-6';
-const variants = {
+const variants: Record<ButtonVariant, string> = {
 default: 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 hover:bg-cyan-500/20',
 primary: 'bg-gradient-to-r from-indigo-500 to-cyan-500 text-white border border-white/10',
 ghost: 'hover:bg-white/5 text-slate-300 hover:text-white shadow-none h-10 px-4',
 };
-return <button className={cn(base, variants[variant as keyof typeof variants], className)} {...props}>{children}</button>;
+return <button className={cn(base, variants[variant], className)} {...props}>{children}</button>;
 };
-const Badge = ({ children, className }: any) => (
-<span className={cn('inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-semibold', className)}>{children}</span>
+
+type BadgeProps = React.HTMLAttributes<HTMLSpanElement> & {
+children: React.ReactNode;
+};
+
+const Badge = ({ children, className, ...props }: BadgeProps) => (
+<span className={cn('inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-semibold', className)} {...props}>{children}</span>
 );
 const SUPPLEMENT_DICTIONARY = [
   // Original 10
@@ -38,7 +52,18 @@ const SUPPLEMENT_DICTIONARY = [
   'Berberine HCl', "Lion's Mane Mushroom", 'Melatonin', 'Rhodiola Rosea', 'Collagen Peptides',
   'Boron', 'Turkey Tail Mushroom',
 ];
-const SupplementAutocomplete = ({ value, onChange, onSelect, placeholder, className, inputClassName, icon }: any) => {
+
+type SupplementAutocompleteProps = {
+value: string;
+onChange: (value: string) => void;
+onSelect?: (value: string) => void;
+placeholder?: string;
+className?: string;
+inputClassName?: string;
+icon?: React.ReactNode;
+};
+
+const SupplementAutocomplete = ({ value, onChange, onSelect, placeholder, className, inputClassName, icon }: SupplementAutocompleteProps) => {
 const [show, setShow] = React.useState(false);
 const filtered = React.useMemo(() => {
 if (!value) return [];
@@ -93,7 +118,7 @@ const [errorMsg, setErrorMsg] = React.useState<string | null>(null);
 const [runtimeMs, setRuntimeMs] = React.useState<number | null>(null);
 const [weight, setWeight] = React.useState('');
 const [age, setAge] = React.useState('');
-const [gender, setGender] = React.useState('male');
+const [gender, setGender] = React.useState<Biometrics['sex']>('male');
 const [schedulerInput, setSchedulerInput] = React.useState('');
 const [schedulerSupplements, setSchedulerSupplements] = React.useState<string[]>(['Vitamin D3', 'Magnesium Glycinate', 'Iron', 'Melatonin', 'Boron']);
 const [schedulerResult, setSchedulerResult] = React.useState<SchedulerOutput | null>(null);

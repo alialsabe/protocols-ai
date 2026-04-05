@@ -1,9 +1,8 @@
-/**
- * Deterministic scheduler engine for Protocols.ai
- * Assigns time slots, detects conflicts, resolves spacing requirements.
- */
-import { db, schema } from './db';
-import { eq, or } from 'drizzle-orm';
+import {
+  getScheduleRuleBySupplementId,
+  listConflicts,
+  listMedicineInteractionsBySupplementId,
+} from './db';
 import type {
   ScheduleBlock,
   SchedulerInput,
@@ -13,7 +12,16 @@ import type {
 } from './protocol-types';
 import { findSupplementByQuery } from './supplement-lookup';
 
-// ── Types for internal use ──────────────────────────────────────────
+type ScheduleRuleRow = {
+  preferredTime: string;
+  withFood: number | boolean;
+  foodType: string | null;
+  emptyStomach: number | boolean;
+  fatSoluble: number | boolean;
+  stimulant: number | boolean;
+  sedating: number | boolean;
+};
+
 interface SupplementSlot {
   suppId: string;
   slug: string;
@@ -25,7 +33,7 @@ interface SupplementSlot {
   fatSoluble: boolean;
   stimulant: boolean;
   sedating: boolean;
-  assignedSlot: string; // HH:MM
+  assignedSlot: string;
 }
 
 interface ConflictPair {
@@ -37,7 +45,6 @@ interface ConflictPair {
   severity: string;
 }
 
-// ── Default routine ─────────────────────────────────────────────────
 const DEFAULT_ROUTINE: UserRoutine = {
   wakeTime: '07:00',
   sleepTime: '23:00',
@@ -48,40 +55,37 @@ const DEFAULT_ROUTINE: UserRoutine = {
   },
 };
 
-// ── Time utilities ──────────────────────────────────────────────────
 function timeToMinutes(time: string): number {
-  const [h, m] = time.split(':').map(Number);
-  return h * 60 + m;
+  const [hours, minutes] = time.split(':').map(Number);
+  return hours * 60 + minutes;
 }
 
-function minutesToTime(mins: number): string {
-  const h = Math.floor(mins / 60) % 24;
-  const m = mins % 60;
-  return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
+function minutesToTime(minutes: number): string {
+  const hours = Math.floor(minutes / 60) % 24;
+  const mins = minutes % 60;
+  return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
 }
 
 function formatTime12h(time24: string): string {
-  const [h, m] = time24.split(':').map(Number);
-  const period = h >= 12 ? 'PM' : 'AM';
-  const h12 = h === 0 ? 12 : h > 12 ? h - 12 : h;
-  return `${h12.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')} ${period}`;
+  const [hours, minutes] = time24.split(':').map(Number);
+  const period = hours >= 12 ? 'PM' : 'AM';
+  const displayHours = hours === 0 ? 12 : hours > 12 ? hours - 12 : hours;
+  return `${displayHours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')} ${period}`;
 }
 
 function minutesDiff(a: string, b: string): number {
   return Math.abs(timeToMinutes(a) - timeToMinutes(b));
 }
 
-// ── Main scheduler function ─────────────────────────────────────────
-export function generateSchedule(input: SchedulerInput): SchedulerOutput {
+export async function generateSchedule(input: SchedulerInput): Promise<SchedulerOutput> {
   const routine = input.routine ?? DEFAULT_ROUTINE;
   const warnings: SchedulerWarning[] = [];
-
-  // 1. Resolve supplement slugs to IDs and load schedule rules
   const slots: SupplementSlot[] = [];
-  const resolvedIds: Map<string, { id: string; name: string; slug: string }> = new Map();
+  const resolvedIds = new Map<string, { id: string; name: string; slug: string }>();
 
   for (const slugOrQuery of input.supplements) {
-    const match = findSupplementByQuery(slugOrQuery);
+    const match = await findSupplementByQuery(slugOrQuery);
+
     if (!match) {
       warnings.push({
         type: 'conflict',
@@ -93,15 +97,9 @@ export function generateSchedule(input: SchedulerInput): SchedulerOutput {
     }
 
     resolvedIds.set(match.id, match);
-
-    const rule = db
-      .select()
-      .from(schema.supplementScheduleRules)
-      .where(eq(schema.supplementScheduleRules.supplementId, match.id))
-      .get();
+    const rule = (await getScheduleRuleBySupplementId(match.id)) as ScheduleRuleRow | null;
 
     if (!rule) {
-      // Default rule if none in DB
       slots.push({
         suppId: match.id,
         slug: match.slug,
@@ -115,74 +113,81 @@ export function generateSchedule(input: SchedulerInput): SchedulerOutput {
         sedating: false,
         assignedSlot: routine.meals.breakfast,
       });
-    } else {
-      slots.push({
-        suppId: match.id,
-        slug: match.slug,
-        name: match.name,
-        preferredTime: rule.preferredTime,
-        withFood: rule.withFood,
-        foodType: rule.foodType,
-        emptyStomach: rule.emptyStomach,
-        fatSoluble: rule.fatSoluble,
-        stimulant: rule.stimulant,
-        sedating: rule.sedating,
-        assignedSlot: '', // will be assigned
-      });
+      continue;
     }
+
+    slots.push({
+      suppId: match.id,
+      slug: match.slug,
+      name: match.name,
+      preferredTime: rule.preferredTime,
+      withFood: Boolean(rule.withFood),
+      foodType: rule.foodType,
+      emptyStomach: Boolean(rule.emptyStomach),
+      fatSoluble: Boolean(rule.fatSoluble),
+      stimulant: Boolean(rule.stimulant),
+      sedating: Boolean(rule.sedating),
+      assignedSlot: '',
+    });
   }
 
-  // 2. Assign initial time slots based on preferred_time + food rules
   for (const slot of slots) {
     slot.assignedSlot = assignTimeSlot(slot, routine);
   }
 
-  // 3. Load conflicts between resolved supplements
-  const suppIds = [...resolvedIds.keys()];
+  const supplementIds = [...resolvedIds.keys()];
   const conflicts: ConflictPair[] = [];
 
-  if (suppIds.length > 1) {
-    const allConflicts = db.select().from(schema.supplementConflicts).all();
-    for (const c of allConflicts) {
-      if (suppIds.includes(c.supplementAId) && suppIds.includes(c.supplementBId)) {
+  if (supplementIds.length > 1) {
+    const allConflicts = await listConflicts();
+    for (const conflict of allConflicts as Array<{
+      supplementAId: string;
+      supplementBId: string;
+      conflictType: string;
+      minSpacingHours: number | null;
+      mechanism: string;
+      severity: string;
+    }>) {
+      if (supplementIds.includes(conflict.supplementAId) && supplementIds.includes(conflict.supplementBId)) {
         conflicts.push({
-          aId: c.supplementAId,
-          bId: c.supplementBId,
-          conflictType: c.conflictType,
-          minSpacingHours: c.minSpacingHours,
-          mechanism: c.mechanism,
-          severity: c.severity,
+          aId: conflict.supplementAId,
+          bId: conflict.supplementBId,
+          conflictType: conflict.conflictType,
+          minSpacingHours: conflict.minSpacingHours,
+          mechanism: conflict.mechanism,
+          severity: conflict.severity,
         });
       }
     }
   }
 
-  // 4. Check medication interactions
   if (input.medications && input.medications.length > 0) {
     for (const slot of slots) {
-      const medInteractions = db
-        .select()
-        .from(schema.medicineInteractions)
-        .where(eq(schema.medicineInteractions.supplementId, slot.suppId))
-        .all();
+      const medicineInteractions = await listMedicineInteractionsBySupplementId(slot.suppId);
 
-      for (const mi of medInteractions) {
-        for (const userMed of input.medications) {
-          const medLower = userMed.toLowerCase();
+      for (const interaction of medicineInteractions as Array<{
+        medicineName: string;
+        medicineClass: string | null;
+        severity: string;
+        mechanism: string;
+        recommendation: string;
+      }>) {
+        for (const userMedication of input.medications) {
+          const medicationLower = userMedication.toLowerCase();
           if (
-            mi.medicineName.toLowerCase().includes(medLower) ||
-            (mi.medicineClass && mi.medicineClass.toLowerCase().includes(medLower))
+            interaction.medicineName.toLowerCase().includes(medicationLower)
+            || interaction.medicineClass?.toLowerCase().includes(medicationLower)
           ) {
-            const severity = mi.severity === 'contraindicated' || mi.severity === 'high'
-              ? 'critical' as const
-              : mi.severity === 'moderate'
-                ? 'warning' as const
-                : 'info' as const;
+            const severity = interaction.severity === 'contraindicated' || interaction.severity === 'high'
+              ? 'critical'
+              : interaction.severity === 'moderate'
+                ? 'warning'
+                : 'info';
 
             warnings.push({
               type: 'medication',
               severity,
-              message: `${slot.name} × ${mi.medicineName}: ${mi.mechanism}. ${mi.recommendation}`,
+              message: `${slot.name} × ${interaction.medicineName}: ${interaction.mechanism}. ${interaction.recommendation}`,
               supplements: [slot.slug],
             });
           }
@@ -191,14 +196,13 @@ export function generateSchedule(input: SchedulerInput): SchedulerOutput {
     }
   }
 
-  // 5. Detect and resolve conflicts
   for (const conflict of conflicts) {
-    const slotA = slots.find(s => s.suppId === conflict.aId);
-    const slotB = slots.find(s => s.suppId === conflict.bId);
+    const slotA = slots.find((slot) => slot.suppId === conflict.aId);
+    const slotB = slots.find((slot) => slot.suppId === conflict.bId);
+
     if (!slotA || !slotB) continue;
 
     if (conflict.conflictType === 'synergistic') {
-      // Synergistic: try to co-locate if not already together
       warnings.push({
         type: 'conflict',
         severity: 'info',
@@ -209,20 +213,17 @@ export function generateSchedule(input: SchedulerInput): SchedulerOutput {
     }
 
     if (conflict.conflictType === 'antagonistic' || conflict.conflictType === 'spacing_required') {
-      const spacingMins = (conflict.minSpacingHours ?? 2) * 60;
+      const spacingMinutes = (conflict.minSpacingHours ?? 2) * 60;
       const currentDiff = minutesDiff(slotA.assignedSlot, slotB.assignedSlot);
 
-      if (currentDiff < spacingMins) {
-        // Resolve: move the later supplement to ensure spacing
-        const aMin = timeToMinutes(slotA.assignedSlot);
-        const bMin = timeToMinutes(slotB.assignedSlot);
+      if (currentDiff < spacingMinutes) {
+        const slotAMinutes = timeToMinutes(slotA.assignedSlot);
+        const slotBMinutes = timeToMinutes(slotB.assignedSlot);
 
-        if (aMin <= bMin) {
-          // Move B later
-          slotB.assignedSlot = minutesToTime(aMin + spacingMins);
+        if (slotAMinutes <= slotBMinutes) {
+          slotB.assignedSlot = minutesToTime(slotAMinutes + spacingMinutes);
         } else {
-          // Move A later
-          slotA.assignedSlot = minutesToTime(bMin + spacingMins);
+          slotA.assignedSlot = minutesToTime(slotBMinutes + spacingMinutes);
         }
 
         warnings.push({
@@ -235,54 +236,44 @@ export function generateSchedule(input: SchedulerInput): SchedulerOutput {
     }
   }
 
-  // 6. Check food conflicts (empty stomach supplements near meal supplements)
-  const emptyStomachSlots = slots.filter(s => s.emptyStomach);
-  const withFoodSlots = slots.filter(s => s.withFood);
-
-  for (const es of emptyStomachSlots) {
-    const closestMeal = findClosestMealTime(es.assignedSlot, routine);
-    if (minutesDiff(es.assignedSlot, closestMeal) < 30) {
-      // Move empty-stomach supplement 30 min before the meal
-      const mealMins = timeToMinutes(closestMeal);
-      es.assignedSlot = minutesToTime(Math.max(timeToMinutes(routine.wakeTime), mealMins - 30));
+  for (const slot of slots.filter((entry) => entry.emptyStomach)) {
+    const closestMeal = findClosestMealTime(slot.assignedSlot, routine);
+    if (minutesDiff(slot.assignedSlot, closestMeal) < 30) {
+      slot.assignedSlot = minutesToTime(Math.max(timeToMinutes(routine.wakeTime), timeToMinutes(closestMeal) - 30));
       warnings.push({
         type: 'food',
         severity: 'info',
-        message: `${es.name} is best taken on an empty stomach. Scheduled 30 min before nearest meal.`,
-        supplements: [es.slug],
+        message: `${slot.name} is best taken on an empty stomach. Scheduled 30 min before nearest meal.`,
+        supplements: [slot.slug],
       });
     }
   }
 
-  // 7. Sort by time and group into blocks
   slots.sort((a, b) => timeToMinutes(a.assignedSlot) - timeToMinutes(b.assignedSlot));
-
+  const groups = groupByTime(slots);
   const blocks: ScheduleBlock[] = [];
-  const grouped = groupByTime(slots);
 
-  for (const [time, group] of grouped) {
-    const supplementNames = group.map(s => s.name);
-    const hasSedating = group.some(s => s.sedating);
-    const hasFatSoluble = group.some(s => s.fatSoluble);
-    const hasEmptyStomach = group.some(s => s.emptyStomach);
-    const hasWithFood = group.some(s => s.withFood);
+  for (const [time, group] of groups) {
+    const supplementNames = group.map((slot) => slot.name);
+    const hasSedating = group.some((slot) => slot.sedating);
+    const hasFatSoluble = group.some((slot) => slot.fatSoluble);
+    const hasEmptyStomach = group.some((slot) => slot.emptyStomach);
+    const hasWithFood = group.some((slot) => slot.withFood);
 
-    // Build context
     const contextParts: string[] = [];
     if (hasWithFood) contextParts.push('Take with food');
     if (hasFatSoluble) contextParts.push('include healthy fats for optimal absorption');
     if (hasEmptyStomach) contextParts.push('Take on empty stomach');
 
-    const foodTypes = group.filter(s => s.foodType).map(s => s.foodType!);
-    if (foodTypes.length > 0) contextParts.push(`(${[...new Set(foodTypes)].join(', ')})`);
-
-    // Build title
-    const timeLabel = getTimeLabel(time);
+    const foodTypes = group.filter((slot) => slot.foodType).map((slot) => slot.foodType as string);
+    if (foodTypes.length > 0) {
+      contextParts.push(`(${[...new Set(foodTypes)].join(', ')})`);
+    }
 
     blocks.push({
       time: formatTime12h(time),
-      title: `${timeLabel} — ${supplementNames.join(' + ')}`,
-      context: contextParts.length > 0 ? contextParts.join('; ') + '.' : 'Standard dosing.',
+      title: `${getTimeLabel(time)} — ${supplementNames.join(' + ')}`,
+      context: contextParts.length > 0 ? `${contextParts.join('; ')}.` : 'Standard dosing.',
       supplements: supplementNames,
       caution: hasSedating ? 'Contains sedating supplement(s) — may cause drowsiness.' : undefined,
       severity: hasSedating ? 'warning' : undefined,
@@ -296,59 +287,51 @@ export function generateSchedule(input: SchedulerInput): SchedulerOutput {
   };
 }
 
-// ── Helper functions ────────────────────────────────────────────────
 function assignTimeSlot(slot: SupplementSlot, routine: UserRoutine): string {
   const preferredTimeMap: Record<string, () => string> = {
-    morning: () => {
-      if (slot.emptyStomach) {
-        // 30 min before breakfast
-        return minutesToTime(Math.max(timeToMinutes(routine.wakeTime), timeToMinutes(routine.meals.breakfast) - 30));
-      }
-      return routine.meals.breakfast;
-    },
+    morning: () => (slot.emptyStomach
+      ? minutesToTime(Math.max(timeToMinutes(routine.wakeTime), timeToMinutes(routine.meals.breakfast) - 30))
+      : routine.meals.breakfast),
     afternoon: () => routine.meals.lunch,
     evening: () => routine.meals.dinner,
-    bedtime: () => {
-      // 30 min before sleep
-      return minutesToTime(timeToMinutes(routine.sleepTime) - 30);
-    },
+    bedtime: () => minutesToTime(timeToMinutes(routine.sleepTime) - 30),
     any: () => routine.meals.breakfast,
   };
 
-  const fn = preferredTimeMap[slot.preferredTime];
-  return fn ? fn() : routine.meals.breakfast;
+  return preferredTimeMap[slot.preferredTime]?.() ?? routine.meals.breakfast;
 }
 
 function findClosestMealTime(time: string, routine: UserRoutine): string {
   const meals = [routine.meals.breakfast, routine.meals.lunch, routine.meals.dinner];
   let closest = meals[0];
-  let minDist = minutesDiff(time, meals[0]);
+  let minDistance = minutesDiff(time, meals[0]);
 
   for (const meal of meals.slice(1)) {
-    const dist = minutesDiff(time, meal);
-    if (dist < minDist) {
-      minDist = dist;
+    const distance = minutesDiff(time, meal);
+    if (distance < minDistance) {
       closest = meal;
+      minDistance = distance;
     }
   }
+
   return closest;
 }
 
 function groupByTime(slots: SupplementSlot[]): Map<string, SupplementSlot[]> {
   const groups = new Map<string, SupplementSlot[]>();
   for (const slot of slots) {
-    const time = slot.assignedSlot;
-    if (!groups.has(time)) groups.set(time, []);
-    groups.get(time)!.push(slot);
+    const group = groups.get(slot.assignedSlot) ?? [];
+    group.push(slot);
+    groups.set(slot.assignedSlot, group);
   }
   return groups;
 }
 
 function getTimeLabel(time24: string): string {
-  const mins = timeToMinutes(time24);
-  if (mins < 12 * 60) return 'Morning';
-  if (mins < 14 * 60) return 'Midday';
-  if (mins < 17 * 60) return 'Afternoon';
-  if (mins < 20 * 60) return 'Evening';
+  const minutes = timeToMinutes(time24);
+  if (minutes < 12 * 60) return 'Morning';
+  if (minutes < 14 * 60) return 'Midday';
+  if (minutes < 17 * 60) return 'Afternoon';
+  if (minutes < 20 * 60) return 'Evening';
   return 'Bedtime';
 }

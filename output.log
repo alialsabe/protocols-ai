@@ -1,0 +1,9 @@
+
+> protocols-ai@0.1.0 db:push
+> drizzle-kit push
+
+No config path provided, using default 'drizzle.config.ts'
+Reading config file '/home/ali/workspace/protocols-ai/drizzle.config.ts'
+Using 'postgres' driver for database querying
+[⣷] Pulling schema from database...
+[2K[1G[⣷] Pulling schema from database...

@@ -20,7 +20,7 @@ export async function POST(request: Request) {
   };
 
   const started = performance.now();
-  const result = generateSchedule(input);
+  const result = await generateSchedule(input);
 
   return NextResponse.json({
     schedule: result,

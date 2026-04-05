@@ -1,5 +1,4 @@
 import type { Biometrics, ProtocolReport } from './protocol-types';
-import { getMockProtocol } from './mock-protocols';
 
 export interface SwarmInput {
   query: string;

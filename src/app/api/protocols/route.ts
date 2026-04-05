@@ -22,7 +22,7 @@ export async function POST(request: Request) {
   const started = performance.now();
 
   // DB-first lookup
-  const report = lookupSupplement(query, biometrics);
+  const report = await lookupSupplement(query, biometrics);
 
   if (report) {
     return NextResponse.json({
@@ -33,9 +33,9 @@ export async function POST(request: Request) {
   }
 
   // Not found — log miss and return suggestions
-  const missId = logFallbackMiss(query);
-  const suggestions = getSuggestions(query);
-  const allSupplements = listAllSupplements();
+  const missId = await logFallbackMiss(query);
+  const suggestions = await getSuggestions(query);
+  const allSupplements = await listAllSupplements();
 
   return NextResponse.json({
     status: 'not_found',
