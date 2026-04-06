@@ -28,7 +28,10 @@ export function getConfiguredDatabaseDialect(): DatabaseDialect {
 }
 
 export function getPoolerUrl() {
-  return process.env.SUPABASE_POOLER_URL?.trim() || '';
+  return process.env.SUPABASE_POOLER_URL?.trim()
+    || process.env.POSTGRES_URL?.trim()
+    || process.env.DATABASE_URL?.trim()
+    || '';
 }
 
 export function assertProductionPoolerConfigured() {
