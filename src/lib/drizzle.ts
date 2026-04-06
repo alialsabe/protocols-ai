@@ -23,7 +23,7 @@ function getDb(): PostgresJsDatabase<typeof schema> {
     max: 6,
     idle_timeout: 20,
     connect_timeout: 10,
-    ssl: process.env.POSTGRES_SSL === 'disable' ? false : 'require',
+    ssl: process.env.POSTGRES_SSL === 'disable' ? false : { rejectUnauthorized: false },
     prepare: false, // required for Supabase transaction-mode pooler
   });
 
