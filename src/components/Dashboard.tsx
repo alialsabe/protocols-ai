@@ -290,6 +290,94 @@ return (
 <button onClick={() => setGender('female')} className={cn('px-3 py-2 rounded', gender === 'female' ? 'bg-cyan-500/20' : 'bg-black/40')}>Female</button>
 </div>
 </Card>
+{!report && (
+<Card className="p-6">
+<p className="text-sm text-slate-400">Analyze a supplement in <button onClick={() => setActiveView('research')} className="text-cyan-400 underline underline-offset-2 hover:text-cyan-300">Research Core</button> first to see personalized dosage data.</p>
+</Card>
+)}
+{report && (
+<>
+{report.dosage && (
+<Card className="p-6">
+<h3 className="text-lg font-bold text-white mb-4">Dosage — {report.name || report.subject}</h3>
+<div className="space-y-3">
+<div className="flex justify-between items-start border-b border-white/5 pb-3">
+<span className="text-sm text-slate-400">Maintenance</span>
+<span className="text-sm text-white font-medium text-right max-w-[60%]">{report.dosage.maintenance}</span>
+</div>
+{report.dosage.loading && (
+<div className="flex justify-between items-start border-b border-white/5 pb-3">
+<span className="text-sm text-slate-400">Loading phase</span>
+<span className="text-sm text-white font-medium text-right max-w-[60%]">{report.dosage.loading}</span>
+</div>
+)}
+{report.dosage.formula && (
+<div className="flex justify-between items-start border-b border-white/5 pb-3">
+<span className="text-sm text-slate-400">Formula</span>
+<span className="text-sm text-cyan-400 font-mono text-right max-w-[60%]">{report.dosage.formula}</span>
+</div>
+)}
+</div>
+</Card>
+)}
+{report.schedule && report.schedule.length > 0 && (
+<Card className="p-6">
+<h3 className="text-lg font-bold text-white mb-4">Schedule</h3>
+<div className="space-y-3">
+{report.schedule.map((block, i) => (
+<div key={i} className="p-3 bg-white/5 rounded-xl border border-white/10">
+<p className="font-semibold text-white">{block.time} — {block.title}</p>
+<p className="text-xs text-slate-400 mt-1">{block.context}</p>
+{block.caution && <p className="text-xs text-amber-300 mt-1">{block.caution}</p>}
+</div>
+))}
+</div>
+</Card>
+)}
+{report.topBrands && report.topBrands.length > 0 && (
+<Card className="p-6">
+<h3 className="text-lg font-bold text-white mb-4">Top Brands</h3>
+<div className="space-y-3">
+{report.topBrands.map((brand, i) => (
+<div key={i} className="flex items-start justify-between p-3 bg-white/5 rounded-xl border border-white/10">
+<div>
+<p className="text-sm font-semibold text-white">{brand.name}</p>
+<p className="text-xs text-slate-400 mt-1">{brand.why}</p>
+</div>
+{brand.link && <a href={brand.link} target="_blank" rel="noreferrer" className="text-xs text-cyan-400 underline shrink-0 ml-4">Source</a>}
+</div>
+))}
+</div>
+</Card>
+)}
+{report.conflicts && report.conflicts.length > 0 && (
+<Card className="p-6 border-amber-500/20">
+<h3 className="text-lg font-bold text-amber-300 mb-4">Conflicts</h3>
+<div className="space-y-3">
+{report.conflicts.map((c, i) => (
+<div key={i} className="p-3 bg-amber-500/5 rounded-xl border border-amber-500/10">
+<p className="text-sm text-white font-semibold">{c.supplementA} + {c.supplementB} <Badge className="ml-2 bg-amber-500/20 text-amber-300 border-amber-500/30">{c.severity}</Badge></p>
+<p className="text-xs text-slate-400 mt-1">{c.mechanism}</p>
+{c.minSpacingHours && <p className="text-xs text-amber-300 mt-1">Space by {c.minSpacingHours}h+</p>}
+</div>
+))}
+</div>
+</Card>
+)}
+{report.commerce && (
+<Card className="p-6">
+<h3 className="text-lg font-bold text-white mb-4">Where to Buy</h3>
+<div className="flex items-center justify-between p-3 bg-white/5 rounded-xl border border-white/10">
+<div>
+<p className="text-sm font-semibold text-white">{report.commerce.product}</p>
+<p className="text-xs text-slate-400 mt-1">{report.commerce.retailer}{report.commerce.price ? ` — ${report.commerce.price}` : ''}</p>
+</div>
+<a href={report.commerce.affiliateLink} target="_blank" rel="noreferrer" className="text-sm text-cyan-400 border border-cyan-500/20 px-4 py-2 rounded-xl hover:bg-cyan-500/10">View</a>
+</div>
+</Card>
+)}
+</>
+)}
 </div>
 )}
 {activeView === 'scheduler' && (
