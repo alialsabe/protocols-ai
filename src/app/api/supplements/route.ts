@@ -8,9 +8,15 @@ export async function GET() {
       total: rows.length,
     });
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : String(err);
-    const stack = err instanceof Error ? err.stack : undefined;
-    const code = (err as Record<string, unknown>)?.code;
-    return Response.json({ error: message, code, stack }, { status: 500 });
+    const e = err as Record<string, unknown>;
+    return Response.json({
+      error: e?.message ?? String(err),
+      code: e?.code,
+      severity: e?.severity,
+      detail: e?.detail,
+      hint: e?.hint,
+      cause: e?.cause ? String(e.cause) : undefined,
+      keys: Object.keys(e ?? {}),
+    }, { status: 500 });
   }
 }
