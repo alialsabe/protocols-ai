@@ -137,6 +137,8 @@ const q = (queryOverride ?? searchQuery).trim();
 if (!q) return setErrorMsg('Enter a supplement to analyze.');
 setLoading(true);
 setErrorMsg(null);
+setReport(null);
+setHasSearched(false);
 try {
 const response = await fetch('/api/protocols', {
 method: 'POST',
@@ -144,7 +146,13 @@ headers: { 'Content-Type': 'application/json' },
 body: JSON.stringify({ query: q, biometrics: { weightKg: weight ? Number(weight) : undefined, age: age ? Number(age) : undefined, sex: gender } }),
 });
 const data = await response.json().catch(() => ({}));
-if (!response.ok) throw new Error(data?.message ?? data?.error ?? 'Unable to analyze right now.');
+if (!response.ok) {
+  if (data?.status === 'not_found' && data?.suggestions?.length) {
+    setErrorMsg(`No data found for "${q}". Did you mean: ${data.suggestions.slice(0, 3).join(', ')}?`);
+    return;
+  }
+  throw new Error(data?.message ?? data?.error ?? 'Unable to analyze right now.');
+}
 setReport(data.report);
 setRuntimeMs(data.runtimeMs ?? null);
 setHasSearched(true);
@@ -209,6 +217,14 @@ return (
 <Button className="absolute right-2 h-12 z-20" variant="primary" onClick={() => triggerAnalysis()} disabled={loading}>{loading ? 'Analyzing...' : 'Analyze'}</Button>
 </div>
 {errorMsg && <p className="text-sm text-rose-400">{errorMsg}</p>}
+{loading && !report && (
+<div className="flex items-center justify-center py-20">
+<div className="flex flex-col items-center gap-4">
+<div className="w-10 h-10 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin" />
+<p className="text-sm text-slate-400">Analyzing supplement data...</p>
+</div>
+</div>
+)}
 {report && runtimeMs !== null && <p className="text-xs text-slate-500">Runtime: {runtimeMs.toFixed(0)} ms</p>}
 {hasSearched && report && (
 <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-6">
