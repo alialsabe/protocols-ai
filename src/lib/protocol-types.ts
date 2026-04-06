@@ -180,6 +180,8 @@ export interface ProtocolReport {
   conflicts?: SupplementConflict[];
   companionSuggestions?: CompanionSuggestion[];
   topBrands?: TopBrand[];
+  tags?: { tag: string; tagType: string }[];
+  popularityScore?: number;
   contraindications?: string[];
   recommendedDosage?: string;
   costPerDayEstimate?: number;

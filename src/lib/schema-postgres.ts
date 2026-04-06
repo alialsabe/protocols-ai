@@ -18,8 +18,17 @@ export const supplements = pgTable('supplements', {
   name: text('name').notNull(),
   aliases: text('aliases').notNull().default('[]'),
   category: text('category').notNull(),
+  popularityScore: integer('popularity_score').notNull().default(0),
   status: text('status').notNull().default('published'),
   ...timestamps(),
+});
+
+// ── supplement_tags ─────────────────────────────────────────────────
+export const supplementTags = pgTable('supplement_tags', {
+  id: id(),
+  supplementId: text('supplement_id').notNull().references(() => supplements.id),
+  tag: text('tag').notNull(),
+  tagType: text('tag_type').notNull().default('category'),
 });
 
 // ── supplement_science ──────────────────────────────────────────────

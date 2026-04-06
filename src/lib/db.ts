@@ -12,6 +12,7 @@ import {
   affiliateOptions,
   fallbackQueue,
   companionStacks,
+  supplementTags,
 } from './schema-postgres';
 import { isProductionPostgresRuntime } from './database-env';
 
@@ -43,7 +44,7 @@ export async function closeDatabaseConnections() {
 
 export async function getSupplementBySlug(slug: string) {
   const row = await db
-    .select({ id: supplements.id, slug: supplements.slug, name: supplements.name })
+    .select({ id: supplements.id, slug: supplements.slug, name: supplements.name, popularityScore: supplements.popularityScore })
     .from(supplements)
     .where(eq(supplements.slug, slug))
     .limit(1);
@@ -67,6 +68,7 @@ export async function listSupplementsBasic() {
       name: supplements.name,
       aliases: supplements.aliases,
       category: supplements.category,
+      popularityScore: supplements.popularityScore,
     })
     .from(supplements)
     .where(eq(supplements.status, 'published'));
@@ -75,12 +77,34 @@ export async function listSupplementsBasic() {
 export async function listProtocolsSupplements() {
   return db
     .select({
+      id: supplements.id,
       slug: supplements.slug,
       name: supplements.name,
       category: supplements.category,
+      popularityScore: supplements.popularityScore,
     })
     .from(supplements)
     .where(eq(supplements.status, 'published'));
+}
+
+export async function listTagsBySupplementId(supplementId: string) {
+  return db
+    .select({
+      tag: supplementTags.tag,
+      tagType: supplementTags.tagType,
+    })
+    .from(supplementTags)
+    .where(eq(supplementTags.supplementId, supplementId));
+}
+
+export async function listAllTags() {
+  return db
+    .select({
+      tag: supplementTags.tag,
+      tagType: supplementTags.tagType,
+      supplementId: supplementTags.supplementId,
+    })
+    .from(supplementTags);
 }
 
 // ── supplement bundle (science + social + sentiment + dosage + schedule + affiliate) ──

@@ -7,6 +7,7 @@ import {
   listMedicineInteractionsBySupplementId,
   listProtocolsSupplements,
   listSupplementsBasic,
+  listTagsBySupplementId,
   logFallbackMissRecord,
 } from './db';
 import type {
@@ -32,6 +33,7 @@ type BasicSupplement = {
   name: string;
   aliases: string;
   category: string;
+  popularityScore: number;
 };
 
 type CompanionRow = Awaited<ReturnType<typeof listCompanionStacksBySupplementId>>[number];
@@ -178,7 +180,7 @@ function expandAbbreviation(query: string): string {
   return QUERY_EXPANSIONS[lower] ?? query;
 }
 
-export async function findSupplementByQuery(query: string): Promise<{ id: string; slug: string; name: string } | null> {
+export async function findSupplementByQuery(query: string): Promise<{ id: string; slug: string; name: string; popularityScore: number } | null> {
   const expanded = expandAbbreviation(query);
   const normalized = expanded.toLowerCase().trim();
   const slug = normalizeQuery(expanded);
@@ -191,7 +193,7 @@ export async function findSupplementByQuery(query: string): Promise<{ id: string
   for (const supplement of allSupplements as BasicSupplement[]) {
     const aliases: string[] = JSON.parse(supplement.aliases);
     if (aliases.some((alias: string) => alias.toLowerCase() === normalized)) {
-      return { id: supplement.id, slug: supplement.slug, name: supplement.name };
+      return { id: supplement.id, slug: supplement.slug, name: supplement.name, popularityScore: supplement.popularityScore };
     }
   }
 
@@ -215,7 +217,7 @@ export async function findSupplementByQuery(query: string): Promise<{ id: string
           a.supplement.name.length - b.supplement.name.length || b.score - a.score,
       );
       const best = tokenCandidates[0].supplement;
-      return { id: best.id, slug: best.slug, name: best.name };
+      return { id: best.id, slug: best.slug, name: best.name, popularityScore: best.popularityScore };
     }
   }
 
@@ -243,7 +245,7 @@ export async function findSupplementByQuery(query: string): Promise<{ id: string
   if (scored.length > 0) {
     scored.sort((a, b) => b.score - a.score);
     const best = scored[0].supplement;
-    return { id: best.id, slug: best.slug, name: best.name };
+    return { id: best.id, slug: best.slug, name: best.name, popularityScore: best.popularityScore };
   }
 
   return null;
@@ -293,11 +295,12 @@ export async function lookupSupplement(query: string, biometrics?: Biometrics): 
 
   const supplementId = match.id;
   const weight = biometrics?.weightKg ?? 80;
-  const [bundle, medicineInteractionRows, conflictRows, companionRows] = await Promise.all([
+  const [bundle, medicineInteractionRows, conflictRows, companionRows, tagRows] = await Promise.all([
     getSupplementBundleById(supplementId),
     listMedicineInteractionsBySupplementId(supplementId),
     listConflicts(),
     listCompanionStacksBySupplementId(supplementId),
+    listTagsBySupplementId(supplementId),
   ]);
 
   const bundleTyped = bundle as SupplementBundleRow | null;
@@ -438,6 +441,8 @@ export async function lookupSupplement(query: string, biometrics?: Biometrics): 
     conflicts: conflicts.length > 0 ? conflicts : undefined,
     companionSuggestions: companionSuggestions.length > 0 ? companionSuggestions : undefined,
     topBrands,
+    tags: tagRows,
+    popularityScore: match.popularityScore,
     finance: {
       tokensUsed: 0,
       usdCost: 0,
