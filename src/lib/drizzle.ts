@@ -18,8 +18,20 @@ function getDb(): PostgresJsDatabase<typeof schema> {
     );
   }
 
-  // Connection pool tuned for serverless: low max, short idle timeout.
-  const client = postgres(poolerUrl, {
+  // Parse the URL to avoid URL-encoding issues with special chars in password
+  let parsedUrl: URL;
+  try {
+    parsedUrl = new URL(poolerUrl);
+  } catch {
+    throw new Error('Invalid database URL: ' + poolerUrl.slice(0, 30) + '...');
+  }
+
+  const client = postgres({
+    host: parsedUrl.hostname,
+    port: Number(parsedUrl.port) || 5432,
+    database: parsedUrl.pathname.slice(1) || 'postgres',
+    username: decodeURIComponent(parsedUrl.username),
+    password: decodeURIComponent(parsedUrl.password),
     max: 6,
     idle_timeout: 20,
     connect_timeout: 10,

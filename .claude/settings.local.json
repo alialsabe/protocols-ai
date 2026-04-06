@@ -42,7 +42,10 @@
       "mcp__plugin_supabase_supabase__get_project",
       "Bash(curl -s https://protocols-9fsqgzw4h-cirq-socials-projects.vercel.app/api/supplements)",
       "Bash(printf 'postgresql://postgres:Namename!1!48@db.sxflecdvkqsanahrmpmn.supabase.co:5432/postgres')",
-      "mcp__plugin_supabase_supabase__get_logs"
+      "mcp__plugin_supabase_supabase__get_logs",
+      "Bash(printf 'postgresql://postgres.sxflecdvkqsanahrmpmn:Namename%%211%%2148@aws-0-us-west-2.pooler.supabase.com:6543/postgres')",
+      "mcp__plugin_supabase_supabase__search_docs",
+      "Bash(printf 'postgresql://postgres.sxflecdvkqsanahrmpmn:Namename%%211%%2148@aws-0-us-west-2.pooler.supabase.com:5432/postgres')"
     ]
   }
 }
