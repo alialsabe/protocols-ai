@@ -45,7 +45,8 @@
       "mcp__plugin_supabase_supabase__get_logs",
       "Bash(printf 'postgresql://postgres.sxflecdvkqsanahrmpmn:Namename%%211%%2148@aws-0-us-west-2.pooler.supabase.com:6543/postgres')",
       "mcp__plugin_supabase_supabase__search_docs",
-      "Bash(printf 'postgresql://postgres.sxflecdvkqsanahrmpmn:Namename%%211%%2148@aws-0-us-west-2.pooler.supabase.com:5432/postgres')"
+      "Bash(printf 'postgresql://postgres.sxflecdvkqsanahrmpmn:Namename%%211%%2148@aws-0-us-west-2.pooler.supabase.com:5432/postgres')",
+      "Bash(printf 'postgresql://postgres.sxflecdvkqsanahrmpmn:ProtocolsAi2026@aws-1-us-west-2.pooler.supabase.com:6543/postgres')"
     ]
   }
 }
