@@ -24,7 +24,7 @@ function getDb(): PostgresJsDatabase<typeof schema> {
     idle_timeout: 20,
     connect_timeout: 10,
     ssl: process.env.POSTGRES_SSL === 'disable' ? false : { rejectUnauthorized: false },
-    prepare: false, // required for Supabase transaction-mode pooler
+    prepare: false,
   });
 
   _db = drizzle(client, { schema });

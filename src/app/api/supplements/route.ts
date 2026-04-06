@@ -9,6 +9,8 @@ export async function GET() {
     });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : String(err);
-    return Response.json({ error: message }, { status: 500 });
+    const stack = err instanceof Error ? err.stack : undefined;
+    const code = (err as Record<string, unknown>)?.code;
+    return Response.json({ error: message, code, stack }, { status: 500 });
   }
 }
