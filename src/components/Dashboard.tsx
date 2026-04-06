@@ -4,6 +4,7 @@ import * as TabsPrimitive from '@radix-ui/react-tabs';
 import { cn } from '@/lib/utils';
 import { Search, FlaskConical, Activity, Calendar, Fingerprint, Plus, Pill, User } from 'lucide-react';
 import type { Biometrics, ProtocolReport, SchedulerOutput } from '@/lib/protocol-types';
+import AnimatedGlowingSearchBar from '@/components/ui/animated-glowing-search-bar';
 
 const Card = ({ className, children }: { className?: string; children: React.ReactNode }) => (
 <div className="relative group">
@@ -212,10 +213,12 @@ return (
 {activeView === 'research' && (
 <div className="space-y-6">
 <header><h2 className="text-3xl font-bold text-white">Research Core</h2></header>
+<AnimatedGlowingSearchBar>
 <div className="relative flex items-center">
-<SupplementAutocomplete value={searchQuery} onChange={setSearchQuery} onSelect={(v: string) => triggerAnalysis(v)} placeholder="Query supplement..." inputClassName="pl-12 h-16 text-lg rounded-2xl bg-[#0a0a0c] border-white/10 pr-32" icon={<Search className="absolute left-4 w-5 h-5 text-cyan-400 z-20 pointer-events-none" />} />
+<SupplementAutocomplete value={searchQuery} onChange={setSearchQuery} onSelect={(v: string) => triggerAnalysis(v)} placeholder="Query supplement..." inputClassName="pl-12 h-16 text-lg rounded-2xl bg-[#0a0a0c] border-transparent pr-32" icon={<Search className="absolute left-4 w-5 h-5 text-cyan-400 z-20 pointer-events-none" />} />
 <Button className="absolute right-2 h-12 z-20" variant="primary" onClick={() => triggerAnalysis()} disabled={loading}>{loading ? 'Analyzing...' : 'Analyze'}</Button>
 </div>
+</AnimatedGlowingSearchBar>
 {errorMsg && <p className="text-sm text-rose-400">{errorMsg}</p>}
 {loading && !report && (
 <div className="flex items-center justify-center py-20">
