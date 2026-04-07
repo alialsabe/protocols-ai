@@ -57,6 +57,28 @@ function useSupplementDictionary() {
   return names;
 }
 
+// ── Supplement image mapping (v3 product photos) ──────────────────────────
+const SUPPLEMENT_IMAGE_MAP: [string, string][] = [
+  ['ashwagandha', '/images/supplements/v3/ashwagandha.webp'],
+  ['berberine', '/images/supplements/v3/berberine.webp'],
+  ['boron', '/images/supplements/v3/boron.webp'],
+  ['theanine', '/images/supplements/v3/l-theanine.webp'],
+  ["lion", '/images/supplements/v3/lions-mane.webp'],
+  ['melatonin', '/images/supplements/v3/melatonin.webp'],
+  ['omega', '/images/supplements/v3/omega-3.webp'],
+  ['rhodiola', '/images/supplements/v3/rhodiola.webp'],
+  ['turkey', '/images/supplements/v3/turkey-tail.webp'],
+  ['b12', '/images/supplements/v3/vitamin-b12.webp'],
+];
+
+function getSupplementImage(name: string): string | null {
+  const lower = name.toLowerCase();
+  for (const [key, path] of SUPPLEMENT_IMAGE_MAP) {
+    if (lower.includes(key)) return path;
+  }
+  return null;
+}
+
 const SUPPLEMENT_DICTIONARY_FALLBACK = [
   'Magnesium Glycinate', 'Creatine Monohydrate', 'Vitamin D3', 'Vitamin K2 (MK-7)',
   'Omega-3 Fish Oil (EPA/DHA)', 'Zinc Picolinate', 'L-Theanine', 'Ashwagandha KSM-66',
@@ -212,7 +234,20 @@ setSchedulerLoading(false);
 }
 };
 return (
-<div className="min-h-screen bg-[#050505] text-slate-200 font-sans flex overflow-hidden">
+<div className="min-h-screen bg-[#050505] text-slate-200 font-sans flex overflow-hidden relative">
+{/* Hexagonal molecular background pattern */}
+<div
+  className="fixed inset-0 pointer-events-none"
+  aria-hidden="true"
+  style={{
+    backgroundImage: "url('/images/Background.jpg')",
+    backgroundRepeat: 'repeat',
+    backgroundSize: '600px',
+    opacity: 0.035,
+    filter: 'invert(1) brightness(0.4)',
+    zIndex: 0,
+  }}
+/>
 <aside className="w-64 border-r border-white/5 bg-[#0a0a0c] flex flex-col z-20">
 <div className="h-20 flex items-center px-6 border-b border-white/5">
 <Fingerprint className="w-6 h-6 text-cyan-400 mr-3" />
@@ -224,7 +259,7 @@ return (
 <button onClick={() => setActiveView('scheduler')} className={cn('w-full flex items-center px-4 py-3 rounded-xl text-sm font-medium', activeView === 'scheduler' ? 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20' : 'text-slate-400 hover:bg-white/5 hover:text-white')}><Calendar className="w-4 h-4 mr-3" />Scheduler</button>
 </nav>
 </aside>
-<main className="flex-1 overflow-y-auto p-10 max-w-6xl mx-auto w-full">
+<main className="flex-1 overflow-y-auto p-10 max-w-6xl mx-auto w-full relative z-10">
 {activeView === 'research' && (
 <div className="space-y-6">
 <header><h2 className="text-3xl font-bold text-white">Research Core</h2></header>
@@ -245,7 +280,22 @@ return (
 )}
 {report && runtimeMs !== null && <p className="text-xs text-slate-500">Runtime: {runtimeMs.toFixed(0)} ms</p>}
 {hasSearched && report && (
-<div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-6">
+<div className="relative overflow-hidden">
+{/* Supplement product watermark */}
+{(() => {
+  const imgSrc = getSupplementImage(report.name || report.subject || '');
+  return imgSrc ? (
+    <div
+      className="absolute -right-10 top-16 w-[420px] h-[420px] pointer-events-none select-none"
+      aria-hidden="true"
+      style={{ opacity: 0.045, filter: 'grayscale(100%) brightness(0.5) blur(0.5px)', zIndex: 0 }}
+    >
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={imgSrc} alt="" className="w-full h-full object-contain" draggable={false} />
+    </div>
+  ) : null;
+})()}
+<div className="relative z-10 grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-6">
 <Card className="p-4 h-fit sticky top-6">
 <h3 className="text-sm font-bold text-white mb-2">Common Stack Partners</h3>
 <p className="text-[11px] text-slate-400 mb-3">Commonly taken together with this supplement.</p>
@@ -371,6 +421,7 @@ return (
 </Card>
 </TabsPrimitive.Content>
 </TabsPrimitive.Root>
+</div>
 </div>
 )}
 </div>
