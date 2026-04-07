@@ -13,6 +13,8 @@ import {
   fallbackQueue,
   companionStacks,
   supplementTags,
+  supplementTypes,
+  clinicalStudies,
 } from './schema-postgres';
 import { isProductionPostgresRuntime } from './database-env';
 
@@ -44,7 +46,14 @@ export async function closeDatabaseConnections() {
 
 export async function getSupplementBySlug(slug: string) {
   const row = await db
-    .select({ id: supplements.id, slug: supplements.slug, name: supplements.name, popularityScore: supplements.popularityScore })
+    .select({
+      id: supplements.id,
+      slug: supplements.slug,
+      name: supplements.name,
+      popularityScore: supplements.popularityScore,
+      baseCompound: supplements.baseCompound,
+      specificForm: supplements.specificForm,
+    })
     .from(supplements)
     .where(eq(supplements.slug, slug))
     .limit(1);
@@ -68,6 +77,8 @@ export async function listSupplementsBasic() {
       name: supplements.name,
       aliases: supplements.aliases,
       category: supplements.category,
+      baseCompound: supplements.baseCompound,
+      specificForm: supplements.specificForm,
       popularityScore: supplements.popularityScore,
     })
     .from(supplements)
@@ -81,10 +92,53 @@ export async function listProtocolsSupplements() {
       slug: supplements.slug,
       name: supplements.name,
       category: supplements.category,
+      baseCompound: supplements.baseCompound,
+      specificForm: supplements.specificForm,
       popularityScore: supplements.popularityScore,
     })
     .from(supplements)
     .where(eq(supplements.status, 'published'));
+}
+
+// ── supplement types ──────────────────────────────────────────────────
+
+export async function listTypesBySupplementId(supplementId: string) {
+  return db
+    .select({
+      typeName: supplementTypes.typeName,
+    })
+    .from(supplementTypes)
+    .where(eq(supplementTypes.supplementId, supplementId));
+}
+
+export async function listAllTypes() {
+  return db
+    .select({
+      typeName: supplementTypes.typeName,
+      supplementId: supplementTypes.supplementId,
+    })
+    .from(supplementTypes);
+}
+
+// ── clinical studies ──────────────────────────────────────────────────
+
+export async function listClinicalStudiesBySupplementId(supplementId: string) {
+  return db
+    .select()
+    .from(clinicalStudies)
+    .where(eq(clinicalStudies.supplementId, supplementId));
+}
+
+export async function getClinicalStudyCategoryCounts(supplementId: string) {
+  const rows = await db
+    .select({
+      category: clinicalStudies.category,
+      count: sql<number>`count(*)::int`,
+    })
+    .from(clinicalStudies)
+    .where(eq(clinicalStudies.supplementId, supplementId))
+    .groupBy(clinicalStudies.category);
+  return rows;
 }
 
 export async function listTagsBySupplementId(supplementId: string) {

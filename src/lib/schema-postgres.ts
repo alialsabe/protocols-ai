@@ -18,9 +18,34 @@ export const supplements = pgTable('supplements', {
   name: text('name').notNull(),
   aliases: text('aliases').notNull().default('[]'),
   category: text('category').notNull(),
+  baseCompound: text('base_compound'),
+  specificForm: text('specific_form'),
   popularityScore: integer('popularity_score').notNull().default(0),
   status: text('status').notNull().default('published'),
   ...timestamps(),
+});
+
+// ── supplement_types ───────────────────────────────────────────────
+export const supplementTypes = pgTable('supplement_types', {
+  id: id(),
+  supplementId: text('supplement_id').notNull().references(() => supplements.id),
+  typeName: text('type_name').notNull(),
+});
+
+// ── clinical_studies ───────────────────────────────────────────────
+export const clinicalStudies = pgTable('clinical_studies', {
+  id: id(),
+  supplementId: text('supplement_id').notNull().references(() => supplements.id),
+  title: text('title').notNull(),
+  category: text('category').notNull(),
+  subcategory: text('subcategory'),
+  url: text('url'),
+  pmid: text('pmid'),
+  year: integer('year'),
+  studyType: text('study_type'),
+  sampleSize: integer('sample_size'),
+  outcome: text('outcome'),
+  quality: text('quality').default('medium'),
 });
 
 // ── supplement_tags ─────────────────────────────────────────────────

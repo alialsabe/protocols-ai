@@ -151,11 +151,34 @@ export interface TopBrand {
   link?: string;
 }
 
+export interface ClinicalStudy {
+  id: string;
+  supplementId: string;
+  title: string;
+  category: string;
+  subcategory?: string | null;
+  url?: string | null;
+  pmid?: string | null;
+  year?: number | null;
+  studyType?: string | null;
+  sampleSize?: number | null;
+  outcome?: string | null;
+  quality?: string | null;
+}
+
+export interface StudyCategoryCount {
+  category: string;
+  count: number;
+}
+
 export interface ProtocolReport {
   id?: string;
   query?: string;
   name?: string;
   subject?: string;
+  baseCompound?: string;
+  specificForm?: string;
+  supplementTypes?: string[];
   summary?: string;
   target?: string;
   science?: {
@@ -166,6 +189,8 @@ export interface ProtocolReport {
     sideEffects: SideEffectMetric[];
   };
   clinicalEvidence?: ClinicalEvidence;
+  clinicalStudies?: ClinicalStudy[];
+  clinicalStudyCategoryCounts?: StudyCategoryCount[];
   social?: {
     transcriptSummary: string;
     anecdotes: Anecdote[];

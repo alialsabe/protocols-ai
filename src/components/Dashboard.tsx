@@ -3,7 +3,7 @@ import React from 'react';
 import * as TabsPrimitive from '@radix-ui/react-tabs';
 import { cn } from '@/lib/utils';
 import { Search, FlaskConical, Activity, Calendar, Fingerprint, Plus, Pill, User } from 'lucide-react';
-import type { Biometrics, ProtocolReport, SchedulerOutput } from '@/lib/protocol-types';
+import type { Biometrics, ProtocolReport, SchedulerOutput, ClinicalStudy, StudyCategoryCount } from '@/lib/protocol-types';
 import AnimatedGlowingSearchBar from '@/components/ui/animated-glowing-search-bar';
 
 const Card = ({ className, children }: { className?: string; children: React.ReactNode }) => (
@@ -43,12 +43,24 @@ children: React.ReactNode;
 const Badge = ({ children, className, ...props }: BadgeProps) => (
 <span className={cn('inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-semibold', className)} {...props}>{children}</span>
 );
-const SUPPLEMENT_DICTIONARY = [
-  // Original 10
+function useSupplementDictionary() {
+  const [names, setNames] = React.useState<string[]>([]);
+  React.useEffect(() => {
+    fetch('/api/supplements')
+      .then(r => r.json())
+      .then(data => {
+        const list: string[] = (data.supplements ?? []).map((s: { name: string }) => s.name);
+        setNames(list.sort());
+      })
+      .catch(() => {});
+  }, []);
+  return names;
+}
+
+const SUPPLEMENT_DICTIONARY_FALLBACK = [
   'Magnesium Glycinate', 'Creatine Monohydrate', 'Vitamin D3', 'Vitamin K2 (MK-7)',
   'Omega-3 Fish Oil (EPA/DHA)', 'Zinc Picolinate', 'L-Theanine', 'Ashwagandha KSM-66',
   'CoQ10 (Ubiquinol)', 'Iron (Ferrous Bisglycinate)',
-  // Expanded 10
   'Vitamin C (Ascorbic Acid)', 'Vitamin B12 (Methylcobalamin)', 'NAC (N-Acetyl Cysteine)',
   'Berberine HCl', "Lion's Mane Mushroom", 'Melatonin', 'Rhodiola Rosea', 'Collagen Peptides',
   'Boron', 'Turkey Tail Mushroom',
@@ -62,14 +74,16 @@ placeholder?: string;
 className?: string;
 inputClassName?: string;
 icon?: React.ReactNode;
+dictionary?: string[];
 };
 
-const SupplementAutocomplete = ({ value, onChange, onSelect, placeholder, className, inputClassName, icon }: SupplementAutocompleteProps) => {
+const SupplementAutocomplete = ({ value, onChange, onSelect, placeholder, className, inputClassName, icon, dictionary }: SupplementAutocompleteProps) => {
+const dict = dictionary && dictionary.length > 0 ? dictionary : SUPPLEMENT_DICTIONARY_FALLBACK;
 const [show, setShow] = React.useState(false);
 const filtered = React.useMemo(() => {
 if (!value) return [];
-return SUPPLEMENT_DICTIONARY.filter((s) => s.toLowerCase().includes(value.toLowerCase()) && s.toLowerCase() !== value.toLowerCase());
-}, [value]);
+return dict.filter((s) => s.toLowerCase().includes(value.toLowerCase()) && s.toLowerCase() !== value.toLowerCase()).slice(0, 20);
+}, [value, dict]);
 return (
 <div className={cn('relative w-full flex items-center', className)}>
 {icon}
@@ -110,6 +124,7 @@ if (onSelect) onSelect(suggestion);
 );
 };
 export default function Dashboard() {
+const supplementDictionary = useSupplementDictionary();
 const [activeView, setActiveView] = React.useState<'research' | 'dosage' | 'scheduler'>('research');
 const [searchQuery, setSearchQuery] = React.useState('');
 const [hasSearched, setHasSearched] = React.useState(false);
@@ -215,7 +230,7 @@ return (
 <header><h2 className="text-3xl font-bold text-white">Research Core</h2></header>
 <AnimatedGlowingSearchBar>
 <div className="relative flex items-center">
-<SupplementAutocomplete value={searchQuery} onChange={setSearchQuery} onSelect={(v: string) => triggerAnalysis(v)} placeholder="Query supplement..." inputClassName="pl-12 h-16 text-lg rounded-2xl bg-[#0a0a0c] border-transparent pr-32" icon={<Search className="absolute left-4 w-5 h-5 text-cyan-400 z-20 pointer-events-none" />} />
+<SupplementAutocomplete value={searchQuery} onChange={setSearchQuery} onSelect={(v: string) => triggerAnalysis(v)} placeholder="Query supplement..." inputClassName="pl-12 h-16 text-lg rounded-2xl bg-[#0a0a0c] border-transparent pr-32" icon={<Search className="absolute left-4 w-5 h-5 text-cyan-400 z-20 pointer-events-none" />} dictionary={supplementDictionary} />
 <Button className="absolute right-2 h-12 z-20" variant="primary" onClick={() => triggerAnalysis()} disabled={loading}>{loading ? 'Analyzing...' : 'Analyze'}</Button>
 </div>
 </AnimatedGlowingSearchBar>
@@ -247,11 +262,22 @@ return (
 <TabsPrimitive.Root defaultValue="science" className="flex flex-col w-full">
 <TabsPrimitive.List className="flex border-b border-white/10 mb-6">
 <TabsPrimitive.Trigger value="science" className="px-6 py-3 text-sm font-semibold text-slate-400 data-[state=active]:text-cyan-400 data-[state=active]:border-b-2 data-[state=active]:border-cyan-400">Science</TabsPrimitive.Trigger>
+<TabsPrimitive.Trigger value="clinical" className="px-6 py-3 text-sm font-semibold text-slate-400 data-[state=active]:text-violet-400 data-[state=active]:border-b-2 data-[state=active]:border-violet-400">Clinical Studies</TabsPrimitive.Trigger>
 <TabsPrimitive.Trigger value="sentiment" className="px-6 py-3 text-sm font-semibold text-slate-400 data-[state=active]:text-emerald-400 data-[state=active]:border-b-2 data-[state=active]:border-emerald-400">Sentiment</TabsPrimitive.Trigger>
 </TabsPrimitive.List>
 <TabsPrimitive.Content value="science" className="space-y-4">
 <Card className="p-6">
 <h3 className="text-xl font-bold text-white mb-2">{report.name || report.subject}</h3>
+{report.baseCompound && (
+<p className="text-xs text-slate-500 mb-1">Base compound: <span className="text-slate-300">{report.baseCompound}</span>{report.specificForm ? <> &middot; Form: <span className="text-slate-300">{report.specificForm}</span></> : null}</p>
+)}
+{report.supplementTypes && report.supplementTypes.length > 0 && (
+<div className="flex flex-wrap gap-1.5 mb-3">
+{report.supplementTypes.map((t) => (
+<Badge key={t} className="bg-indigo-500/15 text-indigo-300 border-indigo-500/25 text-[10px]">{t}</Badge>
+))}
+</div>
+)}
 <p className="text-slate-400 text-sm mb-4">{report.science?.summary || report.summary}</p>
 <div className="space-y-2">
 {(report.science?.findings || []).map((f) => (
@@ -281,6 +307,59 @@ return (
 ))}
 </div>
 </Card>
+</TabsPrimitive.Content>
+<TabsPrimitive.Content value="clinical" className="space-y-4">
+{report.clinicalStudies && report.clinicalStudies.length > 0 ? (
+<div className="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-4">
+<div className="space-y-3">
+{report.clinicalStudies.map((study) => (
+<Card key={study.id} className="p-4">
+<div className="flex items-start justify-between gap-3">
+<div className="flex-1 min-w-0">
+<p className="text-sm font-semibold text-white">{study.title}</p>
+<div className="flex flex-wrap items-center gap-2 mt-1.5">
+<Badge className="bg-violet-500/15 text-violet-300 border-violet-500/25 text-[10px]">{study.category}</Badge>
+{study.subcategory && <Badge className="bg-white/5 text-slate-400 border-white/10 text-[10px]">{study.subcategory}</Badge>}
+{study.studyType && <span className="text-[10px] text-slate-500">{study.studyType}</span>}
+{study.year && <span className="text-[10px] text-slate-500">{study.year}</span>}
+{study.sampleSize && <span className="text-[10px] text-slate-500">n={study.sampleSize}</span>}
+</div>
+{study.outcome && <p className="text-xs text-slate-400 mt-2">{study.outcome}</p>}
+</div>
+{(study.url || study.pmid) && (
+<a href={study.url || `https://pubmed.ncbi.nlm.nih.gov/${study.pmid}/`} target="_blank" rel="noreferrer" className="text-xs text-cyan-400 underline shrink-0">
+{study.pmid ? `PMID: ${study.pmid}` : 'Link'}
+</a>
+)}
+</div>
+</Card>
+))}
+</div>
+<Card className="p-4 h-fit sticky top-6">
+<h4 className="text-sm font-bold text-white mb-3">Studies by Category</h4>
+<div className="space-y-2">
+{(report.clinicalStudyCategoryCounts || [])
+.sort((a, b) => b.count - a.count)
+.map((cat) => (
+<div key={cat.category} className="flex items-center justify-between">
+<span className="text-xs text-slate-400">{cat.category}</span>
+<span className="text-xs font-bold text-violet-300">{cat.count}</span>
+</div>
+))}
+</div>
+<div className="mt-3 pt-3 border-t border-white/10">
+<div className="flex items-center justify-between">
+<span className="text-xs text-slate-400 font-semibold">Total</span>
+<span className="text-xs font-bold text-white">{report.clinicalStudies.length}</span>
+</div>
+</div>
+</Card>
+</div>
+) : (
+<Card className="p-6">
+<p className="text-sm text-slate-400">No clinical studies indexed yet for this supplement. Studies are being added progressively.</p>
+</Card>
+)}
 </TabsPrimitive.Content>
 <TabsPrimitive.Content value="sentiment">
 <Card className="p-6">
@@ -405,7 +484,7 @@ return (
 <div className="grid grid-cols-1 xl:grid-cols-[1.4fr_0.9fr] gap-6">
 <Card className="p-6">
 <div className="flex gap-2 mb-4">
-<SupplementAutocomplete value={schedulerInput} onChange={setSchedulerInput} onSelect={(v: string) => { if (v.trim() && !schedulerSupplements.includes(v.trim())) setSchedulerSupplements((p) => [...p, v.trim()]); setSchedulerInput(''); }} placeholder="Add supplement" />
+<SupplementAutocomplete value={schedulerInput} onChange={setSchedulerInput} onSelect={(v: string) => { if (v.trim() && !schedulerSupplements.includes(v.trim())) setSchedulerSupplements((p) => [...p, v.trim()]); setSchedulerInput(''); }} placeholder="Add supplement" dictionary={supplementDictionary} />
 <Button onClick={() => { if (schedulerInput.trim() && !schedulerSupplements.includes(schedulerInput.trim())) setSchedulerSupplements((p) => [...p, schedulerInput.trim()]); setSchedulerInput(''); }}><Plus className="w-4 h-4" /></Button>
 <Button variant="primary" onClick={triggerScheduler} disabled={schedulerLoading}>{schedulerLoading ? 'Generating...' : 'Generate'}</Button>
 </div>

@@ -8,6 +8,9 @@ import {
   listProtocolsSupplements,
   listSupplementsBasic,
   listTagsBySupplementId,
+  listTypesBySupplementId,
+  listClinicalStudiesBySupplementId,
+  getClinicalStudyCategoryCounts,
   logFallbackMissRecord,
 } from './db';
 import type {
@@ -33,6 +36,8 @@ type BasicSupplement = {
   name: string;
   aliases: string;
   category: string;
+  baseCompound: string | null;
+  specificForm: string | null;
   popularityScore: number;
 };
 
@@ -180,7 +185,16 @@ function expandAbbreviation(query: string): string {
   return QUERY_EXPANSIONS[lower] ?? query;
 }
 
-export async function findSupplementByQuery(query: string): Promise<{ id: string; slug: string; name: string; popularityScore: number } | null> {
+type SupplementMatch = {
+  id: string;
+  slug: string;
+  name: string;
+  popularityScore: number;
+  baseCompound: string | null;
+  specificForm: string | null;
+};
+
+export async function findSupplementByQuery(query: string): Promise<SupplementMatch | null> {
   const expanded = expandAbbreviation(query);
   const normalized = expanded.toLowerCase().trim();
   const slug = normalizeQuery(expanded);
@@ -193,7 +207,14 @@ export async function findSupplementByQuery(query: string): Promise<{ id: string
   for (const supplement of allSupplements as BasicSupplement[]) {
     const aliases: string[] = JSON.parse(supplement.aliases);
     if (aliases.some((alias: string) => alias.toLowerCase() === normalized)) {
-      return { id: supplement.id, slug: supplement.slug, name: supplement.name, popularityScore: supplement.popularityScore };
+      return { id: supplement.id, slug: supplement.slug, name: supplement.name, popularityScore: supplement.popularityScore, baseCompound: supplement.baseCompound, specificForm: supplement.specificForm };
+    }
+  }
+
+  // Also match by base compound name
+  for (const supplement of allSupplements as BasicSupplement[]) {
+    if (supplement.baseCompound && supplement.baseCompound.toLowerCase() === normalized) {
+      return { id: supplement.id, slug: supplement.slug, name: supplement.name, popularityScore: supplement.popularityScore, baseCompound: supplement.baseCompound, specificForm: supplement.specificForm };
     }
   }
 
@@ -203,7 +224,7 @@ export async function findSupplementByQuery(query: string): Promise<{ id: string
 
     for (const supplement of allSupplements as BasicSupplement[]) {
       const aliases: string[] = JSON.parse(supplement.aliases);
-      const haystack = [supplement.name.toLowerCase(), supplement.slug, ...aliases.map((alias: string) => alias.toLowerCase())].join(' ');
+      const haystack = [supplement.name.toLowerCase(), supplement.slug, ...(supplement.baseCompound ? [supplement.baseCompound.toLowerCase()] : []), ...aliases.map((alias: string) => alias.toLowerCase())].join(' ');
       const matchCount = queryTokens.filter((token: string) => haystack.includes(token)).length;
 
       if (matchCount === queryTokens.length) {
@@ -217,7 +238,7 @@ export async function findSupplementByQuery(query: string): Promise<{ id: string
           a.supplement.name.length - b.supplement.name.length || b.score - a.score,
       );
       const best = tokenCandidates[0].supplement;
-      return { id: best.id, slug: best.slug, name: best.name, popularityScore: best.popularityScore };
+      return { id: best.id, slug: best.slug, name: best.name, popularityScore: best.popularityScore, baseCompound: best.baseCompound, specificForm: best.specificForm };
     }
   }
 
@@ -233,6 +254,9 @@ export async function findSupplementByQuery(query: string): Promise<{ id: string
     };
 
     let best = Math.max(overlapScore(nameLower, normalized), overlapScore(supplement.slug, slug));
+    if (supplement.baseCompound) {
+      best = Math.max(best, overlapScore(supplement.baseCompound.toLowerCase(), normalized));
+    }
     for (const alias of aliases) {
       best = Math.max(best, overlapScore(alias.toLowerCase(), normalized));
     }
@@ -245,7 +269,7 @@ export async function findSupplementByQuery(query: string): Promise<{ id: string
   if (scored.length > 0) {
     scored.sort((a, b) => b.score - a.score);
     const best = scored[0].supplement;
-    return { id: best.id, slug: best.slug, name: best.name, popularityScore: best.popularityScore };
+    return { id: best.id, slug: best.slug, name: best.name, popularityScore: best.popularityScore, baseCompound: best.baseCompound, specificForm: best.specificForm };
   }
 
   return null;
@@ -295,12 +319,15 @@ export async function lookupSupplement(query: string, biometrics?: Biometrics): 
 
   const supplementId = match.id;
   const weight = biometrics?.weightKg ?? 80;
-  const [bundle, medicineInteractionRows, conflictRows, companionRows, tagRows] = await Promise.all([
+  const [bundle, medicineInteractionRows, conflictRows, companionRows, tagRows, typeRows, clinicalStudyRows, studyCategoryCounts] = await Promise.all([
     getSupplementBundleById(supplementId),
     listMedicineInteractionsBySupplementId(supplementId),
     listConflicts(),
     listCompanionStacksBySupplementId(supplementId),
     listTagsBySupplementId(supplementId),
+    listTypesBySupplementId(supplementId),
+    listClinicalStudiesBySupplementId(supplementId),
+    getClinicalStudyCategoryCounts(supplementId),
   ]);
 
   const bundleTyped = bundle as SupplementBundleRow | null;
@@ -421,6 +448,9 @@ export async function lookupSupplement(query: string, biometrics?: Biometrics): 
     query,
     name: match.name,
     subject: match.name,
+    baseCompound: match.baseCompound ?? undefined,
+    specificForm: match.specificForm ?? undefined,
+    supplementTypes: typeRows.map(t => t.typeName),
     summary: bundleTyped?.social?.transcriptSummary || '',
     science: bundleTyped?.science ? {
       summary: bundleTyped.social?.transcriptSummary || '',
@@ -429,6 +459,8 @@ export async function lookupSupplement(query: string, biometrics?: Biometrics): 
       interactions,
       sideEffects,
     } : undefined,
+    clinicalStudies: clinicalStudyRows.length > 0 ? clinicalStudyRows : undefined,
+    clinicalStudyCategoryCounts: studyCategoryCounts.length > 0 ? studyCategoryCounts : undefined,
     social: bundleTyped?.social ? {
       transcriptSummary: bundleTyped.social.transcriptSummary,
       anecdotes: JSON.parse(bundleTyped.social.anecdotes) as Anecdote[],
