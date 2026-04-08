@@ -161,6 +161,16 @@ export async function listAllTags() {
     .from(supplementTags);
 }
 
+export async function listAllStudyCounts() {
+  return db
+    .select({
+      supplementId: clinicalStudies.supplementId,
+      count: sql<number>`count(*)::int`,
+    })
+    .from(clinicalStudies)
+    .groupBy(clinicalStudies.supplementId);
+}
+
 // ── supplement bundle (science + social + sentiment + dosage + schedule + affiliate) ──
 
 export async function getSupplementBundleById(supplementId: string) {

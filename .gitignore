@@ -48,3 +48,4 @@ data/*.db-shm
 # local agent/dev metadata
 .hermes/
 .openclaw/
+.superpowers/

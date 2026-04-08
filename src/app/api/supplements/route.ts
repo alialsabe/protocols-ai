@@ -1,10 +1,11 @@
-import { listProtocolsSupplements, listAllTags, listAllTypes } from '@/lib/db';
+import { listProtocolsSupplements, listAllTags, listAllTypes, listAllStudyCounts } from '@/lib/db';
 
 export async function GET() {
-  const [rows, allTags, allTypes] = await Promise.all([
+  const [rows, allTags, allTypes, allCounts] = await Promise.all([
     listProtocolsSupplements(),
     listAllTags(),
     listAllTypes(),
+    listAllStudyCounts(),
   ]);
 
   const tagMap = new Map<string, { tag: string; tagType: string }[]>();
@@ -21,10 +22,16 @@ export async function GET() {
     typeMap.set(t.supplementId, arr);
   }
 
+  const countMap = new Map<string, number>();
+  for (const c of allCounts) {
+    countMap.set(c.supplementId, c.count);
+  }
+
   const supplements = rows.map(({ id, ...rest }) => ({
     ...rest,
     tags: tagMap.get(id) ?? [],
     supplementTypes: typeMap.get(id) ?? [],
+    studyCount: countMap.get(id) ?? 0,
   }));
 
   return Response.json({
