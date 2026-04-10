@@ -2,97 +2,67 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { cn } from '@/lib/utils';
+import { LayoutGrid, FileText, Brain, FlaskConical } from 'lucide-react';
 import { T } from '@/lib/design-tokens';
-import { Search, FlaskConical, LayoutGrid, Beaker } from 'lucide-react';
 
-const NAV_ITEMS: { href: string; label: string; icon: typeof Search; matchExact?: boolean }[] = [
-  { href: '/', label: 'Home', icon: Search, matchExact: true },
-  { href: '/#catalog', label: 'Catalog', icon: LayoutGrid },
-  { href: '/advisor', label: 'Advisor', icon: Beaker },
+const NAV_ITEMS = [
+  { href: '/', label: 'Home', icon: LayoutGrid, matchExact: true },
+  { href: '/#catalog', label: 'Protocols', icon: FileText },
+  { href: '/advisor', label: 'Advisor', icon: Brain },
 ];
 
-function LogoMark() {
-  return (
-    <div
-      className="flex items-center justify-center rounded-lg shrink-0"
-      style={{
-        width: 32, height: 32,
-        background: `linear-gradient(135deg, ${T.accent}, ${T.sky})`,
-        boxShadow: `0 0 18px ${T.accentGlow}`,
-      }}
-    >
-      <svg width={17} height={17} viewBox="0 0 24 24" fill="none" stroke={T.bg} strokeWidth={2.5}>
-        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-      </svg>
-    </div>
-  );
-}
-
-/** Desktop sidebar nav */
+/** Desktop top header bar */
 export function DesktopNav() {
   const pathname = usePathname();
 
   return (
-    <aside
-      className="hidden md:flex w-[240px] shrink-0 flex-col sticky top-0 h-dvh"
+    <header
+      className="hidden md:flex fixed top-0 w-full z-50 items-center justify-between px-8 h-16 border-b"
       style={{
-        background: 'rgba(17,17,19,0.85)',
-        borderRight: `1px solid ${T.border}`,
-        backdropFilter: 'blur(40px) saturate(1.2)',
+        background: 'rgba(19, 27, 46, 0.85)',
+        backdropFilter: 'blur(16px)',
+        borderColor: T.border,
       }}
     >
-      <Link href="/" className="flex items-center gap-3 px-6 h-16 shrink-0" style={{ borderBottom: `1px solid ${T.border}` }}>
-        <LogoMark />
-        <span className="text-lg font-extrabold tracking-tight" style={{ color: T.text }}>
-          Protocols<span style={{ color: T.accent }}>.ai</span>
-        </span>
-      </Link>
-
-      <nav className="flex-1 p-3 flex flex-col gap-1">
-        {NAV_ITEMS.map((item) => {
-          const active = item.matchExact ? pathname === item.href : pathname.startsWith(item.href);
-          const Icon = item.icon;
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={cn(
-                'flex items-center gap-3 px-4 py-2.5 rounded-xl text-[13px] font-semibold transition-colors duration-200',
-              )}
-              style={{
-                background: active ? T.accentDim : 'transparent',
-                border: `1px solid ${active ? T.borderAccent : 'transparent'}`,
-                color: active ? T.accent : T.textDim,
-              }}
-            >
-              <Icon className="w-4 h-4" />
-              <span>{item.label}</span>
-            </Link>
-          );
-        })}
-      </nav>
-
-      <div className="px-6 py-4" style={{ borderTop: `1px solid ${T.border}` }}>
-        <p className="text-[10px] font-medium" style={{ color: T.textFaint }}>
-          279 supplements indexed
-        </p>
+      <div className="flex items-center gap-3">
+        <FlaskConical className="w-5 h-5" style={{ color: T.primary }} />
+        <Link href="/" className="text-lg font-black tracking-tighter uppercase" style={{ color: T.primary }}>
+          Protocols.ai
+        </Link>
       </div>
-    </aside>
+
+      <div className="flex items-center gap-8">
+        <nav className="flex gap-6">
+          {NAV_ITEMS.map((item) => {
+            const active = item.matchExact ? pathname === item.href : pathname.startsWith(item.href);
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className="text-xs font-medium uppercase tracking-widest transition-colors duration-200"
+                style={{ color: active ? T.primary : T.textDim }}
+              >
+                {item.label}
+              </Link>
+            );
+          })}
+        </nav>
+      </div>
+    </header>
   );
 }
 
-/** Mobile bottom nav */
+/** Mobile bottom nav bar */
 export function MobileNav() {
   const pathname = usePathname();
 
   return (
     <nav
-      className="md:hidden fixed bottom-0 inset-x-0 z-50 flex items-center justify-around h-16 px-2"
+      className="md:hidden fixed bottom-0 inset-x-0 z-50 flex justify-around items-center h-20 px-4 pb-4 border-t"
       style={{
-        background: 'rgba(17,17,19,0.92)',
-        borderTop: `1px solid ${T.border}`,
-        backdropFilter: 'blur(40px) saturate(1.2)',
+        background: 'rgba(11, 19, 38, 0.92)',
+        backdropFilter: 'blur(16px)',
+        borderColor: T.border,
       }}
     >
       {NAV_ITEMS.map((item) => {
@@ -102,13 +72,15 @@ export function MobileNav() {
           <Link
             key={item.href}
             href={item.href}
-            className="flex flex-col items-center gap-1 py-1 px-3 min-w-[64px]"
+            className="flex flex-col items-center justify-center py-1.5 px-4 transition-all active:scale-95 duration-75"
+            style={{
+              color: active ? T.primary : T.textDim,
+              background: active ? 'rgba(173, 198, 255, 0.08)' : 'transparent',
+              borderRadius: 4,
+            }}
           >
-            <Icon className="w-5 h-5" style={{ color: active ? T.accent : T.textDim }} />
-            <span
-              className="text-[10px] font-semibold"
-              style={{ color: active ? T.accent : T.textDim }}
-            >
+            <Icon className="w-5 h-5" />
+            <span className="text-[10px] font-medium tracking-widest uppercase mt-1">
               {item.label}
             </span>
           </Link>

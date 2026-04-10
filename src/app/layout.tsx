@@ -1,11 +1,10 @@
 import type { Metadata } from "next";
-import { Geist_Mono, Outfit } from "next/font/google";
+import { Inter, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { DesktopNav, MobileNav } from "@/components/shared/Nav";
-import { MeshBackground } from "@/components/shared/MeshBackground";
 
-const outfit = Outfit({
-  variable: "--font-outfit",
+const inter = Inter({
+  variable: "--font-inter",
   subsets: ["latin"],
   weight: ["400", "500", "600", "700", "800", "900"],
 });
@@ -28,12 +27,15 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${outfit.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${inter.variable} ${geistMono.variable} dark h-full antialiased`}
     >
-      <body className="min-h-full flex">
-        <MeshBackground />
+      <body className="min-h-full flex flex-col">
+        {/* Background layers */}
+        <div className="vc-radial-glow" />
+        <div className="vc-grid-bg" />
+
         <DesktopNav />
-        <main className="flex-1 relative min-h-dvh overflow-y-auto pb-16 md:pb-0" style={{ zIndex: 2 }}>
+        <main className="flex-1 relative min-h-dvh pb-20 md:pb-0" style={{ zIndex: 10 }}>
           {children}
         </main>
         <MobileNav />

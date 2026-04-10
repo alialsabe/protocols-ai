@@ -1,7 +1,8 @@
 "use client";
 import React from 'react';
 import Link from 'next/link';
-import { T, tagColors, getSupplementImage, getCategoryIcon } from '@/lib/design-tokens';
+import { ArrowRight } from 'lucide-react';
+import { T, categoryAccentColor } from '@/lib/design-tokens';
 
 type CatalogItem = {
   slug: string;
@@ -11,105 +12,188 @@ type CatalogItem = {
   tags: { tag: string; tagType: string }[];
   supplementTypes: string[];
   studyCount: number;
+  popularityScore?: number;
 };
 
-function CatalogCard({ item, index }: { item: CatalogItem; index: number }) {
-  const imgSrc = getSupplementImage(item.name);
+/** Derive a trust score from study count + popularity */
+function trustScore(item: CatalogItem): number {
+  const studies = Math.min(item.studyCount, 50);
+  const pop = item.popularityScore ?? 50;
+  return Math.round(((studies / 50) * 60 + (pop / 100) * 40)) / 10;
+}
+
+/** Pick a category label from types/tags */
+function categoryLabel(item: CatalogItem): string {
+  const types = item.supplementTypes.join(' ').toLowerCase();
+  if (types.includes('nootropic')) return 'Cognitive / Nootropic';
+  if (types.includes('amino')) return 'Amino Acid / Recovery';
+  if (types.includes('herb') || types.includes('botanical') || types.includes('adaptogen')) return 'Hormonal / Adaptogen';
+  if (types.includes('longevity')) return 'Longevity / Bioavailability';
+  if (types.includes('vitamin')) return 'Micronutrients';
+  if (types.includes('mineral')) return 'Essential Minerals';
+  if (types.includes('mushroom')) return 'Mycological';
+  const firstTag = item.tags[0];
+  if (firstTag) return firstTag.tag;
+  return 'Supplement';
+}
+
+function CatalogCard({ item, index, featured }: { item: CatalogItem; index: number; featured?: boolean }) {
+  const score = trustScore(item);
+  const accent = categoryAccentColor(item.supplementTypes);
   const topTags = item.tags.slice(0, 2);
-  const evidenceWidth = Math.min(Math.round((item.studyCount / 50) * 100), 100);
-  const delay = `${80 + index * 40}ms`;
+  const delay = `${60 + index * 30}ms`;
+
+  // Evidence bar width (capped at 50 studies = 100%)
+  const evidencePercent = Math.min(Math.round((item.studyCount / 50) * 100), 100);
+
+  if (featured) {
+    return (
+      <Link
+        href={`/supplement/${encodeURIComponent(item.name)}`}
+        className="lg:col-span-2 group flex flex-col md:flex-row gap-12 p-8 transition-all duration-200 relative overflow-hidden"
+        style={{
+          background: T.card,
+          border: `1px solid ${T.border}`,
+          opacity: 0,
+          animation: `vc-fade-up 420ms var(--ease-out-expo) ${delay} forwards`,
+        }}
+      >
+        <div className="flex-1">
+          <span
+            className="text-[10px] font-bold tracking-widest uppercase"
+            style={{ color: accent }}
+          >
+            {categoryLabel(item)}
+          </span>
+          <h3 className="text-2xl md:text-3xl font-bold tracking-tight mt-2 mb-4" style={{ color: '#fff' }}>
+            {item.name}
+          </h3>
+          {item.baseCompound && (
+            <p className="text-sm mb-6 max-w-md" style={{ color: T.textDim }}>
+              Base compound: {item.baseCompound}.
+              {item.specificForm ? ` Form: ${item.specificForm}.` : ''}
+            </p>
+          )}
+          <div className="flex gap-4">
+            <div className="p-4 rounded-sm" style={{ background: 'rgba(255,255,255,0.05)', border: `1px solid ${T.border}` }}>
+              <div className="text-xs font-bold uppercase tracking-widest mb-1" style={{ color: T.outline }}>Studies</div>
+              <div className="text-xl font-bold" style={{ color: '#fff' }}>{item.studyCount}+</div>
+            </div>
+            <div className="p-4 rounded-sm" style={{ background: 'rgba(255,255,255,0.05)', border: `1px solid ${T.border}` }}>
+              <div className="text-xs font-bold uppercase tracking-widest mb-1" style={{ color: T.outline }}>Score</div>
+              <div className="text-xl font-bold" style={{ color: '#fff' }}>{score.toFixed(1)}</div>
+            </div>
+          </div>
+        </div>
+        <div
+          className="w-full md:w-64 p-8 flex flex-col items-center justify-center text-center"
+          style={{ background: 'rgba(255,255,255,0.03)', border: `1px solid ${T.border}` }}
+        >
+          <div className="text-5xl font-black tracking-tighter mb-2" style={{ color: T.primary }}>
+            {score.toFixed(1)}
+          </div>
+          <div className="text-[10px] font-black uppercase tracking-widest mb-6" style={{ color: T.outline }}>
+            Trust Index
+          </div>
+          <span
+            className="vanguard-gradient w-full py-3 text-[10px] font-black uppercase tracking-widest text-center block"
+            style={{ color: T.textOnPrimary }}
+          >
+            View Data
+          </span>
+        </div>
+      </Link>
+    );
+  }
 
   return (
     <Link
       href={`/supplement/${encodeURIComponent(item.name)}`}
-      className="group relative cursor-pointer block"
-      style={{ opacity: 0, animation: `proto-fade-up 480ms var(--ease-out-expo, cubic-bezier(0.16,1,0.3,1)) ${delay} forwards` }}
+      className="group flex flex-col h-full p-6 md:p-8 transition-all duration-200 relative overflow-hidden"
+      style={{
+        background: T.card,
+        border: `1px solid ${T.border}`,
+        opacity: 0,
+        animation: `vc-fade-up 420ms var(--ease-out-expo) ${delay} forwards`,
+      }}
     >
-      {/* Spotlight border */}
-      <div
-        className="absolute -inset-px rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-        style={{ background: `linear-gradient(135deg, ${T.accentGlow}, transparent 60%)` }}
-      />
-      <div
-        className="relative rounded-2xl p-5 transition-transform duration-300 group-hover:-translate-y-1 h-full flex flex-col"
-        style={{
-          background: T.card,
-          border: `1px solid ${T.border}`,
-          boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.03)',
-        }}
-      >
-        {/* Icon / Image */}
-        <div
-          className="mb-4 flex items-center justify-center rounded-xl transition-all duration-300 group-hover:scale-105"
-          style={{
-            width: 48, height: 48,
-            background: 'rgba(255,255,255,0.03)',
-            border: `1px solid ${T.border}`,
-            overflow: 'hidden',
-          }}
-        >
-          {imgSrc ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={imgSrc}
-              alt=""
-              className="w-full h-full object-cover"
-              style={{ filter: 'saturate(0.85) brightness(0.9)' }}
-              loading="lazy"
+      {/* Header */}
+      <div className="flex justify-between items-start mb-6">
+        <div className="min-w-0 flex-1">
+          <span
+            className="text-[10px] font-bold tracking-widest uppercase block mb-1"
+            style={{ color: accent }}
+          >
+            {categoryLabel(item)}
+          </span>
+          <h3
+            className="text-lg md:text-xl font-bold tracking-tight"
+            style={{ color: '#fff' }}
+          >
+            {item.name}
+          </h3>
+        </div>
+        <div className="text-right shrink-0 ml-4">
+          <div className="text-2xl font-black tracking-tighter" style={{ color: accent }}>
+            {score.toFixed(1)}
+          </div>
+          <div className="text-[8px] font-bold uppercase tracking-widest" style={{ color: T.outline }}>
+            Trust Score
+          </div>
+        </div>
+      </div>
+
+      {/* Tags */}
+      <div className="flex flex-wrap gap-2 mb-6">
+        {topTags.map((t, i) => (
+          <span
+            key={i}
+            className="px-2 py-1 text-[9px] font-bold uppercase tracking-wider"
+            style={{
+              background: 'rgba(255,255,255,0.05)',
+              border: `1px solid ${T.border}`,
+              color: T.textMuted,
+              borderRadius: 2,
+            }}
+          >
+            {t.tag}
+          </span>
+        ))}
+      </div>
+
+      {/* Evidence bar */}
+      <div className="space-y-3 mb-6">
+        <div className="flex items-center justify-between">
+          <span className="text-[10px] uppercase tracking-widest" style={{ color: T.outline }}>
+            Evidence Base
+          </span>
+          <div className="h-1 w-32 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.05)' }}>
+            <div
+              className="h-full"
+              style={{
+                width: `${evidencePercent}%`,
+                background: accent,
+                boxShadow: `0 0 8px ${accent}40`,
+              }}
             />
-          ) : (
-            <span className="text-xl" role="img" aria-hidden>
-              {getCategoryIcon(item.supplementTypes)}
-            </span>
-          )}
-        </div>
-
-        {/* Name */}
-        <p className="text-sm font-bold leading-snug mb-2" style={{ color: T.text, letterSpacing: '-0.2px' }}>
-          {item.name}
-        </p>
-
-        {/* Tags */}
-        <div className="flex gap-1 flex-wrap mb-3">
-          {topTags.map((t, i) => {
-            const s = tagColors(t.tag, t.tagType);
-            return (
-              <span
-                key={i}
-                className="text-[10px] font-semibold px-2 py-[3px] rounded-md"
-                style={{ background: s.bg, border: `1px solid ${s.border}`, color: s.color }}
-              >
-                {t.tag}
-              </span>
-            );
-          })}
-        </div>
-
-        {/* Evidence bar */}
-        <div className="mt-auto">
-          <div className="flex items-center justify-between mb-1">
-            <span className="text-[10px] font-mono" style={{ color: T.textDim }}>Evidence</span>
-            <span className="text-[10px] font-mono font-semibold" style={{ color: T.accent }}>
-              {item.studyCount > 0 ? `${item.studyCount} studies` : 'Pending'}
-            </span>
-          </div>
-          <div className="h-[3px] rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.05)' }}>
-            {item.studyCount > 0 && (
-              <div
-                className="h-full rounded-full relative overflow-hidden"
-                style={{ width: `${evidenceWidth}%`, background: `linear-gradient(90deg, ${T.accent}, ${T.sky})` }}
-              >
-                <div
-                  className="absolute inset-0"
-                  style={{
-                    background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.25), transparent)',
-                    animation: 'proto-shimmer 2.5s ease-in-out infinite',
-                  }}
-                />
-              </div>
-            )}
           </div>
         </div>
+      </div>
+
+      {/* Footer */}
+      <div
+        className="mt-auto pt-5 flex justify-between items-center"
+        style={{ borderTop: `1px solid ${T.border}` }}
+      >
+        <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: T.outline }}>
+          {item.studyCount > 0 ? `${item.studyCount} studies` : 'Data pending'}
+        </span>
+        <span
+          className="text-[10px] font-black uppercase tracking-widest flex items-center gap-1 group-hover:gap-2 transition-all"
+          style={{ color: accent }}
+        >
+          Clinical Report <ArrowRight className="w-3 h-3" />
+        </span>
       </div>
     </Link>
   );
@@ -117,7 +201,7 @@ function CatalogCard({ item, index }: { item: CatalogItem; index: number }) {
 
 export function CatalogGrid() {
   const [items, setItems] = React.useState<CatalogItem[]>([]);
-  const [filter, setFilter] = React.useState('All');
+  const [filter, setFilter] = React.useState('Most Popular');
   const [loading, setLoading] = React.useState(true);
 
   React.useEffect(() => {
@@ -132,6 +216,7 @@ export function CatalogGrid() {
           tags: s.tags ?? [],
           supplementTypes: s.supplementTypes ?? [],
           studyCount: s.studyCount ?? 0,
+          popularityScore: s.popularityScore ?? 50,
         }));
         setItems(list);
       })
@@ -139,86 +224,72 @@ export function CatalogGrid() {
       .finally(() => setLoading(false));
   }, []);
 
-  const tags = React.useMemo(() => {
-    const seen = new Set<string>();
-    for (const item of items) {
-      for (const t of item.tags) seen.add(t.tag);
+  const sorted = React.useMemo(() => {
+    const arr = [...items];
+    if (filter === 'Trending Now') {
+      return arr.sort((a, b) => b.studyCount - a.studyCount);
     }
-    return ['All', ...Array.from(seen).sort()];
-  }, [items]);
-
-  const filtered = React.useMemo(() => {
-    if (filter === 'All') return items;
-    return items.filter((item) => item.tags.some((t) => t.tag === filter));
+    // Most Popular — by popularity score desc
+    return arr.sort((a, b) => (b.popularityScore ?? 0) - (a.popularityScore ?? 0));
   }, [items, filter]);
 
-  return (
-    <section id="catalog" className="px-4 md:px-8 pb-24 md:pb-16 max-w-7xl mx-auto">
-      {/* Section header */}
-      <div className="flex flex-col md:flex-row md:items-end md:justify-between mb-8 gap-4">
-        <div>
-          <h2 className="text-2xl md:text-3xl font-extrabold tracking-tight" style={{ color: T.text }}>
-            Supplement Catalog
-          </h2>
-          <p className="text-sm mt-1" style={{ color: T.textDim }}>
-            {items.length > 0 ? `${items.length} supplements` : 'Loading...'} — click any to get the full report
-          </p>
-        </div>
-        <div className="text-[11px] font-medium" style={{ color: T.textFaint }}>
-          {filter !== 'All' && `${filtered.length} matches`}
-        </div>
-      </div>
+  const displayed = sorted.slice(0, 24);
+  const featured = displayed[0];
+  const rest = displayed.slice(1);
 
-      {/* Filter pills */}
-      <div className="flex gap-2 flex-wrap mb-8 overflow-x-auto pb-1 -mx-1 px-1">
-        {tags.slice(0, 16).map((tag) => {
-          const active = filter === tag;
-          return (
+  return (
+    <section id="catalog" className="px-6 md:px-8 pb-24 md:pb-16 max-w-7xl mx-auto">
+      {/* Filter toggles + count */}
+      <div className="flex flex-col md:flex-row items-start md:items-end justify-between mb-10 gap-4 pb-6" style={{ borderBottom: `1px solid ${T.border}` }}>
+        <div className="flex gap-8 md:gap-12">
+          {['Most Popular', 'Trending Now'].map((f) => (
             <button
-              key={tag}
-              onClick={() => setFilter(tag)}
-              className="px-3.5 py-1.5 rounded-full text-[12px] font-semibold transition-all duration-200 active:scale-95 shrink-0"
-              style={{
-                background: active ? T.accentDim : 'transparent',
-                border: `1px solid ${active ? 'rgba(6,214,160,0.28)' : T.border}`,
-                color: active ? T.accent : T.textDim,
-                boxShadow: active ? '0 0 14px rgba(6,214,160,0.08)' : 'none',
-              }}
+              key={f}
+              onClick={() => setFilter(f)}
+              className="relative pb-2 text-xs font-bold tracking-widest uppercase transition-colors"
+              style={{ color: filter === f ? T.primary : T.outline }}
             >
-              {tag}
+              {f}
+              {filter === f && (
+                <div
+                  className="absolute bottom-0 left-0 w-full h-[2px]"
+                  style={{ background: T.primary }}
+                />
+              )}
             </button>
-          );
-        })}
+          ))}
+        </div>
+        <div className="text-[10px] font-medium tracking-widest uppercase" style={{ color: T.outline }}>
+          {items.length > 0 ? `Showing 1-${Math.min(displayed.length, items.length)} of ${items.length} Assets` : 'Loading...'}
+        </div>
       </div>
 
       {/* Grid */}
       {loading ? (
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
-          {Array.from({ length: 8 }).map((_, i) => (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-px">
+          {Array.from({ length: 6 }).map((_, i) => (
             <div
               key={i}
-              className="rounded-2xl h-44"
+              className="h-56"
               style={{
                 background: T.card,
                 border: `1px solid ${T.border}`,
-                animation: 'proto-shimmer 1.5s ease-in-out infinite',
-                backgroundImage: `linear-gradient(90deg, ${T.card}, ${T.elevated}, ${T.card})`,
+                animation: 'vc-pulse 1.5s ease-in-out infinite',
               }}
             />
           ))}
         </div>
       ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
-          {filtered.slice(0, 48).map((item, i) => (
-            <CatalogCard key={item.slug} item={item} index={i} />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-px">
+          {featured && <CatalogCard item={featured} index={0} featured />}
+          {rest.slice(0, 4).map((item, i) => (
+            <CatalogCard key={item.slug} item={item} index={i + 1} />
+          ))}
+          {/* Show more cards */}
+          {rest.slice(4).map((item, i) => (
+            <CatalogCard key={item.slug} item={item} index={i + 5} />
           ))}
         </div>
-      )}
-
-      {filtered.length === 0 && !loading && items.length > 0 && (
-        <p className="text-sm mt-8" style={{ color: T.textDim }}>
-          No supplements found for "{filter}".
-        </p>
       )}
     </section>
   );

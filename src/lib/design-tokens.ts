@@ -1,48 +1,56 @@
-/** Protocols.ai design tokens — single source of truth */
+/** Protocols.ai design tokens — Vanguard Clinical theme */
 export const T = {
-  // Backgrounds
-  bg: '#09090b',
-  card: '#111113',
-  elevated: '#18181b',
-  surface: 'rgba(255,255,255,0.03)',
+  // Backgrounds — deep navy
+  bg: '#0b1326',
+  bgGradientEnd: '#131b2e',
+  card: 'rgba(30, 41, 59, 0.4)',
+  cardHover: 'rgba(30, 41, 59, 0.6)',
+  elevated: '#222a3d',
+  surface: 'rgba(45, 52, 73, 0.5)',
+  surfaceLow: '#131b2e',
+  glass: 'rgba(30, 41, 59, 0.6)',
 
-  // Brand
-  accent: '#06d6a0',
-  accentDim: 'rgba(6,214,160,0.08)',
-  accentMid: 'rgba(6,214,160,0.15)',
-  accentGlow: 'rgba(6,214,160,0.25)',
-  sky: '#0ea5e9',
-  skyDim: 'rgba(14,165,233,0.08)',
+  // Brand — blue spectrum
+  primary: '#adc6ff',
+  primaryContainer: '#4d8eff',
+  primaryDim: 'rgba(173, 198, 255, 0.1)',
+  primaryGlow: 'rgba(77, 142, 255, 0.2)',
+  secondary: '#c0c1ff',
+  secondaryContainer: '#3131c0',
+  tertiary: '#ffb786',
+  tertiaryContainer: '#df7412',
 
   // Semantic
-  amber: '#fbbf24',
-  rose: '#fb7185',
-  purple: '#a78bfa',
+  error: '#ffb4ab',
+  errorContainer: '#93000a',
 
-  // Text — note: body text is off-white per dark mode best practice
-  text: '#e8e8e8',
-  textMuted: '#a1a1aa',
-  textDim: '#71717a',
-  textFaint: '#52525b',
+  // Text
+  text: '#dae2fd',
+  textMuted: '#c5c6cd',
+  textDim: '#94a3b8',
+  textFaint: '#64748b',
+  textOnPrimary: '#002e6a',
 
   // Borders
-  border: 'rgba(255,255,255,0.06)',
-  borderHover: 'rgba(255,255,255,0.12)',
-  borderAccent: 'rgba(6,214,160,0.18)',
+  border: 'rgba(255, 255, 255, 0.05)',
+  borderHover: 'rgba(255, 255, 255, 0.1)',
+  borderAccent: 'rgba(173, 198, 255, 0.2)',
+  outline: '#8f9097',
+  outlineVariant: '#45474c',
 } as const;
 
 /** Tag color helper based on tag content */
 export function tagColors(tag: string, tagType: string) {
   const t = tag.toLowerCase();
   if (tagType === 'category') {
-    if (t.includes('sleep')) return { bg: 'rgba(251,191,36,0.08)', border: 'rgba(251,191,36,0.2)', color: T.amber };
-    if (t.includes('heart') || t.includes('cardio')) return { bg: 'rgba(251,113,133,0.08)', border: 'rgba(251,113,133,0.2)', color: T.rose };
-    if (t.includes('immun')) return { bg: 'rgba(56,189,248,0.08)', border: 'rgba(56,189,248,0.2)', color: T.sky };
-    return { bg: T.accentDim, border: T.borderAccent, color: T.accent };
+    if (t.includes('sleep')) return { bg: 'rgba(255, 183, 134, 0.1)', border: 'rgba(255, 183, 134, 0.2)', color: T.tertiary };
+    if (t.includes('heart') || t.includes('cardio')) return { bg: 'rgba(255, 180, 171, 0.1)', border: 'rgba(255, 180, 171, 0.2)', color: T.error };
+    if (t.includes('immun')) return { bg: 'rgba(192, 193, 255, 0.1)', border: 'rgba(192, 193, 255, 0.2)', color: T.secondary };
+    return { bg: T.primaryDim, border: T.borderAccent, color: T.primary };
   }
-  if (t.includes('sleep') || t.includes('relax')) return { bg: 'rgba(251,191,36,0.08)', border: 'rgba(251,191,36,0.2)', color: T.amber };
-  if (t.includes('heart') || t.includes('blood')) return { bg: 'rgba(251,113,133,0.08)', border: 'rgba(251,113,133,0.2)', color: T.rose };
-  return { bg: T.skyDim, border: 'rgba(56,189,248,0.18)', color: T.sky };
+  if (t.includes('sleep') || t.includes('relax')) return { bg: 'rgba(255, 183, 134, 0.1)', border: 'rgba(255, 183, 134, 0.2)', color: T.tertiary };
+  if (t.includes('heart') || t.includes('blood')) return { bg: 'rgba(255, 180, 171, 0.1)', border: 'rgba(255, 180, 171, 0.2)', color: T.error };
+  return { bg: 'rgba(192, 193, 255, 0.1)', border: 'rgba(192, 193, 255, 0.2)', color: T.secondary };
 }
 
 /** Supplement image map */
@@ -79,4 +87,15 @@ export function getCategoryIcon(types: string[]): string {
   if (joined.includes('longevity')) return '⏳';
   if (joined.includes('protein')) return '💪';
   return '⚗️';
+}
+
+/** Category accent color — gives each category a distinct color from the spectrum */
+export function categoryAccentColor(types: string[]): string {
+  const joined = types.join(' ').toLowerCase();
+  if (joined.includes('nootropic') || joined.includes('cognitive')) return T.secondary;
+  if (joined.includes('strength') || joined.includes('ergogenic')) return T.tertiary;
+  if (joined.includes('longevity')) return T.primary;
+  if (joined.includes('sleep') || joined.includes('adaptogen')) return T.tertiary;
+  if (joined.includes('metabolic')) return T.primary;
+  return T.primary;
 }

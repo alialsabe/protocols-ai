@@ -15,21 +15,15 @@ export function Card({
   hover?: boolean;
 }) {
   return (
-    <div className={cn('relative', hover && 'group')}>
-      {hover && (
-        <div className="absolute -inset-px bg-gradient-to-r from-[#06d6a0]/15 via-[#0ea5e9]/10 to-[#06d6a0]/10 rounded-2xl blur-sm opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+    <div
+      className={cn(
+        'glass-panel rounded-sm overflow-hidden transition-colors duration-200',
+        hover && 'hover:bg-[rgba(30,41,59,0.6)]',
+        className,
       )}
-      <div
-        className={cn('relative z-10 rounded-2xl overflow-hidden', className)}
-        style={{
-          background: T.card,
-          border: `1px solid ${T.border}`,
-          boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.04)',
-          ...style,
-        }}
-      >
-        {children}
-      </div>
+      style={style}
+    >
+      {children}
     </div>
   );
 }
@@ -39,14 +33,16 @@ export function Input(props: React.InputHTMLAttributes<HTMLInputElement>) {
     <input
       {...props}
       className={cn(
-        'flex h-12 w-full rounded-xl px-4 py-2 text-sm placeholder:text-zinc-600 transition-all duration-200',
-        'focus:outline-none focus:ring-1 focus:ring-[#06d6a0]/40',
+        'flex h-12 w-full px-4 py-2 text-sm transition-all duration-200',
+        'focus:outline-none focus:border-[#adc6ff]',
+        'placeholder:text-[#64748b]',
         props.className,
       )}
       style={{
-        background: T.elevated,
+        background: 'rgba(255, 255, 255, 0.05)',
         border: `1px solid ${T.border}`,
         color: T.text,
+        borderRadius: 4,
         ...props.style,
       }}
     />
@@ -62,18 +58,32 @@ export function Button({
   ...props
 }: React.ButtonHTMLAttributes<HTMLButtonElement> & { variant?: BtnVariant }) {
   const styles: Record<BtnVariant, React.CSSProperties> = {
-    default: { background: T.accentDim, color: T.accent, border: `1px solid rgba(6,214,160,0.2)` },
-    primary: { background: `linear-gradient(135deg, ${T.accent}, ${T.sky})`, color: T.bg, border: 'none' },
-    ghost: { background: 'transparent', color: T.textMuted, border: 'none' },
+    default: {
+      background: T.primaryDim,
+      color: T.primary,
+      border: `1px solid ${T.borderAccent}`,
+    },
+    primary: {
+      background: `linear-gradient(135deg, ${T.primary}, ${T.primaryContainer})`,
+      color: T.textOnPrimary,
+      border: 'none',
+      boxShadow: `0 0 20px ${T.primaryGlow}`,
+    },
+    ghost: {
+      background: 'transparent',
+      color: T.textMuted,
+      border: 'none',
+    },
   };
   return (
     <button
       className={cn(
-        'inline-flex items-center justify-center rounded-xl text-sm font-bold transition-all duration-200 h-12 px-6',
+        'inline-flex items-center justify-center text-sm font-bold transition-all duration-200 h-12 px-6',
         'disabled:opacity-50 disabled:pointer-events-none active:scale-[0.97]',
+        'uppercase tracking-widest text-[11px]',
         className,
       )}
-      style={styles[variant]}
+      style={{ borderRadius: 4, ...styles[variant] }}
       {...props}
     >
       {children}
@@ -88,8 +98,17 @@ export function Badge({
 }: React.HTMLAttributes<HTMLSpanElement>) {
   return (
     <span
-      className={cn('inline-flex items-center rounded-md px-2.5 py-0.5 text-xs font-semibold', className)}
-      style={{ border: `1px solid ${T.border}`, ...props.style }}
+      className={cn(
+        'inline-flex items-center px-2.5 py-0.5 text-[9px] font-bold uppercase tracking-wider',
+        className,
+      )}
+      style={{
+        border: `1px solid ${T.border}`,
+        borderRadius: 2,
+        background: 'rgba(255,255,255,0.05)',
+        color: T.textMuted,
+        ...props.style,
+      }}
       {...props}
     >
       {children}
@@ -103,12 +122,14 @@ export function SectionLabel({ children }: { children: React.ReactNode }) {
       <span
         className="w-1.5 h-1.5 rounded-full shrink-0"
         style={{
-          background: T.accent,
-          boxShadow: `0 0 8px ${T.accentGlow}`,
-          animation: 'proto-breathe 3s ease-in-out infinite',
+          background: T.primary,
+          boxShadow: `0 0 8px ${T.primaryGlow}`,
         }}
       />
-      <span className="text-[11px] font-bold uppercase tracking-[1.4px]" style={{ color: T.accent }}>
+      <span
+        className="text-[10px] font-bold uppercase tracking-widest"
+        style={{ color: T.primary }}
+      >
         {children}
       </span>
     </div>

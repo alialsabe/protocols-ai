@@ -3,7 +3,6 @@ import React from 'react';
 import { useRouter } from 'next/navigation';
 import { Search } from 'lucide-react';
 import { T } from '@/lib/design-tokens';
-import { Button } from '@/components/shared/Primitives';
 import { SupplementAutocomplete, useSupplementDictionary } from '@/components/shared/SupplementAutocomplete';
 
 export function HeroSearch() {
@@ -20,68 +19,58 @@ export function HeroSearch() {
   };
 
   return (
-    <section className="text-center max-w-3xl mx-auto pt-8 md:pt-20 pb-16 px-4">
-      {/* Tagline chip */}
+    <section className="text-center max-w-3xl mx-auto pt-12 md:pt-32 pb-20 px-6">
+      {/* Chip */}
       <div
-        className="inline-block px-3 py-1 mb-5 rounded-md text-[10px] font-bold tracking-widest uppercase"
-        style={{ background: T.accentDim, border: `1px solid ${T.borderAccent}`, color: T.accent }}
+        className="inline-block px-3 py-1 mb-6 text-[10px] font-bold tracking-widest uppercase"
+        style={{
+          background: T.primaryDim,
+          border: `1px solid ${T.borderAccent}`,
+          color: T.primary,
+          borderRadius: 2,
+        }}
       >
-        Supplement Intelligence
+        The Standard for Supplement Precision
       </div>
 
-      {/* H1 — value prop */}
+      {/* Headline */}
       <h1
-        className="text-4xl md:text-6xl font-extrabold tracking-tight mb-4"
-        style={{ color: T.text, lineHeight: 1.1 }}
+        className="text-4xl md:text-7xl font-extrabold tracking-tight mb-12"
+        style={{ color: T.text, letterSpacing: '-0.03em' }}
       >
-        Know what you take.
+        Verify Your{' '}
+        <span className="italic" style={{ color: T.primary }}>
+          Protocol.
+        </span>
       </h1>
 
-      <p className="text-base md:text-lg mb-10 max-w-xl mx-auto" style={{ color: T.textMuted }}>
-        Research any supplement with clinical data, interaction checks, and dosage guidance.
-        Then build your personalized protocol.
-      </p>
-
       {/* Search bar */}
-      <div
-        className="relative rounded-2xl overflow-hidden"
-        style={{ animation: 'proto-fade-up 500ms cubic-bezier(0.16,1,0.3,1) 100ms both' }}
-      >
-        <div
-          className="absolute -inset-px rounded-2xl"
-          style={{
-            background: `conic-gradient(from 180deg at 50% 50%, transparent 0deg, ${T.accentGlow} 120deg, rgba(14,165,233,0.2) 200deg, transparent 360deg)`,
-            animation: 'proto-search-rotate 6s linear infinite',
-            opacity: 0.75,
-          }}
+      <div className="relative max-w-3xl mx-auto">
+        <div className="absolute inset-y-0 left-6 flex items-center pointer-events-none z-20">
+          <Search className="w-5 h-5" style={{ color: T.outline }} />
+        </div>
+        <SupplementAutocomplete
+          value={query}
+          onChange={setQuery}
+          onSelect={(v) => handleAnalyze(v)}
+          placeholder="SEARCH CLINICAL COMPOUNDS (E.G. NMN, CREATINE MONOHYDRATE...)"
+          inputClassName="pl-14 pr-32 h-16 md:h-18 text-sm font-medium tracking-wide bg-transparent border-b border-[rgba(69,71,76,0.3)] focus:border-[#adc6ff] uppercase placeholder:normal-case"
+          dictionary={dictionary}
         />
-        <div
-          className="relative flex items-center rounded-2xl p-1"
-          style={{ background: T.card, zIndex: 1 }}
-        >
-          <Search className="absolute left-5 w-5 h-5 pointer-events-none" style={{ color: T.textDim }} />
-          <SupplementAutocomplete
-            value={query}
-            onChange={setQuery}
-            onSelect={(v) => handleAnalyze(v)}
-            placeholder="Search any supplement (e.g. Ashwagandha, Creatine, NMN...)"
-            inputClassName="pl-12 h-14 md:h-16 text-[15px] rounded-xl bg-transparent border-transparent font-medium"
-            dictionary={dictionary}
-          />
-          <Button
-            className="h-11 md:h-12 shrink-0 mr-1 text-[13px] font-bold px-6 md:px-8"
-            variant="primary"
+        <div className="absolute inset-y-0 right-4 flex items-center z-20">
+          <button
+            className="vanguard-gradient px-6 py-2 text-[10px] font-black uppercase tracking-widest"
+            style={{ color: T.textOnPrimary, borderRadius: 2 }}
             onClick={() => handleAnalyze()}
             disabled={loading}
-            style={{ borderRadius: 12 }}
           >
             {loading ? 'Loading...' : 'Analyze'}
-          </Button>
+          </button>
         </div>
       </div>
 
-      {/* Subtext */}
-      <p className="mt-5 text-xs" style={{ color: T.textFaint }}>
+      {/* Sub-text */}
+      <p className="mt-6 text-xs tracking-wide" style={{ color: T.outline }}>
         279 supplements indexed with clinical studies, interaction data, and dosage protocols.
       </p>
     </section>

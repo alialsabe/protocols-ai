@@ -2,7 +2,6 @@
 import React from 'react';
 import { cn } from '@/lib/utils';
 import { T } from '@/lib/design-tokens';
-import { Input } from './Primitives';
 
 const FALLBACK_DICTIONARY = [
   'Magnesium Glycinate', 'Creatine Monohydrate', 'Vitamin D3', 'Vitamin K2 (MK-7)',
@@ -39,9 +38,19 @@ export function SupplementAutocomplete({
   return (
     <div className={cn('relative w-full flex items-center', className)}>
       {icon}
-      <Input
+      <input
         placeholder={placeholder}
-        className={cn('w-full relative z-10', inputClassName)}
+        className={cn(
+          'w-full relative z-10 h-12 px-4 py-2 text-sm transition-all duration-200',
+          'focus:outline-none placeholder:text-[#64748b]',
+          inputClassName,
+        )}
+        style={{
+          background: 'rgba(255, 255, 255, 0.05)',
+          border: `1px solid ${T.border}`,
+          color: T.text,
+          borderRadius: 4,
+        }}
         value={value}
         onChange={(e) => { onChange(e.target.value); setShow(true); }}
         onFocus={() => setShow(true)}
@@ -50,8 +59,13 @@ export function SupplementAutocomplete({
       />
       {show && filtered.length > 0 && (
         <div
-          className="absolute top-full left-0 mt-2 w-full rounded-xl shadow-2xl z-50 max-h-64 overflow-y-auto"
-          style={{ background: T.elevated, border: `1px solid ${T.border}` }}
+          className="absolute top-full left-0 mt-1 w-full shadow-2xl z-50 max-h-64 overflow-y-auto"
+          style={{
+            background: '#131b2e',
+            border: `1px solid ${T.border}`,
+            backdropFilter: 'blur(24px)',
+            borderRadius: 4,
+          }}
         >
           {filtered.map((s, i) => (
             <div
