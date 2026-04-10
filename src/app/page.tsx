@@ -1,9 +1,13 @@
-import Dashboard from '@/components/Dashboard';
+import { HeroSearch } from '@/components/home/HeroSearch';
+import { AdvisorCTA } from '@/components/home/AdvisorCTA';
+import { CatalogGrid } from '@/components/home/CatalogGrid';
 
 export default function Home() {
   return (
-    <main className="bg-black text-white min-h-screen">
-      <Dashboard />
-    </main>
+    <>
+      <HeroSearch />
+      <AdvisorCTA />
+      <CatalogGrid />
+    </>
   );
 }

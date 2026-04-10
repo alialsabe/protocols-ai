@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Geist_Mono, Outfit } from "next/font/google";
 import "./globals.css";
+import { DesktopNav, MobileNav } from "@/components/shared/Nav";
+import { MeshBackground } from "@/components/shared/MeshBackground";
 
 const outfit = Outfit({
   variable: "--font-outfit",
@@ -14,8 +16,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Protocols.ai",
-  description: "Live supplement intelligence and scheduling",
+  title: "Protocols.ai — Supplement Intelligence",
+  description: "Research any supplement with clinical data, interaction checks, and dosage guidance. Build your personalized protocol.",
 };
 
 export default function RootLayout({
@@ -28,7 +30,14 @@ export default function RootLayout({
       lang="en"
       className={`${outfit.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex">
+        <MeshBackground />
+        <DesktopNav />
+        <main className="flex-1 relative min-h-dvh overflow-y-auto pb-16 md:pb-0" style={{ zIndex: 2 }}>
+          {children}
+        </main>
+        <MobileNav />
+      </body>
     </html>
   );
 }
