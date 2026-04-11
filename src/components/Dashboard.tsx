@@ -695,7 +695,7 @@ export default function Dashboard() {
               </div>
 
               {/* Search bar */}
-              <div className="relative rounded-[18px] overflow-hidden" style={{ animation: 'proto-fade-up 500ms cubic-bezier(0.16,1,0.3,1) 80ms both' }}>
+              <div className="relative rounded-[18px]" style={{ animation: 'proto-fade-up 500ms cubic-bezier(0.16,1,0.3,1) 80ms both' }}>
                 {/* Rotating conic glow */}
                 <div
                   className="absolute -inset-[2px] rounded-[18px]"
