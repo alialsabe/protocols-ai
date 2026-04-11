@@ -973,20 +973,41 @@ export default function Dashboard() {
                               ))}
                             </div>
                           </Card>
-                          <Card className="p-5" style={{ borderColor: 'rgba(251,191,36,0.15)', background: 'rgba(251,191,36,0.03)' }}>
-                            <h4 className="flex items-center gap-2 text-sm font-bold mb-3" style={{ color: T.amber }}>
-                              <Pill className="w-4 h-4" /> Medicine Interactions
+                          <Card className="p-5">
+                            <h4 className="flex items-center gap-2 text-sm font-bold mb-3" style={{ color: '#fafafa' }}>
+                              <Pill className="w-4 h-4" style={{ color: T.amber }} /> Medicine Interactions
                             </h4>
-                            <div className="space-y-2">
-                              {(report.medicineInteractions ?? []).map((m) => (
-                                <div key={`${m.medicineName}-${m.severity}`} className="text-xs p-3 rounded-xl" style={{ border: `1px solid ${T.border}`, background: 'rgba(0,0,0,0.2)', color: '#a1a1aa' }}>
-                                  <p><strong style={{ color: '#fafafa' }}>{m.medicineName}</strong> — <span className="uppercase" style={{ color: T.amber }}>{m.severity}</span></p>
-                                  <p className="mt-1" style={{ color: T.zinc }}>{m.mechanism}</p>
-                                  <p className="mt-1" style={{ color: '#52525b' }}>{m.recommendation}</p>
-                                </div>
-                              ))}
+                            <div className="space-y-0">
+                              {[...(report.medicineInteractions ?? [])]
+                                .sort((a, b) => {
+                                  const order = { high: 0, moderate: 1, low: 2 } as Record<string, number>;
+                                  return (order[a.severity] ?? 3) - (order[b.severity] ?? 3);
+                                })
+                                .map((m) => {
+                                  const sevColor = m.severity === 'high' ? T.rose : m.severity === 'moderate' ? T.amber : T.sky;
+                                  return (
+                                    <div
+                                      key={`${m.medicineName}-${m.severity}`}
+                                      className="flex items-start gap-3 py-3"
+                                      style={{ borderBottom: `1px solid ${T.border}` }}
+                                    >
+                                      <div className="w-1 self-stretch rounded-full flex-shrink-0" style={{ background: sevColor }} />
+                                      <div className="flex-1 min-w-0">
+                                        <p className="text-sm font-semibold" style={{ color: '#fafafa' }}>{m.medicineName}</p>
+                                        <p className="text-xs mt-1" style={{ color: T.zinc }}>{m.mechanism}</p>
+                                        <p className="text-xs mt-1" style={{ color: '#52525b' }}>{m.recommendation}</p>
+                                      </div>
+                                      <span
+                                        className="text-[10px] font-bold uppercase px-2 py-[2px] rounded-full flex-shrink-0"
+                                        style={{ background: `${sevColor}15`, color: sevColor, border: `1px solid ${sevColor}30` }}
+                                      >
+                                        {m.severity}
+                                      </span>
+                                    </div>
+                                  );
+                                })}
                               {!(report.medicineInteractions ?? []).length && (
-                                <p className="text-xs" style={{ color: T.zinc }}>No interactions indexed.</p>
+                                <p className="text-xs py-3" style={{ color: T.zinc }}>No known interactions with common medications. Always consult your physician.</p>
                               )}
                             </div>
                           </Card>
@@ -1103,90 +1124,111 @@ export default function Dashboard() {
                 </Card>
               )}
               {report && (
-                <>
-                  {report.dosage && (
-                    <Card className="p-6">
-                      <h3 className="text-lg font-bold mb-4" style={{ color: '#fafafa' }}>Dosage — {report.name ?? report.subject}</h3>
-                      <div className="space-y-3">
-                        <div className="flex justify-between items-start pb-3" style={{ borderBottom: `1px solid ${T.border}` }}>
-                          <span className="text-sm" style={{ color: T.zinc }}>Maintenance</span>
-                          <span className="text-sm font-medium text-right max-w-[60%]" style={{ color: '#fafafa' }}>{report.dosage.maintenance}</span>
-                        </div>
-                        {report.dosage.loading && (
+                <div className="grid grid-cols-1 md:grid-cols-[1fr_300px] gap-6">
+                  {/* Left column — dosage protocol */}
+                  <div className="space-y-4">
+                    {report.dosage && (
+                      <Card className="p-6">
+                        <h3 className="text-lg font-bold mb-4" style={{ color: '#fafafa' }}>Dosage — {report.name ?? report.subject}</h3>
+                        <div className="space-y-3">
                           <div className="flex justify-between items-start pb-3" style={{ borderBottom: `1px solid ${T.border}` }}>
-                            <span className="text-sm" style={{ color: T.zinc }}>Loading phase</span>
-                            <span className="text-sm font-medium text-right max-w-[60%]" style={{ color: '#fafafa' }}>{report.dosage.loading}</span>
+                            <span className="text-sm" style={{ color: T.zinc }}>Maintenance</span>
+                            <span className="text-sm font-medium text-right max-w-[60%]" style={{ color: '#fafafa' }}>{report.dosage.maintenance}</span>
                           </div>
-                        )}
-                        {report.dosage.formula && (
-                          <div className="flex justify-between items-start pb-3" style={{ borderBottom: `1px solid ${T.border}` }}>
-                            <span className="text-sm" style={{ color: T.zinc }}>Formula</span>
-                            <span className="text-sm text-right max-w-[60%]" style={{ color: T.accent, fontFamily: 'var(--font-geist-mono), monospace' }}>{report.dosage.formula}</span>
-                          </div>
-                        )}
-                      </div>
-                    </Card>
-                  )}
-                  {(report.schedule ?? []).length > 0 && (
-                    <Card className="p-6">
-                      <h3 className="text-lg font-bold mb-4" style={{ color: '#fafafa' }}>Schedule</h3>
-                      <div className="space-y-3">
-                        {(report.schedule ?? []).map((block, i) => (
-                          <div key={i} className="p-3 rounded-xl" style={{ border: `1px solid ${T.border}`, background: 'rgba(255,255,255,0.02)' }}>
-                            <p className="font-semibold" style={{ color: '#fafafa' }}>{block.time} — {block.title}</p>
-                            <p className="text-xs mt-1" style={{ color: T.zinc }}>{block.context}</p>
-                            {block.caution && <p className="text-xs mt-1" style={{ color: T.amber }}>{block.caution}</p>}
-                          </div>
-                        ))}
-                      </div>
-                    </Card>
-                  )}
-                  {(report.topBrands ?? []).length > 0 && (
-                    <Card className="p-6">
-                      <h3 className="text-lg font-bold mb-4" style={{ color: '#fafafa' }}>Top Brands</h3>
-                      <div className="space-y-3">
-                        {(report.topBrands ?? []).map((brand, i) => (
-                          <div key={i} className="flex items-start justify-between p-3 rounded-xl" style={{ border: `1px solid ${T.border}`, background: 'rgba(255,255,255,0.02)' }}>
-                            <div>
-                              <p className="text-sm font-semibold" style={{ color: '#fafafa' }}>{brand.name}</p>
-                              <p className="text-xs mt-1" style={{ color: T.zinc }}>{brand.why}</p>
+                          {report.dosage.loading && (
+                            <div className="flex justify-between items-start pb-3" style={{ borderBottom: `1px solid ${T.border}` }}>
+                              <span className="text-sm" style={{ color: T.zinc }}>Loading phase</span>
+                              <span className="text-sm font-medium text-right max-w-[60%]" style={{ color: '#fafafa' }}>{report.dosage.loading}</span>
                             </div>
-                            {brand.link && <a href={brand.link} target="_blank" rel="noreferrer" className="text-xs underline shrink-0 ml-4" style={{ color: T.accent }}>Source</a>}
-                          </div>
-                        ))}
-                      </div>
-                    </Card>
-                  )}
-                  {(report.conflicts ?? []).length > 0 && (
-                    <Card className="p-6">
-                      <h3 className="text-lg font-bold mb-4" style={{ color: T.amber }}>Conflicts</h3>
-                      <div className="space-y-3">
-                        {(report.conflicts ?? []).map((c, i) => (
-                          <div key={i} className="p-3 rounded-xl" style={{ border: `1px solid rgba(251,191,36,0.15)`, background: 'rgba(251,191,36,0.04)' }}>
-                            <p className="text-sm font-semibold" style={{ color: '#fafafa' }}>
-                              {c.supplementA} + {c.supplementB}{' '}
-                              <Badge className="ml-2" style={{ background: 'rgba(251,191,36,0.15)', color: T.amber, borderColor: 'rgba(251,191,36,0.25)' }}>{c.severity}</Badge>
-                            </p>
-                            <p className="text-xs mt-1" style={{ color: T.zinc }}>{c.mechanism}</p>
-                            {c.minSpacingHours && <p className="text-xs mt-1" style={{ color: T.amber }}>Space by {c.minSpacingHours}h+</p>}
-                          </div>
-                        ))}
-                      </div>
-                    </Card>
-                  )}
-                  {report.commerce && (
-                    <Card className="p-6">
-                      <h3 className="text-lg font-bold mb-4" style={{ color: '#fafafa' }}>Where to Buy</h3>
-                      <div className="flex items-center justify-between p-3 rounded-xl" style={{ border: `1px solid ${T.border}`, background: 'rgba(255,255,255,0.02)' }}>
-                        <div>
-                          <p className="text-sm font-semibold" style={{ color: '#fafafa' }}>{report.commerce.product}</p>
-                          <p className="text-xs mt-1" style={{ color: T.zinc }}>{report.commerce.retailer}{report.commerce.price ? ` — ${report.commerce.price}` : ''}</p>
+                          )}
+                          {report.dosage.formula && (
+                            <div className="flex justify-between items-start pb-3" style={{ borderBottom: `1px solid ${T.border}` }}>
+                              <span className="text-sm" style={{ color: T.zinc }}>Formula</span>
+                              <span className="text-sm text-right max-w-[60%]" style={{ color: T.accent, fontFamily: 'var(--font-geist-mono), monospace' }}>{report.dosage.formula}</span>
+                            </div>
+                          )}
                         </div>
-                        <a href={report.commerce.affiliateLink} target="_blank" rel="noreferrer" className="text-sm px-4 py-2 rounded-xl transition-all duration-200" style={{ color: T.accent, border: `1px solid rgba(6,214,160,0.2)` }}>View</a>
-                      </div>
-                    </Card>
-                  )}
-                </>
+                      </Card>
+                    )}
+                    {(report.schedule ?? []).length > 0 && (
+                      <Card className="p-6">
+                        <h3 className="text-lg font-bold mb-4" style={{ color: '#fafafa' }}>Timing</h3>
+                        <div className="space-y-3">
+                          {(report.schedule ?? []).map((block, i) => (
+                            <div key={i} className="p-3 rounded-xl" style={{ border: `1px solid ${T.border}`, background: 'rgba(255,255,255,0.02)' }}>
+                              <p className="font-semibold text-sm" style={{ color: '#fafafa' }}>{block.time} — {block.title}</p>
+                              <p className="text-xs mt-1" style={{ color: T.zinc }}>{block.context}</p>
+                              {block.caution && <p className="text-xs mt-1" style={{ color: T.amber }}>&#9888; {block.caution}</p>}
+                            </div>
+                          ))}
+                        </div>
+                      </Card>
+                    )}
+                    {(report.conflicts ?? []).length > 0 && (
+                      <Card className="p-5">
+                        <h4 className="text-sm font-bold mb-3" style={{ color: T.amber }}>&#9888; Conflicts</h4>
+                        <div className="space-y-0">
+                          {(report.conflicts ?? []).map((c, i) => (
+                            <div key={i} className="flex items-start gap-3 py-3" style={{ borderBottom: `1px solid ${T.border}` }}>
+                              <div className="w-1 self-stretch rounded-full flex-shrink-0" style={{ background: c.severity === 'high' ? T.rose : T.amber }} />
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-semibold" style={{ color: '#fafafa' }}>{c.supplementA} + {c.supplementB}</p>
+                                <p className="text-xs mt-1" style={{ color: T.zinc }}>{c.mechanism}</p>
+                                {c.minSpacingHours && <p className="text-xs mt-1" style={{ color: T.amber }}>Space by {c.minSpacingHours}h+</p>}
+                              </div>
+                              <span className="text-[10px] font-bold uppercase px-2 py-[2px] rounded-full flex-shrink-0" style={{ background: `${c.severity === 'high' ? T.rose : T.amber}15`, color: c.severity === 'high' ? T.rose : T.amber }}>{c.severity}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </Card>
+                    )}
+                    {(report.topBrands ?? []).length > 0 && (
+                      <Card className="p-6">
+                        <h3 className="text-sm font-bold mb-3" style={{ color: '#fafafa' }}>Top Brands</h3>
+                        <div className="space-y-3">
+                          {(report.topBrands ?? []).map((brand, i) => (
+                            <div key={i} className="flex items-start justify-between p-3 rounded-xl" style={{ border: `1px solid ${T.border}`, background: 'rgba(255,255,255,0.02)' }}>
+                              <div>
+                                <p className="text-sm font-semibold" style={{ color: '#fafafa' }}>{brand.name}</p>
+                                <p className="text-xs mt-1" style={{ color: T.zinc }}>{brand.why}</p>
+                              </div>
+                              {brand.link && <a href={brand.link} target="_blank" rel="noreferrer" className="text-xs underline shrink-0 ml-4" style={{ color: T.accent }}>Source</a>}
+                            </div>
+                          ))}
+                        </div>
+                      </Card>
+                    )}
+                  </div>
+
+                  {/* Right column — affiliate CTA */}
+                  <div className="space-y-4">
+                    {report.commerce && (
+                      <Card className="p-5 sticky top-6">
+                        <div className="flex items-center gap-2 mb-3">
+                          <span style={{ color: T.amber }}>&#9733;</span>
+                          <span className="text-xs font-bold uppercase tracking-wider" style={{ color: T.accent }}>Recommended</span>
+                        </div>
+                        <p className="text-sm font-semibold mb-1" style={{ color: '#fafafa' }}>{report.commerce.product}</p>
+                        <p className="text-xs mb-1" style={{ color: T.zinc }}>{report.commerce.retailer}</p>
+                        {report.commerce.price && (
+                          <p className="text-lg font-bold mb-4" style={{ color: '#fafafa' }}>{report.commerce.price}</p>
+                        )}
+                        <a
+                          href={report.commerce.affiliateLink}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="block w-full text-center py-3 rounded-xl text-sm font-bold transition-all duration-200"
+                          style={{ background: T.accent, color: T.bg }}
+                        >
+                          View on {report.commerce.retailer}
+                        </a>
+                        <p className="text-[10px] mt-3 text-center" style={{ color: '#52525b' }}>
+                          Affiliate link &middot; We may earn a commission
+                        </p>
+                      </Card>
+                    )}
+                  </div>
+                </div>
               )}
             </div>
           )}
@@ -1240,14 +1282,59 @@ export default function Dashboard() {
                       ))}
                     </div>
                   )}
-                  <div className="space-y-3">
-                    {(schedulerResult?.blocks ?? []).map((b, i) => (
-                      <div key={i} className="p-3 rounded-xl" style={{ border: `1px solid ${T.border}`, background: 'rgba(255,255,255,0.02)' }}>
-                        <p className="font-semibold" style={{ color: '#fafafa' }}>{b.time} — {b.title}</p>
-                        <p className="text-xs" style={{ color: T.zinc }}>{b.context}</p>
-                        <p className="text-xs mt-1" style={{ color: '#a1a1aa' }}>{b.supplements.join(' + ')}</p>
-                      </div>
-                    ))}
+                  <div className="space-y-0">
+                    {(() => {
+                      const blocks = schedulerResult?.blocks ?? [];
+                      if (!blocks.length) return <p className="text-xs py-3" style={{ color: T.zinc }}>Add supplements above to build your schedule.</p>;
+                      const slots = [
+                        { label: '\u{1F305} Morning', match: (t: string) => { const h = parseInt(t); return !isNaN(h) && h < 12; } },
+                        { label: '\u{2600}\u{FE0F} Afternoon', match: (t: string) => { const h = parseInt(t); return !isNaN(h) && h >= 12 && h < 17; } },
+                        { label: '\u{1F319} Evening', match: (t: string) => { const h = parseInt(t); return !isNaN(h) && h >= 17 && h < 21; } },
+                        { label: '\u{1F311} Bedtime', match: (t: string) => { const h = parseInt(t); const pm = /pm/i.test(t); return (!isNaN(h) && h >= 21) || (pm && h >= 9); } },
+                      ];
+                      // Parse hour from time string like "09:30 PM" or "21:30"
+                      const parseH = (t: string) => {
+                        const m24 = t.match(/^(\d{1,2})/);
+                        if (!m24) return 12;
+                        let h = parseInt(m24[1]);
+                        if (/pm/i.test(t) && h < 12) h += 12;
+                        if (/am/i.test(t) && h === 12) h = 0;
+                        return h;
+                      };
+                      const grouped = slots.map(s => ({
+                        ...s,
+                        items: blocks.filter(b => {
+                          const h = parseH(b.time);
+                          if (s.label.includes('Morning')) return h < 12;
+                          if (s.label.includes('Afternoon')) return h >= 12 && h < 17;
+                          if (s.label.includes('Evening')) return h >= 17 && h < 21;
+                          return h >= 21;
+                        }),
+                      })).filter(g => g.items.length > 0);
+                      return grouped.map((group, gi) => (
+                        <div key={gi} className="relative pl-6 pb-6">
+                          {gi < grouped.length - 1 && (
+                            <div className="absolute left-[11px] top-6 bottom-0 w-[2px] rounded-full" style={{ background: T.border }} />
+                          )}
+                          <div className="absolute left-0 top-0 w-6 h-6 rounded-full flex items-center justify-center text-xs" style={{ background: T.elevated, border: `2px solid ${T.accent}` }}>
+                            <span className="text-[10px]">{group.label.split(' ')[0]}</span>
+                          </div>
+                          <p className="text-xs font-bold uppercase tracking-wider mb-3 ml-2" style={{ color: T.accent }}>{group.label.split(' ').slice(1).join(' ')}</p>
+                          <div className="space-y-2 ml-2">
+                            {group.items.map((b, bi) => (
+                              <div key={bi} className="p-3 rounded-xl" style={{ border: `1px solid ${T.border}`, background: 'rgba(255,255,255,0.02)' }}>
+                                <p className="text-sm font-semibold" style={{ color: '#fafafa' }}>{b.time} &mdash; {b.title}</p>
+                                <p className="text-xs mt-1" style={{ color: T.zinc }}>{b.context}</p>
+                                <p className="text-xs mt-1" style={{ color: '#a1a1aa' }}>{b.supplements.join(' + ')}</p>
+                                {b.caution && (
+                                  <p className="text-xs mt-2 px-2 py-1 rounded-lg" style={{ color: T.amber, background: 'rgba(251,191,36,0.08)' }}>&#9888; {b.caution}</p>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ));
+                    })()}
                   </div>
                 </Card>
 
