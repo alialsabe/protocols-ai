@@ -1,5 +1,6 @@
 "use client";
 import React from 'react';
+import { createPortal } from 'react-dom';
 import * as TabsPrimitive from '@radix-ui/react-tabs';
 import { cn } from '@/lib/utils';
 import {
@@ -104,8 +105,9 @@ const Card = ({ className, style, children }: { className?: string; style?: Reac
   </div>
 );
 
-const Input = (props: React.InputHTMLAttributes<HTMLInputElement>) => (
+const Input = React.forwardRef<HTMLInputElement, React.InputHTMLAttributes<HTMLInputElement>>((props, ref) => (
   <input
+    ref={ref}
     {...props}
     className={cn(
       'flex h-12 w-full rounded-xl px-4 py-2 text-sm text-white placeholder:text-zinc-600',
@@ -116,7 +118,8 @@ const Input = (props: React.InputHTMLAttributes<HTMLInputElement>) => (
     onFocus={(e) => { (e.target as HTMLInputElement).style.borderColor = 'rgba(6,214,160,0.4)'; props.onFocus?.(e); }}
     onBlur={(e)  => { (e.target as HTMLInputElement).style.borderColor = T.border; props.onBlur?.(e); }}
   />
-);
+));
+Input.displayName = 'Input';
 
 type BtnVariant = 'default' | 'primary' | 'ghost';
 type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & { variant?: BtnVariant };
@@ -176,28 +179,35 @@ const SupplementAutocomplete = ({
 }: AutocompleteProps) => {
   const dict = dictionary && dictionary.length > 0 ? dictionary : SUPPLEMENT_DICTIONARY_FALLBACK;
   const [show, setShow] = React.useState(false);
+  const inputRef = React.useRef<HTMLInputElement>(null);
+  const [dropdownRect, setDropdownRect] = React.useState<{ top: number; left: number; width: number } | null>(null);
   const filtered = React.useMemo(() => {
     if (!value) return [];
     return dict
       .filter((s) => s.toLowerCase().includes(value.toLowerCase()) && s.toLowerCase() !== value.toLowerCase())
       .slice(0, 20);
   }, [value, dict]);
-  return (
-    <div className={cn('relative w-full flex items-center', className)}>
-      {icon}
-      <Input
-        placeholder={placeholder}
-        className={cn('w-full relative z-10', inputClassName)}
-        value={value}
-        onChange={(e) => { onChange(e.target.value); setShow(true); }}
-        onFocus={() => setShow(true)}
-        onBlur={() => setTimeout(() => setShow(false), 200)}
-        onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); setShow(false); onSelect?.(value); } }}
-      />
-      {show && filtered.length > 0 && (
+
+  React.useEffect(() => {
+    if (show && filtered.length > 0 && inputRef.current) {
+      const r = inputRef.current.getBoundingClientRect();
+      setDropdownRect({ top: r.bottom + window.scrollY + 8, left: r.left + window.scrollX, width: r.width });
+    }
+  }, [show, filtered.length]);
+
+  const dropdown = show && filtered.length > 0 && dropdownRect
+    ? createPortal(
         <div
-          className="absolute top-full left-0 mt-2 w-full rounded-xl shadow-2xl z-50 max-h-64 overflow-y-auto"
-          style={{ background: '#18181b', border: `1px solid ${T.border}` }}
+          style={{
+            position: 'absolute',
+            top: dropdownRect.top,
+            left: dropdownRect.left,
+            width: dropdownRect.width,
+            background: '#18181b',
+            border: `1px solid ${T.border}`,
+            zIndex: 9999,
+          }}
+          className="rounded-xl shadow-2xl max-h-64 overflow-y-auto"
         >
           {filtered.map((s, i) => (
             <div
@@ -211,8 +221,25 @@ const SupplementAutocomplete = ({
               {s}
             </div>
           ))}
-        </div>
-      )}
+        </div>,
+        document.body
+      )
+    : null;
+
+  return (
+    <div className={cn('relative w-full flex items-center', className)}>
+      {icon}
+      <Input
+        ref={inputRef}
+        placeholder={placeholder}
+        className={cn('w-full relative z-10', inputClassName)}
+        value={value}
+        onChange={(e) => { onChange(e.target.value); setShow(true); }}
+        onFocus={() => setShow(true)}
+        onBlur={() => setTimeout(() => setShow(false), 200)}
+        onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); setShow(false); onSelect?.(value); } }}
+      />
+      {dropdown}
     </div>
   );
 };
@@ -695,7 +722,7 @@ export default function Dashboard() {
               </div>
 
               {/* Search bar */}
-              <div className="relative rounded-[18px]" style={{ animation: 'proto-fade-up 500ms cubic-bezier(0.16,1,0.3,1) 80ms both' }}>
+              <div className="relative rounded-[18px] overflow-hidden" style={{ animation: 'proto-fade-up 500ms cubic-bezier(0.16,1,0.3,1) 80ms both' }}>
                 {/* Rotating conic glow */}
                 <div
                   className="absolute -inset-[2px] rounded-[18px]"
