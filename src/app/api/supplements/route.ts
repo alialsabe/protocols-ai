@@ -1,12 +1,10 @@
 import { listProtocolsSupplements, listAllTags, listAllTypes, listAllStudyCounts } from '@/lib/db';
 
 export async function GET() {
-  const [rows, allTags, allTypes, allCounts] = await Promise.all([
-    listProtocolsSupplements(),
-    listAllTags(),
-    listAllTypes(),
-    listAllStudyCounts(),
-  ]);
+  const rows = await listProtocolsSupplements();
+  const allTags = await listAllTags();
+  const allTypes = await listAllTypes();
+  const allCounts = await listAllStudyCounts();
 
   const tagMap = new Map<string, { tag: string; tagType: string }[]>();
   for (const t of allTags) {

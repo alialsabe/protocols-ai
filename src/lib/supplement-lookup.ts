@@ -319,16 +319,15 @@ export async function lookupSupplement(query: string, biometrics?: Biometrics): 
 
   const supplementId = match.id;
   const weight = biometrics?.weightKg ?? 80;
-  const [bundle, medicineInteractionRows, conflictRows, companionRows, tagRows, typeRows, clinicalStudyRows, studyCategoryCounts] = await Promise.all([
-    getSupplementBundleById(supplementId),
-    listMedicineInteractionsBySupplementId(supplementId),
-    listConflicts(),
-    listCompanionStacksBySupplementId(supplementId),
-    listTagsBySupplementId(supplementId),
-    listTypesBySupplementId(supplementId),
-    listClinicalStudiesBySupplementId(supplementId),
-    getClinicalStudyCategoryCounts(supplementId),
-  ]);
+  // Sequential queries — Supabase free tier cancels statements when too many run in parallel
+  const bundle                = await getSupplementBundleById(supplementId);
+  const medicineInteractionRows = await listMedicineInteractionsBySupplementId(supplementId);
+  const conflictRows          = await listConflicts();
+  const companionRows         = await listCompanionStacksBySupplementId(supplementId);
+  const tagRows               = await listTagsBySupplementId(supplementId);
+  const typeRows              = await listTypesBySupplementId(supplementId);
+  const clinicalStudyRows     = await listClinicalStudiesBySupplementId(supplementId);
+  const studyCategoryCounts   = await getClinicalStudyCategoryCounts(supplementId);
 
   const bundleTyped = bundle as SupplementBundleRow | null;
   const science = bundleTyped?.science ? enrichFindings(JSON.parse(bundleTyped.science.findings)) : [];

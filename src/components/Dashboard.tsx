@@ -589,13 +589,13 @@ export default function Dashboard() {
 
       <div className="relative flex min-h-[100dvh]" style={{ zIndex: 2 }}>
 
-        {/* ── Sidebar ── */}
+        {/* ── Sidebar (hidden on mobile, icon-only on tablet, full on desktop) ── */}
         <aside
-          className="w-[260px] flex-shrink-0 flex flex-col sticky top-0 h-[100dvh]"
+          className="hidden md:flex md:w-[60px] lg:w-[260px] flex-shrink-0 flex-col sticky top-0 h-[100dvh]"
           style={{ background: 'rgba(17,17,19,0.85)', borderRight: `1px solid ${T.border}`, backdropFilter: 'blur(40px) saturate(1.2)', WebkitBackdropFilter: 'blur(40px) saturate(1.2)' }}
         >
           {/* Logo */}
-          <div className="flex items-center gap-3 px-7 h-20 flex-shrink-0" style={{ borderBottom: `1px solid ${T.border}` }}>
+          <div className="flex items-center justify-center lg:justify-start gap-3 lg:px-7 h-20 flex-shrink-0" style={{ borderBottom: `1px solid ${T.border}` }}>
             <div
               className="flex items-center justify-center rounded-[10px] flex-shrink-0"
               style={{ width: 32, height: 32, background: `linear-gradient(135deg, ${T.accent}, #0ea5e9)`, boxShadow: `0 0 18px ${T.accentGlow}` }}
@@ -604,11 +604,11 @@ export default function Dashboard() {
                 <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
               </svg>
             </div>
-            <span className="text-xl font-extrabold tracking-[-0.5px]" style={{ color: '#fafafa' }}>Protocols.ai</span>
+            <span className="hidden lg:block text-xl font-extrabold tracking-[-0.5px]" style={{ color: '#fafafa' }}>Protocols.ai</span>
           </div>
 
           {/* Nav */}
-          <nav className="flex-1 p-4 flex flex-col gap-1">
+          <nav className="flex-1 p-2 lg:p-4 flex flex-col gap-1">
             {([
               { id: 'research',   label: 'Research Core', icon: <FlaskConical className="w-4 h-4" /> },
               { id: 'catalog',    label: 'Catalog',       icon: <LayoutGrid className="w-4 h-4" />, badge: 'New' },
@@ -620,7 +620,8 @@ export default function Dashboard() {
                 <button
                   key={item.id}
                   onClick={() => setActiveView(item.id)}
-                  className="w-full flex items-center gap-3 px-4 py-[11px] rounded-[12px] text-[13px] font-semibold text-left transition-all duration-200 group relative overflow-hidden"
+                  title={item.label}
+                  className="w-full flex items-center justify-center lg:justify-start gap-3 lg:px-4 py-[11px] rounded-[12px] text-[13px] font-semibold text-left transition-all duration-200"
                   style={{
                     background: active ? T.accentDim : 'transparent',
                     border: `1px solid ${active ? 'rgba(6,214,160,0.18)' : 'transparent'}`,
@@ -630,10 +631,10 @@ export default function Dashboard() {
                   onMouseOut={(e)  => { if (!active) (e.currentTarget as HTMLButtonElement).style.color = T.zinc; }}
                 >
                   {item.icon}
-                  <span>{item.label}</span>
+                  <span className="hidden lg:block">{item.label}</span>
                   {'badge' in item && item.badge && (
                     <span
-                      className="ml-auto text-[9px] font-bold px-[6px] py-[2px] rounded-[4px] uppercase tracking-[0.8px]"
+                      className="hidden lg:block ml-auto text-[9px] font-bold px-[6px] py-[2px] rounded-[4px] uppercase tracking-[0.8px]"
                       style={{ background: T.accent, color: T.bg }}
                     >
                       {item.badge}
@@ -646,7 +647,7 @@ export default function Dashboard() {
         </aside>
 
         {/* ── Main ── */}
-        <main className="flex-1 overflow-y-auto px-14 py-12 max-w-6xl">
+        <main className="flex-1 overflow-y-auto px-4 py-6 md:px-8 md:py-10 lg:px-14 lg:py-12 max-w-6xl pb-24 md:pb-12">
 
           {/* ════════════════════════════════════════════════
               CATALOG VIEW
@@ -775,6 +776,54 @@ export default function Dashboard() {
               {/* Runtime badge */}
               {report && runtimeMs !== null && (
                 <p className="text-[11px]" style={{ color: T.zinc, fontFamily: 'var(--font-geist-mono), monospace' }}>Runtime: {runtimeMs.toFixed(0)} ms</p>
+              )}
+
+              {/* Hero empty state — shown before any search */}
+              {!hasSearched && !loading && !errorMsg && (
+                <div
+                  className="flex flex-col items-center justify-center py-20 gap-6 text-center"
+                  style={{ animation: 'proto-fade-up 500ms cubic-bezier(0.16,1,0.3,1) both' }}
+                >
+                  {/* Icon */}
+                  <div
+                    className="flex items-center justify-center rounded-2xl"
+                    style={{ width: 64, height: 64, background: T.accentDim, border: `1px solid rgba(6,214,160,0.18)`, boxShadow: `0 0 32px ${T.accentGlow}` }}
+                  >
+                    <svg width={28} height={28} viewBox="0 0 24 24" fill="none" stroke={T.accent} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2v-4M9 21H5a2 2 0 0 1-2-2v-4m0 0h18" />
+                    </svg>
+                  </div>
+
+                  {/* Headline */}
+                  <div>
+                    <h2 className="text-[22px] font-extrabold tracking-[-0.4px] mb-2" style={{ color: '#fafafa' }}>
+                      What are you researching today?
+                    </h2>
+                    <p className="text-sm font-medium" style={{ color: T.zinc }}>
+                      Search 279 supplements — science, dosage, interactions and more.
+                    </p>
+                  </div>
+
+                  {/* Popular chips */}
+                  <div className="flex flex-wrap justify-center gap-2 max-w-sm">
+                    {['Magnesium', 'Creatine', 'Vitamin D3', 'Omega-3', 'Ashwagandha'].map((name) => (
+                      <button
+                        key={name}
+                        onClick={() => { setSearchQuery(name); triggerAnalysis(name); }}
+                        className="px-4 py-2 rounded-full text-[13px] font-semibold transition-all duration-200 active:scale-95"
+                        style={{
+                          background: T.accentDim,
+                          border: `1px solid rgba(6,214,160,0.18)`,
+                          color: T.accent,
+                        }}
+                        onMouseOver={(e) => { (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(6,214,160,0.4)'; }}
+                        onMouseOut={(e)  => { (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(6,214,160,0.18)'; }}
+                      >
+                        {name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
               )}
 
               {/* Result */}
@@ -1261,6 +1310,44 @@ export default function Dashboard() {
 
         </main>
       </div>
+
+      {/* ── Bottom Tab Bar (mobile only, <768px) ── */}
+      <nav
+        className="fixed bottom-0 left-0 right-0 flex md:hidden z-50"
+        style={{
+          background: 'rgba(17,17,19,0.92)',
+          borderTop: `1px solid ${T.border}`,
+          backdropFilter: 'blur(40px) saturate(1.2)',
+          WebkitBackdropFilter: 'blur(40px) saturate(1.2)',
+          paddingBottom: 'env(safe-area-inset-bottom)',
+        }}
+      >
+        {([
+          { id: 'research',  label: 'Research', icon: <FlaskConical className="w-5 h-5" /> },
+          { id: 'catalog',   label: 'Catalog',  icon: <LayoutGrid className="w-5 h-5" /> },
+          { id: 'dosage',    label: 'Dosage',   icon: <Activity className="w-5 h-5" /> },
+          { id: 'scheduler', label: 'Schedule', icon: <Calendar className="w-5 h-5" /> },
+        ] as const).map((item) => {
+          const active = activeView === item.id;
+          return (
+            <button
+              key={item.id}
+              onClick={() => setActiveView(item.id)}
+              className="flex-1 flex flex-col items-center justify-center gap-1 py-3 transition-all duration-200"
+              style={{ color: active ? T.accent : T.zinc, minHeight: 56 }}
+            >
+              {item.icon}
+              <span className="text-[10px] font-semibold tracking-[0.2px]">{item.label}</span>
+              {active && (
+                <span
+                  className="absolute top-0 block h-[2px] w-8 rounded-full"
+                  style={{ background: T.accent, boxShadow: `0 0 8px ${T.accentGlow}` }}
+                />
+              )}
+            </button>
+          );
+        })}
+      </nav>
     </div>
   );
 }

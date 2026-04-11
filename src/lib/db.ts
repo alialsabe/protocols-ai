@@ -174,39 +174,13 @@ export async function listAllStudyCounts() {
 // ── supplement bundle (science + social + sentiment + dosage + schedule + affiliate) ──
 
 export async function getSupplementBundleById(supplementId: string) {
-  const [scienceRow, socialRow, sentimentRow, dosageRow, scheduleRow, affiliateRow] =
-    await Promise.all([
-      db
-        .select()
-        .from(supplementScience)
-        .where(eq(supplementScience.supplementId, supplementId))
-        .limit(1),
-      db
-        .select()
-        .from(supplementSocial)
-        .where(eq(supplementSocial.supplementId, supplementId))
-        .limit(1),
-      db
-        .select()
-        .from(supplementSentiment)
-        .where(eq(supplementSentiment.supplementId, supplementId))
-        .limit(1),
-      db
-        .select()
-        .from(supplementDosage)
-        .where(eq(supplementDosage.supplementId, supplementId))
-        .limit(1),
-      db
-        .select()
-        .from(supplementScheduleRules)
-        .where(eq(supplementScheduleRules.supplementId, supplementId))
-        .limit(1),
-      db
-        .select()
-        .from(affiliateOptions)
-        .where(eq(affiliateOptions.supplementId, supplementId))
-        .limit(1),
-    ]);
+  // Sequential queries — Supabase free tier cancels statements when too many run in parallel
+  const scienceRow   = await db.select().from(supplementScience).where(eq(supplementScience.supplementId, supplementId)).limit(1);
+  const socialRow    = await db.select().from(supplementSocial).where(eq(supplementSocial.supplementId, supplementId)).limit(1);
+  const sentimentRow = await db.select().from(supplementSentiment).where(eq(supplementSentiment.supplementId, supplementId)).limit(1);
+  const dosageRow    = await db.select().from(supplementDosage).where(eq(supplementDosage.supplementId, supplementId)).limit(1);
+  const scheduleRow  = await db.select().from(supplementScheduleRules).where(eq(supplementScheduleRules.supplementId, supplementId)).limit(1);
+  const affiliateRow = await db.select().from(affiliateOptions).where(eq(affiliateOptions.supplementId, supplementId)).limit(1);
 
   if (!scienceRow[0] && !socialRow[0] && !sentimentRow[0] && !dosageRow[0]) {
     return null;

@@ -32,7 +32,7 @@ function getDb(): PostgresJsDatabase<typeof schema> {
     database: parsedUrl.pathname.slice(1) || 'postgres',
     username: decodeURIComponent(parsedUrl.username),
     password: decodeURIComponent(parsedUrl.password),
-    max: 6,
+    max: 2,
     idle_timeout: 20,
     connect_timeout: 10,
     ssl: process.env.POSTGRES_SSL === 'disable' ? false : { rejectUnauthorized: false },
