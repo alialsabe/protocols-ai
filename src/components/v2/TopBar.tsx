@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { UserMenu } from '@/components/UserMenu';
 
 export function TopBar() {
   return (
@@ -32,7 +33,6 @@ export function TopBar() {
             ['Stack', '/stack'],
             ['Compare', '/compare'],
             ['Advisor', '/advisor'],
-            ['Sign in', '/login'],
           ].map(([label, href]) => (
             <Link
               key={href}
@@ -43,6 +43,7 @@ export function TopBar() {
               {label}
             </Link>
           ))}
+          <UserMenu />
         </nav>
 
         {/* Mobile: mono status tag instead of cramped nav */}
