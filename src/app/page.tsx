@@ -1,7 +1,6 @@
-import Link from 'next/link';
 import { TopBar } from '@/components/v2/TopBar';
 import { BottomTabBar } from '@/components/v2/BottomTabBar';
-import { CommandBar } from '@/components/v2/CommandBar';
+import { HomeSearch } from '@/components/v2/HomeSearch';
 import { IntakeStrip } from '@/components/v2/IntakeStrip';
 import { Ticker } from '@/components/v2/Ticker';
 
@@ -11,8 +10,6 @@ const LEDGER = [
   { label: 'CLINICAL GUIDELINES', value: '12' },
   { label: 'LAST SYNC',           value: '04:12Z' },
 ];
-
-const SUGGESTIONS = ['ashwagandha', 'magnesium glycinate', 'creatine', 'omega-3', 'berberine', 'nmn'];
 
 const CAPABILITIES = [
   {
@@ -94,26 +91,7 @@ export default function HomePage() {
           279 compounds. 4,821 studies. Zero marketing copy.
         </p>
 
-        <div className="mt-8 md:mt-10">
-          <CommandBar size="lg" />
-        </div>
-
-        <div className="mt-5 flex flex-wrap gap-2">
-          {SUGGESTIONS.map((s) => (
-            <Link
-              key={s}
-              href={`/research/${encodeURIComponent(s)}`}
-              className="inline-flex min-h-[44px] items-center rounded-md px-4 font-mono text-[12px] transition-colors hover:text-white"
-              style={{
-                border: '1px solid var(--hair)',
-                color: 'var(--fg-muted)',
-                background: 'transparent',
-              }}
-            >
-              {s}
-            </Link>
-          ))}
-        </div>
+        <HomeSearch />
       </section>
 
       {/* Intake strip */}
