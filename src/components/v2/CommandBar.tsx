@@ -1,14 +1,44 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
-export function CommandBar({ size = 'lg' }: { size?: 'lg' | 'sm' }) {
+type Props = {
+  size?: 'lg' | 'sm';
+  value?: string;
+  onChange?: (v: string) => void;
+  onSubmit?: (v: string) => void;
+  autoFocus?: boolean;
+};
+
+export function CommandBar({ size = 'lg', value, onChange, onSubmit, autoFocus }: Props) {
+  const controlled = value !== undefined && onChange !== undefined;
+  const [internal, setInternal] = useState('');
+  const current = controlled ? (value as string) : internal;
+  const set = (v: string) => (controlled ? onChange!(v) : setInternal(v));
+
   const [focused, setFocused] = useState(false);
-  const [value, setValue] = useState('');
+  const inputRef = useRef<HTMLInputElement>(null);
   const tall = size === 'lg';
 
+  useEffect(() => {
+    if (autoFocus) inputRef.current?.focus();
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        inputRef.current?.focus();
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [autoFocus]);
+
   return (
-    <div
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        const q = current.trim();
+        if (q.length > 0) onSubmit?.(q);
+      }}
       className={`proto-scan relative flex items-center overflow-hidden ${
         tall ? 'h-20 md:h-24' : 'h-14'
       }`}
@@ -39,17 +69,22 @@ export function CommandBar({ size = 'lg' }: { size?: 'lg' | 'sm' }) {
         </span>
       </div>
       <input
+        ref={inputRef}
         aria-label="Query supplement, condition, or stack"
-        value={value}
-        onChange={(e) => setValue(e.target.value)}
+        value={current}
+        onChange={(e) => set(e.target.value)}
         onFocus={() => setFocused(true)}
         onBlur={() => setFocused(false)}
         placeholder="search supplement or stack…"
+        enterKeyHint="search"
         className={`min-w-0 flex-1 bg-transparent font-mono outline-none ${
           tall ? 'text-[16px] md:text-[20px]' : 'text-[14px] md:text-[15px]'
         }`}
         style={{ color: 'var(--fg)' }}
       />
+      <button type="submit" aria-label="Run query" className="sr-only">
+        Search
+      </button>
       <div className="hidden flex-shrink-0 items-center pr-5 md:flex">
         <kbd
           className="rounded-md border px-2 py-1 font-mono text-[11px]"
@@ -58,6 +93,6 @@ export function CommandBar({ size = 'lg' }: { size?: 'lg' | 'sm' }) {
           ⌘K
         </kbd>
       </div>
-    </div>
+    </form>
   );
 }

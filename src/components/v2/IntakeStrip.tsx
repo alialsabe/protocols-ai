@@ -1,15 +1,26 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 
-const FIELDS: { label: string; options: string[] }[] = [
-  { label: 'PRIMARY GOAL',    options: ['Energy', 'Sleep', 'Focus', 'Longevity', 'Strength', 'Recovery'] },
-  { label: 'MEDICATIONS',     options: ['None', '1–2', '3+'] },
-  { label: 'MORNING ROUTINE', options: ['Fasted', 'Coffee', 'Breakfast', 'Workout'] },
+const FIELDS: { label: string; key: 'goal' | 'meds' | 'routine'; options: string[] }[] = [
+  { label: 'PRIMARY GOAL',    key: 'goal',    options: ['Energy', 'Sleep', 'Focus', 'Longevity', 'Strength', 'Recovery'] },
+  { label: 'MEDICATIONS',     key: 'meds',    options: ['None', '1–2', '3+'] },
+  { label: 'MORNING ROUTINE', key: 'routine', options: ['Fasted', 'Coffee', 'Breakfast', 'Workout'] },
 ];
 
 export function IntakeStrip() {
+  const router = useRouter();
   const [picked, setPicked] = useState<Record<string, string>>({});
+
+  const handleGenerate = () => {
+    const params = new URLSearchParams();
+    for (const f of FIELDS) {
+      const v = picked[f.label];
+      if (v) params.set(f.key, v.toLowerCase());
+    }
+    router.push(`/research?${params.toString()}`);
+  };
 
   return (
     <div
@@ -27,13 +38,20 @@ export function IntakeStrip() {
           >
             {f.label}
           </span>
-          <div className="flex flex-wrap" style={{ borderRadius: 10, border: '1px solid var(--hair)' }}>
+          <div
+            className="flex flex-wrap"
+            style={{ borderRadius: 10, border: '1px solid var(--hair)' }}
+            role="radiogroup"
+            aria-label={f.label}
+          >
             {f.options.map((opt, i) => {
               const active = picked[f.label] === opt;
               return (
                 <button
                   key={opt}
                   type="button"
+                  role="radio"
+                  aria-checked={active}
                   onClick={() => setPicked((p) => ({ ...p, [f.label]: opt }))}
                   className="relative h-11 flex-1 px-3 text-[13px] font-semibold transition-colors"
                   style={{
@@ -58,6 +76,7 @@ export function IntakeStrip() {
       ))}
       <button
         type="button"
+        onClick={handleGenerate}
         className="h-12 w-full whitespace-nowrap rounded-[10px] px-5 text-[14px] font-bold tracking-tight lg:h-11 lg:w-auto"
         style={{ background: 'var(--accent)', color: 'var(--bg)' }}
       >
