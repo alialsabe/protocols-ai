@@ -29,7 +29,7 @@ export function BottomTabBar() {
           className="flex flex-1 flex-col items-center justify-center gap-1 text-[10px] font-bold uppercase tracking-[1.4px]"
           style={{ color: 'var(--fg-dim)' }}
         >
-          <Icon size={20} strokeWidth={1.75} aria-hidden />
+          <Icon size={20} strokeWidth={1.75} aria-hidden color="var(--accent)" />
           <span className="font-mono">{label}</span>
         </Link>
       ))}
