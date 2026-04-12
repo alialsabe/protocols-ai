@@ -13,7 +13,7 @@ export function IntakeStrip() {
 
   return (
     <div
-      className="flex flex-col items-stretch gap-6 px-6 py-6 lg:flex-row lg:items-end lg:gap-8 lg:py-5"
+      className="flex flex-col items-stretch gap-5 px-5 py-6 md:gap-6 md:px-6 lg:flex-row lg:items-end lg:gap-8 lg:py-5"
       style={{
         borderTop: '1px solid var(--hair)',
         borderBottom: '1px solid var(--hair)',
@@ -58,7 +58,7 @@ export function IntakeStrip() {
       ))}
       <button
         type="button"
-        className="h-11 whitespace-nowrap rounded-[10px] px-5 text-[14px] font-bold tracking-tight"
+        className="h-12 w-full whitespace-nowrap rounded-[10px] px-5 text-[14px] font-bold tracking-tight lg:h-11 lg:w-auto"
         style={{ background: 'var(--accent)', color: 'var(--bg)' }}
       >
         Generate starting protocol  ⏎

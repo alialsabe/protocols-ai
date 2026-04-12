@@ -1,13 +1,14 @@
 import { TopBar } from '@/components/v2/TopBar';
+import { BottomTabBar } from '@/components/v2/BottomTabBar';
 import { CommandBar } from '@/components/v2/CommandBar';
 import { IntakeStrip } from '@/components/v2/IntakeStrip';
 import { Ticker } from '@/components/v2/Ticker';
 
 const LEDGER = [
-  { label: 'COMPOUNDS INDEXED', value: '279' },
-  { label: 'STUDIES',           value: '4,821' },
+  { label: 'COMPOUNDS INDEXED',   value: '279' },
+  { label: 'STUDIES',             value: '4,821' },
   { label: 'CLINICAL GUIDELINES', value: '12' },
-  { label: 'LAST SYNC',         value: '04:12Z' },
+  { label: 'LAST SYNC',           value: '04:12Z' },
 ];
 
 const SUGGESTIONS = ['ashwagandha', 'magnesium glycinate', 'creatine', 'omega-3', 'berberine', 'nmn'];
@@ -35,40 +36,44 @@ const CAPABILITIES = [
 
 export default function HomePage() {
   return (
-    <main className="proto-grid relative min-h-screen">
+    <main className="proto-grid relative min-h-screen overflow-x-hidden pb-20 md:pb-0">
       <TopBar />
 
       {/* Research ledger */}
       <section
-        className="mx-auto max-w-[1200px] px-6 md:px-10 lg:px-16"
+        className="mx-auto max-w-[1200px] px-5 md:px-10 lg:px-16"
         style={{ borderBottom: '1px solid var(--hair)' }}
       >
-        <div className="grid grid-cols-2 gap-px md:grid-cols-4">
-          {LEDGER.map((cell, i) => (
-            <div
-              key={cell.label}
-              className="flex flex-col gap-1 py-5"
-              style={{
-                borderLeft: i === 0 ? 'none' : '1px solid var(--hair)',
-                paddingLeft: i === 0 ? 0 : 24,
-              }}
-            >
-              <span
-                className="font-mono text-[11px] font-bold uppercase tracking-[1.4px]"
-                style={{ color: 'var(--fg-dim)' }}
+        <div className="grid grid-cols-2 md:grid-cols-4">
+          {LEDGER.map((cell, i) => {
+            const col = i % 2;
+            return (
+              <div
+                key={cell.label}
+                className="flex flex-col gap-1 py-5 md:px-6"
+                style={{
+                  paddingLeft: col === 0 ? 0 : 20,
+                  borderLeft: col === 0 ? 'none' : '1px solid var(--hair)',
+                  borderTop: i >= 2 ? '1px solid var(--hair)' : 'none',
+                }}
               >
-                {cell.label}
-              </span>
-              <span className="font-mono text-[18px]" style={{ color: 'var(--fg)' }}>
-                {cell.value}
-              </span>
-            </div>
-          ))}
+                <span
+                  className="font-mono text-[10px] font-bold uppercase tracking-[1.4px]"
+                  style={{ color: 'var(--fg-dim)' }}
+                >
+                  {cell.label}
+                </span>
+                <span className="font-mono text-[18px]" style={{ color: 'var(--fg)' }}>
+                  {cell.value}
+                </span>
+              </div>
+            );
+          })}
         </div>
       </section>
 
       {/* Hero */}
-      <section className="mx-auto max-w-[1200px] px-6 pt-16 pb-12 md:px-10 lg:px-16 lg:pt-24">
+      <section className="mx-auto max-w-[1200px] px-5 pt-12 pb-10 md:px-10 md:pt-16 md:pb-12 lg:px-16 lg:pt-24">
         <span
           className="font-mono text-[11px] font-bold uppercase tracking-[1.4px]"
           style={{ color: 'var(--accent)' }}
@@ -76,19 +81,19 @@ export default function HomePage() {
           SUPPLEMENT INTELLIGENCE · v2
         </span>
         <h1
-          className="mt-5 text-[40px] font-extrabold leading-[1.05] tracking-[-1.2px] md:text-[56px] md:leading-[60px]"
+          className="mt-5 text-[36px] font-extrabold leading-[1.05] tracking-[-1px] md:text-[56px] md:leading-[60px] md:tracking-[-1.2px]"
           style={{ color: 'var(--fg)' }}
         >
           Know exactly what's in your stack.
         </h1>
         <p
-          className="mt-5 max-w-[640px] text-[16px] leading-[26px]"
+          className="mt-5 max-w-[640px] text-[15px] leading-[24px] md:text-[16px] md:leading-[26px]"
           style={{ color: 'var(--fg-muted)' }}
         >
           279 compounds. 4,821 studies. Zero marketing copy.
         </p>
 
-        <div className="mt-10">
+        <div className="mt-8 md:mt-10">
           <CommandBar size="lg" />
         </div>
 
@@ -97,7 +102,7 @@ export default function HomePage() {
             <button
               key={s}
               type="button"
-              className="rounded-md px-3 py-1.5 font-mono text-[12px] transition-colors hover:text-white"
+              className="inline-flex min-h-[44px] items-center rounded-md px-4 font-mono text-[12px] transition-colors hover:text-white"
               style={{
                 border: '1px solid var(--hair)',
                 color: 'var(--fg-muted)',
@@ -121,14 +126,16 @@ export default function HomePage() {
       </section>
 
       {/* Capability row */}
-      <section className="mx-auto max-w-[1200px] px-6 py-20 md:px-10 lg:px-16">
-        <div className="grid gap-10 md:grid-cols-3 md:gap-0">
+      <section className="mx-auto max-w-[1200px] px-5 py-16 md:px-10 md:py-20 lg:px-16">
+        <div className="flex flex-col gap-10 md:grid md:grid-cols-3 md:gap-0">
           {CAPABILITIES.map((c, i) => (
             <div
               key={c.n}
-              className="flex flex-col gap-3 md:px-8"
+              className={`flex flex-col gap-3 md:px-8 ${
+                i === 0 ? '' : 'border-t pt-10 md:border-t-0 md:pt-0 md:border-l'
+              }`}
               style={{
-                borderLeft: i === 0 ? 'none' : '1px solid var(--hair)',
+                borderColor: 'var(--hair)',
               }}
             >
               <span
@@ -144,7 +151,7 @@ export default function HomePage() {
                 {c.body}
               </p>
               <a
-                className="mt-2 font-mono text-[12px] transition-colors hover:text-white"
+                className="mt-2 inline-flex min-h-[44px] items-center font-mono text-[12px] transition-colors hover:text-white"
                 style={{ color: 'var(--accent)' }}
                 href="#"
               >
@@ -158,11 +165,11 @@ export default function HomePage() {
       {/* Footer */}
       <footer
         role="contentinfo"
-        className="mx-auto max-w-[1200px] px-6 py-10 md:px-10 lg:px-16"
+        className="mx-auto max-w-[1200px] px-5 py-8 md:px-10 md:py-10 lg:px-16"
         style={{ borderTop: '1px solid var(--hair)' }}
       >
-        <div className="flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
-          <div className="flex items-baseline gap-3">
+        <div className="flex flex-col items-start justify-between gap-5 md:flex-row md:items-center md:gap-4">
+          <div className="flex flex-col gap-1 md:flex-row md:items-baseline md:gap-3">
             <span className="text-[14px] font-extrabold tracking-[-0.2px]" style={{ color: 'var(--fg)' }}>
               PROTOCOLS.AI
             </span>
@@ -173,13 +180,19 @@ export default function HomePage() {
               built with peer-reviewed research · not medical advice
             </span>
           </div>
-          <nav className="flex gap-5 font-mono text-[11px] uppercase tracking-[1.4px]" style={{ color: 'var(--fg-dim)' }}>
-            <a href="#">method</a>
-            <a href="#">sources</a>
-            <a href="#">privacy</a>
+          <nav
+            aria-label="Legal"
+            className="flex gap-6 font-mono text-[11px] uppercase tracking-[1.4px]"
+            style={{ color: 'var(--fg-dim)' }}
+          >
+            <a href="#" className="inline-flex min-h-[44px] items-center">method</a>
+            <a href="#" className="inline-flex min-h-[44px] items-center">sources</a>
+            <a href="#" className="inline-flex min-h-[44px] items-center">privacy</a>
           </nav>
         </div>
       </footer>
+
+      <BottomTabBar />
     </main>
   );
 }
