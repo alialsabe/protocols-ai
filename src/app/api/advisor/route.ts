@@ -75,17 +75,18 @@ export async function POST(request: Request) {
   }
 
   // Check API key — gracefully degrade if not configured
-  const apiKey = process.env.ANTHROPIC_API_KEY;
+  const apiKey = process.env.OPENROUTER_API_KEY;
   if (!apiKey) {
     return plainTextResponse(
       "The AI advisor isn't fully configured yet. In the meantime, try searching for a specific supplement to see its science and dosage data.",
     );
   }
 
-  // Stream the Claude response
+  // Stream the LLM response
   try {
-    return await streamClaudeResponse({
+    return await streamLLMResponse({
       apiKey,
+      model: process.env.OPENROUTER_MODEL ?? 'minimax/minimax-m2.7',
       userContext,
       conversationHistory: messages.slice(-6), // last 6 turns for context budget
     });
@@ -103,39 +104,45 @@ function plainTextResponse(text: string): Response {
   });
 }
 
-async function streamClaudeResponse(args: {
+async function streamLLMResponse(args: {
   apiKey: string;
+  model: string;
   userContext: string;
   conversationHistory: AdvisorMessage[];
 }): Promise<Response> {
   const systemMessage = `${SYSTEM_PROMPT}\n\nContext: ${args.userContext}`;
 
-  const claudeResponse = await fetch('https://api.anthropic.com/v1/messages', {
+  const upstream = await fetch('https://openrouter.ai/api/v1/chat/completions', {
     method: 'POST',
     headers: {
       'content-type': 'application/json',
-      'x-api-key': args.apiKey,
-      'anthropic-version': '2023-06-01',
+      authorization: `Bearer ${args.apiKey}`,
+      'http-referer': 'https://protocols.ai',
+      'x-title': 'ProtocolsAI',
     },
     body: JSON.stringify({
-      model: 'claude-sonnet-4-6',
+      model: args.model,
       max_tokens: 1024,
       stream: true,
-      system: systemMessage,
-      messages: args.conversationHistory,
+      messages: [
+        { role: 'system', content: systemMessage },
+        ...args.conversationHistory,
+      ],
     }),
   });
 
-  if (!claudeResponse.ok || !claudeResponse.body) {
+  if (!upstream.ok || !upstream.body) {
     return plainTextResponse(
       "I'm having trouble reaching the advisor right now. Please try again in a moment.",
     );
   }
 
-  // Transform Claude's SSE stream into plain text delta chunks
+  // Transform OpenAI-compatible SSE stream into plain text delta chunks.
+  // OpenRouter format: `data: {"choices":[{"delta":{"content":"..."}}]}` per line,
+  // terminated by `data: [DONE]`.
   const transformed = new ReadableStream({
     async start(controller) {
-      const reader = claudeResponse.body!.getReader();
+      const reader = upstream.body!.getReader();
       const decoder = new TextDecoder();
       const encoder = new TextEncoder();
       let buffer = '';
@@ -150,13 +157,15 @@ async function streamClaudeResponse(args: {
           buffer = lines.pop() ?? '';
 
           for (const line of lines) {
-            if (!line.startsWith('data: ')) continue;
-            const data = line.slice(6);
+            const trimmed = line.trim();
+            if (!trimmed || !trimmed.startsWith('data: ')) continue;
+            const data = trimmed.slice(6);
             if (data === '[DONE]') continue;
             try {
               const parsed = JSON.parse(data);
-              if (parsed.type === 'content_block_delta' && parsed.delta?.type === 'text_delta') {
-                controller.enqueue(encoder.encode(parsed.delta.text ?? ''));
+              const delta: string | undefined = parsed?.choices?.[0]?.delta?.content;
+              if (delta) {
+                controller.enqueue(encoder.encode(delta));
               }
             } catch {
               // Skip malformed lines

@@ -55,7 +55,7 @@ export function shouldTriggerFallback(args: { hasScience: boolean; hasDosage: bo
 }
 
 /**
- * Ask Claude to generate structured supplement data.
+ * Ask the LLM (MiniMax via OpenRouter) to generate structured supplement data.
  * Returns null on any failure (timeout, parse error, refusal) — never throws.
  *
  * The prompt uses the seeded 40 supplements as few-shot implicit priors
@@ -66,7 +66,8 @@ async function generateSupplementData(params: {
   category: string;
   baseCompound?: string | null;
 }): Promise<GeneratedData | null> {
-  const apiKey = process.env.ANTHROPIC_API_KEY;
+  const apiKey = process.env.OPENROUTER_API_KEY;
+  const model = process.env.OPENROUTER_MODEL ?? 'minimax/minimax-m2.7';
   if (!apiKey) return null;
 
   const systemPrompt = `You are a supplement science researcher. You return ONLY valid JSON matching the schema below — no prose, no markdown, no disclaimers.
@@ -107,18 +108,22 @@ Rules:
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 25000);
 
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
+    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
       headers: {
         'content-type': 'application/json',
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01',
+        authorization: `Bearer ${apiKey}`,
+        'http-referer': 'https://protocols.ai',
+        'x-title': 'ProtocolsAI',
       },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-6',
+        model,
         max_tokens: 2048,
-        system: systemPrompt,
-        messages: [{ role: 'user', content: userPrompt }],
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: userPrompt },
+        ],
+        response_format: { type: 'json_object' },
       }),
       signal: controller.signal,
     });
@@ -126,7 +131,7 @@ Rules:
 
     if (!response.ok) return null;
     const body = await response.json();
-    const text: string | undefined = body?.content?.[0]?.text;
+    const text: string | undefined = body?.choices?.[0]?.message?.content;
     if (!text) return null;
 
     // Strip any markdown fences in case the model misbehaves
@@ -190,7 +195,7 @@ export async function runFallback(params: {
     return { status: 'exists' };
   }
 
-  if (!process.env.ANTHROPIC_API_KEY) {
+  if (!process.env.OPENROUTER_API_KEY) {
     return { status: 'disabled', message: 'LLM fallback not configured.' };
   }
 
@@ -215,7 +220,7 @@ export async function runFallback(params: {
  * user sees partial data immediately and missing columns fill in on reload.
  */
 export function triggerFallbackAsync(params: Parameters<typeof runFallback>[0]): void {
-  if (!process.env.ANTHROPIC_API_KEY) return;
+  if (!process.env.OPENROUTER_API_KEY) return;
   void runFallback(params).catch(() => {
     // Swallow — background job, errors logged by the DB layer
   });
