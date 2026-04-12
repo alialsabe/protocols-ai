@@ -1,160 +1,90 @@
-import Link from 'next/link';
-import type { Metadata } from 'next';
 import { TopBar } from '@/components/v2/TopBar';
-import { CommandBar } from '@/components/v2/CommandBar';
-import { lookupSupplement } from '@/lib/supplement-lookup';
-import type { ProtocolReport } from '@/lib/protocol-types';
-import { ReportHeader } from '@/components/research/ReportHeader';
-import { ScoreStrip } from '@/components/research/ScoreStrip';
-import { OverviewSection } from '@/components/research/OverviewSection';
-import { EvidenceSection } from '@/components/research/EvidenceSection';
-import { InteractionsSection } from '@/components/research/InteractionsSection';
-import { DosageSection } from '@/components/research/DosageSection';
-import { EmptyReport } from '@/components/research/EmptyReport';
+import { BottomTabBar } from '@/components/v2/BottomTabBar';
+import Link from 'next/link';
 
-interface ResearchPageProps {
+export default async function ResearchQueryPage({
+  params,
+}: {
   params: Promise<{ query: string }>;
-}
-
-export async function generateMetadata({ params }: ResearchPageProps): Promise<Metadata> {
+}) {
   const { query } = await params;
-  const decoded = decodeURIComponent(query);
-  return {
-    title: `${decoded} — research report · Protocols.ai`,
-    description: `Evidence-graded science, dosage, and interaction data for ${decoded}.`,
-  };
-}
-
-export default async function ResearchPage({ params }: ResearchPageProps) {
-  const { query } = await params;
-  const decoded = decodeURIComponent(query);
-
-  let report: ProtocolReport | null = null;
-  let errorMessage: string | null = null;
-  try {
-    report = await lookupSupplement(decoded);
-  } catch (err) {
-    errorMessage = err instanceof Error ? err.message : 'Unknown error.';
-  }
+  const q = decodeURIComponent(query);
 
   return (
-    <main className="proto-grid relative min-h-screen">
+    <main className="proto-grid relative min-h-screen overflow-x-hidden pb-20 md:pb-0">
       <TopBar />
 
-      {/* Collapsed command bar row */}
-      <section
-        className="mx-auto max-w-[1200px] px-6 pt-6 md:px-10 lg:px-16"
-        style={{ borderBottom: '1px solid var(--hair)' }}
-      >
-        <div className="pb-6">
-          <CommandBar size="sm" defaultValue={decoded} />
+      <section className="mx-auto max-w-[1200px] px-5 pt-16 pb-24 md:px-10 md:pt-20 lg:px-16 lg:pt-24">
+        <span
+          className="font-mono text-[11px] font-bold uppercase tracking-[1.4px]"
+          style={{ color: 'var(--accent)' }}
+        >
+          REPORT · PENDING
+        </span>
+        <h1
+          className="mt-5 text-[36px] font-extrabold leading-[1.05] tracking-[-1px] md:text-[56px] md:leading-[60px]"
+          style={{ color: 'var(--fg)' }}
+        >
+          {q}
+        </h1>
+
+        <p
+          className="mt-6 max-w-[640px] font-mono text-[13px] leading-[20px]"
+          style={{ color: 'var(--fg-muted)' }}
+        >
+          STATUS · supplement report surface is not live yet. This route is
+          reserved for the full intelligence briefing per DESIGN.md §4.2.
+        </p>
+
+        <div
+          className="mt-10 flex flex-col gap-6 border-t pt-10 md:flex-row md:gap-10"
+          style={{ borderColor: 'var(--hair)' }}
+        >
+          <div className="flex-1">
+            <span
+              className="font-mono text-[11px] font-bold uppercase tracking-[1.4px]"
+              style={{ color: 'var(--fg-dim)' }}
+            >
+              WHAT LANDS HERE NEXT
+            </span>
+            <ul
+              className="mt-3 space-y-2 text-[14px] leading-[22px]"
+              style={{ color: 'var(--fg-muted)' }}
+            >
+              <li>&middot; score strip (evidence, safety, dose, time-to-feel)</li>
+              <li>&middot; overview / evidence / dosage / interactions tabs</li>
+              <li>&middot; per-study rows with PMIDs and quality grades</li>
+              <li>&middot; 24h dose schedule visualization</li>
+            </ul>
+          </div>
+          <div className="flex-1">
+            <span
+              className="font-mono text-[11px] font-bold uppercase tracking-[1.4px]"
+              style={{ color: 'var(--fg-dim)' }}
+            >
+              IN THE MEANTIME
+            </span>
+            <div className="mt-3 flex flex-col gap-3">
+              <Link
+                href="/"
+                className="inline-flex h-11 items-center justify-center rounded-[10px] px-4 text-[13px] font-bold"
+                style={{ background: 'var(--accent)', color: 'var(--bg)' }}
+              >
+                Run another query
+              </Link>
+              <Link
+                href="/"
+                className="inline-flex h-11 items-center justify-center rounded-[10px] border px-4 font-mono text-[12px]"
+                style={{ borderColor: 'var(--hair)', color: 'var(--fg-muted)' }}
+              >
+                &larr; back to home
+              </Link>
+            </div>
+          </div>
         </div>
       </section>
 
-      {/* Report body */}
-      <section className="mx-auto max-w-[1200px] px-6 pb-24 md:px-10 lg:px-16">
-        {errorMessage ? (
-          <div className="mt-16">
-            <ErrorState query={decoded} message={errorMessage} />
-          </div>
-        ) : !report ? (
-          <div className="mt-16">
-            <NotFoundState query={decoded} />
-          </div>
-        ) : (
-          <>
-            <ReportHeader report={report} />
-            <ScoreStrip report={report} />
-            <div className="mt-10 space-y-16">
-              <OverviewSection report={report} />
-              <EvidenceSection report={report} />
-              <DosageSection report={report} />
-              <InteractionsSection report={report} />
-              {(!report.science?.findings?.length || !report.dosage) ? (
-                <EmptyReport report={report} />
-              ) : null}
-            </div>
-          </>
-        )}
-      </section>
+      <BottomTabBar />
     </main>
-  );
-}
-
-function NotFoundState({ query }: { query: string }) {
-  return (
-    <div
-      className="mx-auto max-w-xl rounded-[16px] p-10 text-center"
-      style={{
-        background: 'var(--surface)',
-        border: '1px solid var(--hair)',
-      }}
-    >
-      <span
-        className="font-mono text-[11px] font-bold uppercase tracking-[1.4px]"
-        style={{ color: 'var(--accent)' }}
-      >
-        NO MATCH FOUND
-      </span>
-      <h1
-        className="mt-4 text-[28px] font-extrabold tracking-[-0.6px]"
-        style={{ color: 'var(--fg)' }}
-      >
-        “{query}” is not in the catalog
-      </h1>
-      <p className="mt-3 text-[14px] leading-[22px]" style={{ color: 'var(--fg-muted)' }}>
-        Try a different spelling, or browse the suggestions below.
-      </p>
-      <div className="mt-8 flex flex-wrap justify-center gap-2">
-        {['magnesium glycinate', 'creatine', 'vitamin d3', 'omega-3', 'ashwagandha'].map((s) => (
-          <Link
-            key={s}
-            href={`/research/${encodeURIComponent(s)}`}
-            className="rounded-md px-3 py-1.5 font-mono text-[12px] transition-colors hover:text-white"
-            style={{
-              border: '1px solid var(--hair)',
-              color: 'var(--fg-muted)',
-            }}
-          >
-            {s}
-          </Link>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function ErrorState({ query, message }: { query: string; message: string }) {
-  return (
-    <div
-      className="mx-auto max-w-xl rounded-[16px] p-10"
-      style={{
-        background: 'var(--surface)',
-        border: '1px solid var(--hair)',
-      }}
-    >
-      <span
-        className="font-mono text-[11px] font-bold uppercase tracking-[1.4px]"
-        style={{ color: '#fb7185' }}
-      >
-        LOOKUP FAILED
-      </span>
-      <h1
-        className="mt-4 text-[24px] font-extrabold tracking-[-0.4px]"
-        style={{ color: 'var(--fg)' }}
-      >
-        Couldn’t load the report for “{query}”
-      </h1>
-      <p className="mt-3 font-mono text-[12px]" style={{ color: 'var(--fg-dim)' }}>
-        {message}
-      </p>
-      <Link
-        href="/"
-        className="mt-6 inline-flex font-mono text-[12px]"
-        style={{ color: 'var(--accent)' }}
-      >
-        ← back to home
-      </Link>
-    </div>
   );
 }
