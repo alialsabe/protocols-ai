@@ -192,6 +192,7 @@ type SupplementMatch = {
   id: string;
   slug: string;
   name: string;
+  category: string;
   popularityScore: number;
   baseCompound: string | null;
   specificForm: string | null;
@@ -203,21 +204,21 @@ export async function findSupplementByQuery(query: string): Promise<SupplementMa
   const slug = normalizeQuery(expanded);
 
   const exactSlug = await getSupplementBySlug(slug);
-  if (exactSlug) return exactSlug;
+  if (exactSlug) return exactSlug as SupplementMatch;
 
   const allSupplements = await listSupplementsBasic();
 
   for (const supplement of allSupplements as BasicSupplement[]) {
     const aliases: string[] = JSON.parse(supplement.aliases);
     if (aliases.some((alias: string) => alias.toLowerCase() === normalized)) {
-      return { id: supplement.id, slug: supplement.slug, name: supplement.name, popularityScore: supplement.popularityScore, baseCompound: supplement.baseCompound, specificForm: supplement.specificForm };
+      return { id: supplement.id, slug: supplement.slug, name: supplement.name, category: supplement.category, popularityScore: supplement.popularityScore, baseCompound: supplement.baseCompound, specificForm: supplement.specificForm };
     }
   }
 
   // Also match by base compound name
   for (const supplement of allSupplements as BasicSupplement[]) {
     if (supplement.baseCompound && supplement.baseCompound.toLowerCase() === normalized) {
-      return { id: supplement.id, slug: supplement.slug, name: supplement.name, popularityScore: supplement.popularityScore, baseCompound: supplement.baseCompound, specificForm: supplement.specificForm };
+      return { id: supplement.id, slug: supplement.slug, name: supplement.name, category: supplement.category, popularityScore: supplement.popularityScore, baseCompound: supplement.baseCompound, specificForm: supplement.specificForm };
     }
   }
 
@@ -241,7 +242,7 @@ export async function findSupplementByQuery(query: string): Promise<SupplementMa
           a.supplement.name.length - b.supplement.name.length || b.score - a.score,
       );
       const best = tokenCandidates[0].supplement;
-      return { id: best.id, slug: best.slug, name: best.name, popularityScore: best.popularityScore, baseCompound: best.baseCompound, specificForm: best.specificForm };
+      return { id: best.id, slug: best.slug, name: best.name, category: best.category, popularityScore: best.popularityScore, baseCompound: best.baseCompound, specificForm: best.specificForm };
     }
   }
 
@@ -272,7 +273,7 @@ export async function findSupplementByQuery(query: string): Promise<SupplementMa
   if (scored.length > 0) {
     scored.sort((a, b) => b.score - a.score);
     const best = scored[0].supplement;
-    return { id: best.id, slug: best.slug, name: best.name, popularityScore: best.popularityScore, baseCompound: best.baseCompound, specificForm: best.specificForm };
+    return { id: best.id, slug: best.slug, name: best.name, category: best.category, popularityScore: best.popularityScore, baseCompound: best.baseCompound, specificForm: best.specificForm };
   }
 
   return null;
@@ -323,7 +324,33 @@ export async function lookupSupplement(query: string, biometrics?: Biometrics): 
   const supplementId = match.id;
   const weight = biometrics?.weightKg ?? 80;
   // Sequential queries — Supabase free tier cancels statements when too many run in parallel
-  const bundle                = await getSupplementBundleById(supplementId);
+  let bundle                  = await getSupplementBundleById(supplementId);
+
+  // LLM fallback: if the catalog supplement has no science or dosage data,
+  // try to generate it. Never throws — returns a status instead.
+  const needsFallback =
+    !(bundle as SupplementBundleRow | null)?.science ||
+    !(bundle as SupplementBundleRow | null)?.dosage;
+  if (needsFallback) {
+    try {
+      const { runFallback } = await import('./llm-fallback');
+      const result = await runFallback({
+        supplementId,
+        name: match.name,
+        category: match.category ?? 'supplement',
+        baseCompound: match.baseCompound ?? null,
+        hasScience: Boolean((bundle as SupplementBundleRow | null)?.science),
+        hasDosage: Boolean((bundle as SupplementBundleRow | null)?.dosage),
+      });
+      if (result.status === 'ok') {
+        // Data was just generated — re-fetch the bundle so the response
+        // includes the new rows.
+        bundle = await getSupplementBundleById(supplementId);
+      }
+    } catch {
+      // Never let fallback errors break the base lookup. Empty tabs beat 500s.
+    }
+  }
   const medicineInteractionRows = await listMedicineInteractionsBySupplementId(supplementId);
   const conflictRows          = await listConflicts();
   const companionRows         = await listCompanionStacksBySupplementId(supplementId);

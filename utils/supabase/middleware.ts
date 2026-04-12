@@ -8,14 +8,12 @@ if (!supabaseUrl || !supabaseKey) {
   throw new Error('Missing NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY.');
 }
 
-export const createClient = (request: NextRequest) => {
+export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
-    request: {
-      headers: request.headers,
-    },
+    request,
   });
 
-  const supabase = createServerClient(supabaseUrl, supabaseKey, {
+  const supabase = createServerClient(supabaseUrl!, supabaseKey!, {
     cookies: {
       getAll() {
         return request.cookies.getAll();
@@ -32,5 +30,10 @@ export const createClient = (request: NextRequest) => {
     },
   });
 
+  // IMPORTANT: Do not remove auth.getUser() — it triggers the JWT refresh
+  // and drives the setAll callback above. Without this call, sessions expire
+  // silently after the JWT's TTL (typically 1 hour).
+  await supabase.auth.getUser();
+
   return supabaseResponse;
-};
+}

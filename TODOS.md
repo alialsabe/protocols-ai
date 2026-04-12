@@ -1,52 +1,59 @@
 # Protocols.ai — TODOs
 
-_Generated from /plan-design-review session 2026-04-11_
+_Updated from /plan-ceo-review session 2026-04-11_
+_Previous items (DESIGN.md, mobile tabs, science data, dosage tab, medicine interactions, scheduler) — all shipped._
 
 ---
 
-## UI / Design
+## Business / Non-Code
 
-### Create DESIGN.md
-**What:** Extract all design tokens, typography, spacing, and component patterns from `Dashboard.tsx` into a top-level `DESIGN.md`.
-**Why:** Without it, every new panel (medicine interactions, scheduler, dosage) gets built by feel. Design drift accumulates. Also blocks new contributors and future AI sessions from knowing the design system.
-**Pros:** Single source of truth for all design decisions. Prevents AI slop on new panels.
-**Cons:** ~30min to extract. Needs to be kept in sync as tokens evolve.
-**Context:** Inline `T.*` tokens in `Dashboard.tsx:38–49` are the de facto design system. Extract: colors, typography (Outfit/Geist Mono), component patterns (Card, Button, Badge, Input).
-**Depends on:** Nothing. Can be done independently.
-
----
-
-### Mobile bottom tab bar
-**What:** Replace the left sidebar with a bottom tab bar on `<768px` screens.
-**Why:** Prior design audit scored mobile layout F. The sidebar is completely hidden on mobile and nothing replaces it — users can't navigate.
-**Pros:** Fixes the worst UX issue in the app. Design is fully specified (4 icons: FlaskConical, LayoutGrid, Activity, Calendar).
-**Cons:** Requires CSS breakpoint work in `Dashboard.tsx`. Need to test all 4 views at 375px.
-**Context:** Decision from design review — bottom tabs at `<768px`, icon-only collapsed sidebar at `768–1024px`, full sidebar at `>1024px`.
-**Depends on:** DESIGN.md helpful but not required.
+### Get one real affiliate partnership
+**What:** Reach out to 5 supplement brands: Thorne, NOW Foods, Life Extension, Pure Encapsulations, Amazon Associates. Get one live affiliate link for at least one seeded supplement.
+**Why:** Affiliate is the sole launch monetization strategy. Zero real links = zero revenue even with a perfect product. The `affiliate_options` table is seeded with placeholder data but no real `destination_url` or `affiliate_url`.
+**Pros:** First dollar. Validates monetization model before more engineering.
+**Cons:** Human outreach work. Depends on external parties responding.
+**Context:** The affiliate CTA button renders in the Dosage tab but currently points nowhere real. The UI, DB schema, and trust score system are all built — just need real partner data populated.
+**Effort:** L (human) / S (code to activate)
+**Priority:** P1 — start now, doesn't block engineering
 
 ---
 
-## Data / Features
+## Next Sprint (after v2 P1 ships: accounts + PostHog)
 
-### Wire up science/social/summary data
-**What:** Most supplements return empty arrays for science findings, social data, and summary. Fix the data pipeline so real data returns for the top 20+ supplements.
-**Why:** The app looks broken when tabs are empty after a search.
-**Depends on:** DB seeding / API response assembly.
+### Research alerts — PubMed polling + email digest
+**What:** Poll PubMed for new studies on supplements in user stacks. Send email digest via Resend when high-quality new RCTs drop on their supplements.
+**Why:** Retention mechanism + content marketing. Creates a reason to return. Positions ProtocolsAI as the ongoing source of truth, not a one-time lookup.
+**Pros:** High retention value. Viral content marketing if alerts are high quality. Differentiates from static databases.
+**Cons:** Requires Resend (email), PubMed API integration, background cron job.
+**Context:** Deliberately deferred from v2. Build after user accounts ship and the account to email capture loop is validated.
+**Effort:** M-L (CC ~2h)
+**Priority:** P2 (next sprint)
+**Depends on:** User accounts (v2 P1), email infrastructure (Resend)
 
-### Wire Dosage tab
-**What:** Dosage tab is currently a dead-end. Wire it to show: loading dose, maintenance dose, formula, timing note, conflict warnings, affiliate CTA.
-**Why:** It's listed in the nav but does nothing. Users who click it bounce.
-**Context:** Design specified in plan — two-column layout on desktop (dosage left, affiliate right), single column on mobile.
-**Depends on:** `supplement_dosage` and `affiliate_options` tables must have data.
+---
 
-### Wire Medicine Interactions panel
-**What:** Add the Medicine Interactions section to the Research Core Science tab (Task 1.5).
-**Why:** This is a high-value safety feature with zero current implementation.
-**Context:** Full visual spec in plan — full-width rows with severity stripe (rose/amber/sky), severity badge pill, sorted HIGH first. Not colored-left-border cards.
-**Depends on:** `medicine_interactions` table must have data for queried supplements.
+## Phase 3+
 
-### Scheduler output view
-**What:** The scheduler endpoint exists but the UI doesn't render its output in a useful way.
-**Why:** Scheduler is listed in nav but the output is unspecified.
-**Context:** Design: vertical day timeline with 4 time slots (Morning/Afternoon/Evening/Bedtime). Each supplement as a row with name, dose, reason. Conflict warnings inline.
-**Depends on:** `supplement_schedule_rules` and `supplement_conflicts` tables.
+### Subscription / Pro tier
+**What:** Free + Pro ($9/mo) tiers. Stripe integration. Pro gates: AI Advisor, research alerts, advanced protocol features. Free: search, science, basic scheduler.
+**Why:** Second revenue stream that scales with users, not purchase volume. AI Advisor alone justifies the price.
+**Pros:** Predictable MRR. Natural gate for premium features.
+**Cons:** Stripe integration, paywalled UX design, need user data to know what to gate.
+**Context:** Deliberately deferred. Launch with affiliate-only. Build subscription after affiliate is validated and you have real analytics on what users value from PostHog.
+**Effort:** M (CC ~45min once decided)
+**Priority:** P3 (Phase 3)
+**Depends on:** User accounts, PostHog data (what features are used most)
+
+### Community / social proof layer
+**What:** Aggregate (anonymous) stats: "2,340 users with sleep goals take Magnesium Glycinate." Trending protocols. Social proof on supplement cards.
+**Why:** Trust signal. Viral loop. Makes the data flywheel visible to users.
+**Effort:** M
+**Priority:** P3
+**Depends on:** User accounts, saved stacks data at scale
+
+### Mobile native app
+**What:** React Native or Expo wrapper around the web app, or a dedicated native build.
+**Why:** Push notifications (research alerts), better UX for schedule tracking.
+**Effort:** XL
+**Priority:** P4 (future)
+**Depends on:** Web product validated, subscription revenue to fund the work

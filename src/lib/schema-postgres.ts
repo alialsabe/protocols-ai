@@ -66,6 +66,8 @@ export const supplementScience = pgTable('supplement_science', {
   interactions: text('interactions').notNull().default('[]'),
   sideEffects: text('side_effects').notNull().default('[]'),
   medicineInteractions: text('medicine_interactions').notNull().default('[]'),
+  // 'manual' (seeded), 'llm_generated' (AI fallback, unverified), 'validated' (QC-approved)
+  dataSource: text('data_source').notNull().default('manual'),
 });
 
 // ── supplement_social ───────────────────────────────────────────────
@@ -174,4 +176,39 @@ export const companionStacks = pgTable('companion_stacks', {
   why: text('why').notNull().default('Commonly paired in user protocols.'),
   strength: text('strength').notNull().default('common'),
   sortOrder: integer('sort_order').notNull().default(0),
+});
+
+// ── user_profiles ───────────────────────────────────────────────────
+// Linked to auth.users(id) via Supabase Auth. RLS: users can only read/write their own row.
+export const userProfiles = pgTable('user_profiles', {
+  id: id(),
+  userId: text('user_id').notNull().unique(), // references auth.users(id)
+  displayName: text('display_name'),
+  goals: text('goals').notNull().default('[]'), // JSON array: ['sleep', 'cognition', 'muscle']
+  medications: text('medications').notNull().default('[]'), // JSON array of medication names/classes
+  biometrics: text('biometrics').notNull().default('{}'), // JSON: { weightKg, age, sex }
+  ...timestamps(),
+});
+
+// ── saved_stacks ────────────────────────────────────────────────────
+// A user's named supplement protocol. RLS: owner-only read/write.
+export const savedStacks = pgTable('saved_stacks', {
+  id: id(),
+  userId: text('user_id').notNull(), // references auth.users(id)
+  name: text('name').notNull().default('My Stack'),
+  supplementIds: text('supplement_ids').notNull().default('[]'), // JSON array of supplement IDs
+  notes: text('notes'),
+  ...timestamps(),
+});
+
+// ── shared_protocols ────────────────────────────────────────────────
+// Public shareable snapshots of a user's stack. Anyone with the publicId can view.
+export const sharedProtocols = pgTable('shared_protocols', {
+  id: id(),
+  publicId: text('public_id').notNull().unique(), // nanoid for public URL
+  stackId: text('stack_id').notNull().references(() => savedStacks.id),
+  ownerUserId: text('owner_user_id').notNull(), // references auth.users(id)
+  snapshot: text('snapshot').notNull().default('{}'), // frozen JSON of stack at share time
+  viewCount: integer('view_count').notNull().default(0),
+  ...timestamps(),
 });
