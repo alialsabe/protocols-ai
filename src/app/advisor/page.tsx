@@ -1,21 +1,35 @@
-import Link from 'next/link';
+import { TopBar } from '@/components/v2/TopBar';
 import { AdvisorPanel } from '@/components/advisor/AdvisorPanel';
 
 export default function AdvisorPage() {
   return (
-    <div className="min-h-screen bg-[#09090b]">
-      <header className="border-b border-white/[0.06] px-6 py-4 flex items-center justify-between">
-        <Link href="/" className="text-[#06d6a0] font-semibold tracking-tight">
-          ← Protocols.ai
-        </Link>
-        <h1 className="text-sm font-medium text-white tracking-wide uppercase">AI Advisor</h1>
-        <div className="w-24" />
-      </header>
-      <main className="max-w-3xl mx-auto px-6 py-8">
-        <div className="h-[75vh]">
+    <main className="proto-grid relative min-h-screen">
+      <TopBar />
+
+      <section className="mx-auto max-w-[1200px] px-6 pt-10 md:px-10 lg:px-16">
+        <span
+          className="font-mono text-[11px] font-bold uppercase tracking-[1.4px]"
+          style={{ color: 'var(--accent)' }}
+        >
+          ADVISOR · v1
+        </span>
+        <h1
+          className="mt-3 text-[40px] font-extrabold leading-[1.05] tracking-[-1.2px]"
+          style={{ color: 'var(--fg)' }}
+        >
+          Ask the model.
+        </h1>
+        <p className="mt-3 max-w-[640px] text-[15px] leading-[24px]" style={{ color: 'var(--fg-muted)' }}>
+          Supplement mechanism, dosing, stack interactions. Skips medical advice — that&apos;s for your
+          physician.
+        </p>
+      </section>
+
+      <section className="mx-auto mt-8 max-w-[900px] px-6 pb-24 md:px-10 lg:px-16">
+        <div className="h-[70vh]">
           <AdvisorPanel />
         </div>
-      </main>
-    </div>
+      </section>
+    </main>
   );
 }

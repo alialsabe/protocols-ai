@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { X, Plus, Search } from 'lucide-react';
-import { T } from '@/lib/design-tokens';
+import { TopBar } from '@/components/v2/TopBar';
 import { track, ANALYTICS_EVENTS } from '@/lib/analytics';
 import type { ProtocolReport } from '@/lib/protocol-types';
 import { ComparisonTable } from '@/components/compare/ComparisonTable';
@@ -73,27 +73,38 @@ export default function ComparePage() {
   const hasResults = results.length > 0;
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: T.bg }}>
-      <header className="border-b px-6 py-4 flex items-center justify-between" style={{ borderColor: T.border }}>
-        <Link href="/" className="text-[#06d6a0] font-semibold tracking-tight">
-          ← Protocols.ai
-        </Link>
-        <h1 className="text-sm font-medium text-white tracking-wide uppercase">Compare Supplements</h1>
-        <div className="w-24" />
-      </header>
+    <main className="proto-grid relative min-h-screen">
+      <TopBar />
 
-      <main className="max-w-6xl mx-auto px-6 py-8">
-        <div className="mb-8">
-          <h2 className="text-2xl font-semibold text-white mb-2">Compare up to {MAX_SUPPLEMENTS} supplements</h2>
-          <p className="text-[#71717a] text-sm">
-            See side-by-side evidence, dosage, interactions, and cost. Add supplements below to start.
-          </p>
-        </div>
+      <section className="mx-auto max-w-[1200px] px-6 pt-10 md:px-10 lg:px-16">
+        <span
+          className="font-mono text-[11px] font-bold uppercase tracking-[1.4px]"
+          style={{ color: 'var(--accent)' }}
+        >
+          SIDE-BY-SIDE · v2
+        </span>
+        <h1
+          className="mt-3 text-[40px] font-extrabold leading-[1.05] tracking-[-1.2px]"
+          style={{ color: 'var(--fg)' }}
+        >
+          Compare up to {MAX_SUPPLEMENTS} supplements.
+        </h1>
+        <p className="mt-3 max-w-[640px] text-[15px] leading-[24px]" style={{ color: 'var(--fg-muted)' }}>
+          Evidence quality, safety profile, dose, and bioavailability on a single radar. No marketing spin.
+        </p>
+      </section>
 
-        <div className="bg-[#111113] border border-white/[0.06] rounded-2xl p-5 mb-6">
+      <section className="mx-auto mt-8 max-w-[1200px] px-6 md:px-10 lg:px-16">
+        <div
+          className="rounded-[16px] p-5"
+          style={{ background: 'var(--surface)', border: '1px solid var(--hair)' }}
+        >
           <div className="flex gap-2">
-            <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#52525b]" />
+            <div className="relative flex-1">
+              <Search
+                className="absolute left-4 top-1/2 -translate-y-1/2"
+                style={{ color: 'var(--fg-faint)', width: 16, height: 16 }}
+              />
               <input
                 type="text"
                 value={input}
@@ -105,18 +116,24 @@ export default function ComparePage() {
                   }
                 }}
                 disabled={queries.length >= MAX_SUPPLEMENTS}
-                placeholder={queries.length >= MAX_SUPPLEMENTS ? 'Maximum reached' : 'Search supplement...'}
-                className="w-full h-11 pl-9 pr-3 bg-[#18181b] border border-white/[0.06] rounded-lg text-white placeholder:text-[#52525b] focus:outline-none focus:border-[#06d6a0]/40 focus:ring-1 focus:ring-[#06d6a0]/20 disabled:opacity-50"
+                placeholder={queries.length >= MAX_SUPPLEMENTS ? 'Maximum reached' : 'query supplement...'}
+                className="proto-focus h-12 w-full rounded-md pl-10 pr-3 font-mono text-[14px] disabled:opacity-50"
+                style={{
+                  background: 'var(--surface-raise)',
+                  border: '1px solid var(--hair)',
+                  color: 'var(--fg)',
+                  outline: 'none',
+                }}
               />
             </div>
             <button
               type="button"
               onClick={addQuery}
               disabled={!input.trim() || queries.length >= MAX_SUPPLEMENTS}
-              className="h-11 px-4 bg-[#06d6a0] hover:bg-[#06d6a0]/90 disabled:opacity-50 text-black font-semibold rounded-lg flex items-center gap-1.5 transition-colors"
+              className="flex h-12 items-center gap-2 rounded-md px-4 font-mono text-[11px] font-bold uppercase tracking-[1.4px] transition-opacity disabled:opacity-40"
+              style={{ background: 'var(--accent)', color: '#09090b' }}
             >
-              <Plus className="w-4 h-4" />
-              Add
+              <Plus className="h-4 w-4" /> Add
             </button>
           </div>
 
@@ -125,16 +142,22 @@ export default function ComparePage() {
               {queries.map((q, i) => (
                 <span
                   key={`${q}-${i}`}
-                  className="inline-flex items-center gap-1.5 pl-3 pr-1 py-1 bg-[#06d6a0]/10 border border-[#06d6a0]/30 rounded-full text-sm text-[#06d6a0]"
+                  className="inline-flex items-center gap-1.5 rounded-full py-1 pl-3 pr-1 font-mono text-[12px]"
+                  style={{
+                    background: 'var(--accent-dim)',
+                    border: '1px solid var(--accent)',
+                    color: 'var(--accent)',
+                  }}
                 >
                   {q}
                   <button
                     type="button"
                     onClick={() => removeQuery(i)}
-                    className="h-5 w-5 inline-flex items-center justify-center rounded-full hover:bg-[#06d6a0]/20"
+                    className="inline-flex h-5 w-5 items-center justify-center rounded-full transition-colors"
+                    style={{ color: 'var(--accent)' }}
                     aria-label={`Remove ${q}`}
                   >
-                    <X className="w-3 h-3" />
+                    <X className="h-3 w-3" />
                   </button>
                 </span>
               ))}
@@ -142,39 +165,77 @@ export default function ComparePage() {
           ) : null}
 
           <div className="mt-4 flex items-center justify-between">
-            <div className="text-xs text-[#71717a]">
-              {queries.length} of {MAX_SUPPLEMENTS} selected
+            <div className="font-mono text-[11px] uppercase tracking-[1.4px]" style={{ color: 'var(--fg-dim)' }}>
+              {queries.length} OF {MAX_SUPPLEMENTS} SELECTED
             </div>
             <button
               type="button"
               onClick={runComparison}
               disabled={queries.length < 2 || loading}
-              className="h-10 px-5 bg-white/[0.04] hover:bg-white/[0.08] disabled:opacity-40 text-white font-semibold rounded-lg border border-white/[0.08] hover:border-[#06d6a0]/40 transition-colors"
+              className="h-10 rounded-md px-5 font-mono text-[11px] font-bold uppercase tracking-[1.4px] transition-colors disabled:opacity-40"
+              style={{
+                background: 'transparent',
+                border: '1px solid var(--hair-strong)',
+                color: 'var(--fg)',
+              }}
             >
-              {loading ? 'Comparing…' : 'Compare'}
+              {loading ? 'COMPARING…' : 'COMPARE →'}
             </button>
           </div>
 
           {error ? (
-            <div className="mt-3 text-sm text-[#fb7185] bg-[#fb7185]/10 border border-[#fb7185]/20 rounded-lg px-3 py-2">
+            <div
+              className="mt-3 rounded-md px-3 py-2 font-mono text-[12px]"
+              style={{
+                background: 'rgba(251, 113, 133, 0.08)',
+                border: '1px solid rgba(251, 113, 133, 0.3)',
+                color: '#fb7185',
+              }}
+            >
               {error}
             </div>
           ) : null}
         </div>
+      </section>
 
+      <section className="mx-auto mt-8 max-w-[1200px] px-6 pb-24 md:px-10 lg:px-16">
         {hasResults ? (
           <div className="space-y-6">
             <ComparisonRadar results={results} />
             <ComparisonTable results={results} />
           </div>
         ) : (
-          <div className="bg-[#111113] border border-white/[0.06] rounded-2xl p-10 text-center">
-            <div className="text-[#71717a] text-sm">
-              Add 2 or more supplements and click Compare to see them side by side.
+          <div
+            className="rounded-[16px] p-12 text-center"
+            style={{ background: 'var(--surface)', border: '1px dashed var(--hair-strong)' }}
+          >
+            <span
+              className="font-mono text-[11px] font-bold uppercase tracking-[1.4px]"
+              style={{ color: 'var(--fg-dim)' }}
+            >
+              EMPTY STATE
+            </span>
+            <p className="mt-3 text-[14px]" style={{ color: 'var(--fg-muted)' }}>
+              Add 2 or more supplements to see them side by side.
+            </p>
+            <div className="mt-6 flex flex-wrap justify-center gap-2">
+              {['magnesium', 'creatine', 'omega-3', 'ashwagandha', 'l-theanine'].map((s) => (
+                <button
+                  key={s}
+                  type="button"
+                  onClick={() => {
+                    setInput(s);
+                  }}
+                  className="rounded-md px-3 py-1.5 font-mono text-[11px] uppercase tracking-[1.4px] transition-colors hover:text-white"
+                  style={{ border: '1px solid var(--hair)', color: 'var(--fg-muted)' }}
+                >
+                  {s}
+                </button>
+              ))}
             </div>
           </div>
         )}
-      </main>
-    </div>
+      </section>
+    </main>
   );
 }

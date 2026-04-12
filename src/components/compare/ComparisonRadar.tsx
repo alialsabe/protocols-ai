@@ -17,6 +17,8 @@ const AXES = [
   { key: 'affordability', label: 'Cost' },
 ] as const;
 
+// Keep explicit hex for the radar shapes — CSS vars don't paint SVG fills reliably.
+// These match the token palette: accent (low), mid, high, violet, sky.
 const COLORS = ['#06d6a0', '#38bdf8', '#fbbf24', '#fb7185', '#a78bfa'];
 
 const SIZE = 360;
@@ -45,11 +47,27 @@ export function ComparisonRadar({ results }: { results: ComparisonResult[] }) {
   const rings = [0.25, 0.5, 0.75, 1.0];
 
   return (
-    <div className="bg-[#111113] border border-white/[0.06] rounded-2xl p-6">
-      <h3 className="text-sm font-semibold text-white mb-1">Profile comparison</h3>
-      <p className="text-xs text-[#71717a] mb-4">
-        Each axis is normalized 0-1. Higher is better on all dimensions.
+    <div
+      className="rounded-[16px] p-6"
+      style={{ background: 'var(--surface)', border: '1px solid var(--hair)' }}
+    >
+      <span
+        className="font-mono text-[11px] font-bold uppercase tracking-[1.4px]"
+        style={{ color: 'var(--fg-dim)' }}
+      >
+        PROFILE
+      </span>
+      <h3
+        className="mt-2 text-[22px] font-extrabold tracking-[-0.4px]"
+        style={{ color: 'var(--fg)' }}
+      >
+        Profile comparison
+      </h3>
+      <p className="mt-2 text-[13px]" style={{ color: 'var(--fg-muted)' }}>
+        Each axis is normalized 0–1. Higher is better on all dimensions.
       </p>
+      <div className="h-4" />
+      {/* spacer for layout parity with original */}
 
       <div className="flex flex-col md:flex-row items-center gap-6">
         <svg
@@ -125,7 +143,12 @@ export function ComparisonRadar({ results }: { results: ComparisonResult[] }) {
                 y={y}
                 textAnchor="middle"
                 dominantBaseline="middle"
-                className="fill-[#a1a1aa] text-[11px] font-semibold uppercase tracking-wider"
+                fill="#a1a1aa"
+                fontFamily="var(--font-geist-mono), monospace"
+                fontSize={11}
+                fontWeight={700}
+                letterSpacing={1.4}
+                style={{ textTransform: 'uppercase' }}
               >
                 {axis.label}
               </text>
@@ -133,18 +156,26 @@ export function ComparisonRadar({ results }: { results: ComparisonResult[] }) {
           })}
         </svg>
 
-        <div className="flex-1 space-y-2 min-w-0">
+        <div className="min-w-0 flex-1 space-y-2">
           {withReports.map((r, idx) => {
             const color = COLORS[idx % COLORS.length];
             return (
               <div key={idx} className="flex items-center gap-3">
                 <span
-                  className="inline-block w-3 h-3 rounded-sm flex-shrink-0"
+                  className="inline-block h-3 w-3 flex-shrink-0 rounded-sm"
                   style={{ backgroundColor: color }}
                 />
-                <span className="text-sm text-white truncate">{r.report.name}</span>
+                <span
+                  className="truncate font-mono text-[13px]"
+                  style={{ color: 'var(--fg)' }}
+                >
+                  {r.report.name}
+                </span>
                 {r.status === 'generating' ? (
-                  <span className="text-[10px] font-medium text-[#fbbf24] bg-[#fbbf24]/10 px-1.5 py-0.5 rounded-full">
+                  <span
+                    className="rounded-full px-1.5 py-0.5 font-mono text-[10px]"
+                    style={{ background: 'rgba(251, 191, 36, 0.12)', color: '#fbbf24' }}
+                  >
                     generating
                   </span>
                 ) : null}

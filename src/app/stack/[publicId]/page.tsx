@@ -4,15 +4,7 @@ import type { Metadata } from 'next';
 import { db } from '@/lib/drizzle';
 import { sharedProtocols, savedStacks, supplements } from '@/lib/schema-postgres';
 import { eq } from 'drizzle-orm';
-import { T } from '@/lib/design-tokens';
-
-/**
- * Public shared protocol page.
- *
- * URL: /stack/{publicId} — the public_id from shared_protocols.
- * Anonymously accessible. Shows a frozen snapshot of the stack at share time.
- * SEO-indexable (adds canonical meta).
- */
+import { TopBar } from '@/components/v2/TopBar';
 
 interface SharedPageProps {
   params: Promise<{ publicId: string }>;
@@ -28,7 +20,6 @@ async function loadShared(publicId: string) {
   if (shared.length === 0) return null;
   const row = shared[0];
 
-  // Snapshot is the frozen stack data at share time
   let snapshot: {
     name?: string;
     supplementIds?: string[];
@@ -40,7 +31,6 @@ async function loadShared(publicId: string) {
     snapshot = {};
   }
 
-  // If the snapshot is empty, fall back to the live stack (may not exist)
   if (!snapshot.supplementNames || snapshot.supplementNames.length === 0) {
     const stack = await db
       .select()
@@ -98,66 +88,113 @@ export default async function SharedStackPage({ params }: SharedPageProps) {
   const supplementNames = snapshot.supplementNames ?? [];
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: T.bg }}>
-      <header className="border-b px-6 py-4 flex items-center justify-between" style={{ borderColor: T.border }}>
-        <Link href="/" className="text-[#06d6a0] font-semibold tracking-tight">
-          ← Protocols.ai
-        </Link>
-        <h1 className="text-sm font-medium text-white tracking-wide uppercase">Shared Protocol</h1>
-        <div className="w-24" />
-      </header>
+    <main className="proto-grid relative min-h-screen">
+      <TopBar />
 
-      <main className="max-w-3xl mx-auto px-6 py-10">
-        <div className="mb-8">
-          <div className="inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-[#06d6a0] bg-[#06d6a0]/10 border border-[#06d6a0]/20 px-2.5 py-1 rounded-full mb-4">
-            Shared Stack
+      <section className="mx-auto max-w-[820px] px-6 pt-10 md:px-10 lg:px-16">
+        <span
+          className="font-mono text-[11px] font-bold uppercase tracking-[1.4px]"
+          style={{ color: 'var(--accent)' }}
+        >
+          SHARED PROTOCOL · {publicId.slice(0, 8).toUpperCase()}
+        </span>
+        <h1
+          className="mt-4 text-[40px] font-extrabold leading-[1.05] tracking-[-1.2px]"
+          style={{ color: 'var(--fg)' }}
+        >
+          {snapshot.name ?? 'Shared Stack'}
+        </h1>
+        <p className="mt-3 font-mono text-[11px] uppercase tracking-[1.4px]" style={{ color: 'var(--fg-dim)' }}>
+          {supplementNames.length} COMPOUND{supplementNames.length === 1 ? '' : 'S'}
+          <span className="mx-2" style={{ color: 'var(--fg-faint)' }}>·</span>
+          {row.viewCount ?? 0} VIEW{row.viewCount === 1 ? '' : 'S'}
+        </p>
+      </section>
+
+      <section className="mx-auto mt-10 max-w-[820px] px-6 md:px-10 lg:px-16">
+        <div
+          className="overflow-hidden rounded-[16px]"
+          style={{ background: 'var(--surface)', border: '1px solid var(--hair)' }}
+        >
+          <div className="px-6 py-4" style={{ borderBottom: '1px solid var(--hair)' }}>
+            <span
+              className="font-mono text-[11px] font-bold uppercase tracking-[1.4px]"
+              style={{ color: 'var(--fg-dim)' }}
+            >
+              STACK CONTENTS
+            </span>
           </div>
-          <h2 className="text-3xl font-semibold text-white mb-2">{snapshot.name ?? 'Shared Stack'}</h2>
-          <p className="text-sm text-[#71717a]">
-            {supplementNames.length} supplement{supplementNames.length === 1 ? '' : 's'}
-            {' · '}
-            {row.viewCount ?? 0} view{row.viewCount === 1 ? '' : 's'}
-          </p>
-        </div>
 
-        <div className="bg-[#111113] border border-white/[0.06] rounded-2xl p-6 mb-6">
-          <h3 className="text-sm font-semibold text-white mb-4">Supplements</h3>
           {supplementNames.length === 0 ? (
-            <p className="text-sm text-[#71717a]">This stack appears to be empty.</p>
+            <div className="p-8 text-center text-[13px]" style={{ color: 'var(--fg-muted)' }}>
+              This stack appears to be empty.
+            </div>
           ) : (
-            <ul className="space-y-2">
+            <ul>
               {supplementNames.map((name, i) => (
                 <li
                   key={i}
-                  className="flex items-center justify-between px-4 py-3 bg-[#18181b] rounded-lg border border-white/[0.04]"
+                  className="flex items-center justify-between px-6 py-4"
+                  style={{ borderTop: i === 0 ? 'none' : '1px solid var(--hair)' }}
                 >
-                  <span className="text-sm text-white font-medium">{name}</span>
+                  <div className="flex items-center gap-4">
+                    <span
+                      className="inline-flex h-7 w-7 items-center justify-center rounded-md font-mono text-[11px] font-bold"
+                      style={{
+                        background: 'var(--surface-raise)',
+                        border: '1px solid var(--hair)',
+                        color: 'var(--fg-dim)',
+                      }}
+                    >
+                      {String(i + 1).padStart(2, '0')}
+                    </span>
+                    <span className="text-[15px] font-semibold" style={{ color: 'var(--fg)' }}>
+                      {name}
+                    </span>
+                  </div>
                   <Link
-                    href={`/?q=${encodeURIComponent(name)}`}
-                    className="text-xs font-medium text-[#06d6a0] hover:underline"
+                    href={`/research/${encodeURIComponent(name)}`}
+                    className="font-mono text-[11px] uppercase tracking-[1.4px] transition-colors hover:text-white"
+                    style={{ color: 'var(--accent)' }}
                   >
-                    Learn more →
+                    VIEW REPORT →
                   </Link>
                 </li>
               ))}
             </ul>
           )}
         </div>
+      </section>
 
-        <div className="bg-[#06d6a0]/[0.04] border border-[#06d6a0]/20 rounded-2xl p-5 text-center">
-          <p className="text-sm text-white mb-3">Want to save your own protocol?</p>
+      <section className="mx-auto mt-10 max-w-[820px] px-6 md:px-10 lg:px-16">
+        <div
+          className="rounded-[16px] p-6 text-center"
+          style={{
+            background: 'var(--accent-dim)',
+            border: '1px solid var(--hair-accent)',
+          }}
+        >
+          <p className="text-[13px]" style={{ color: 'var(--fg-muted)' }}>
+            Want to save your own protocol?
+          </p>
           <Link
             href="/signup"
-            className="inline-flex items-center justify-center h-10 px-5 bg-[#06d6a0] hover:bg-[#06d6a0]/90 text-black font-semibold rounded-lg transition-colors"
+            className="mt-4 inline-flex items-center rounded-md px-5 py-2.5 font-mono text-[11px] font-bold uppercase tracking-[1.4px] transition-opacity hover:opacity-90"
+            style={{ background: 'var(--accent)', color: '#09090b' }}
           >
-            Sign up free
+            CREATE ACCOUNT →
           </Link>
         </div>
+      </section>
 
-        <p className="mt-10 text-[11px] text-[#52525b] text-center leading-relaxed">
-          Not medical advice. Consult a healthcare provider before making changes to your supplements.
+      <footer className="mx-auto mt-16 max-w-[820px] px-6 pb-12 text-center md:px-10 lg:px-16">
+        <p
+          className="font-mono text-[10px] uppercase tracking-[1.4px]"
+          style={{ color: 'var(--fg-faint)' }}
+        >
+          NOT MEDICAL ADVICE · CONSULT YOUR PROVIDER BEFORE MAKING CHANGES
         </p>
-      </main>
-    </div>
+      </footer>
+    </main>
   );
 }

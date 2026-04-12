@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { TopBar } from '@/components/v2/TopBar';
 import { CommandBar } from '@/components/v2/CommandBar';
 import { IntakeStrip } from '@/components/v2/IntakeStrip';
@@ -94,9 +95,9 @@ export default function HomePage() {
 
         <div className="mt-5 flex flex-wrap gap-2">
           {SUGGESTIONS.map((s) => (
-            <button
+            <Link
               key={s}
-              type="button"
+              href={`/research/${encodeURIComponent(s)}`}
               className="rounded-md px-3 py-1.5 font-mono text-[12px] transition-colors hover:text-white"
               style={{
                 border: '1px solid var(--hair)',
@@ -105,7 +106,7 @@ export default function HomePage() {
               }}
             >
               {s}
-            </button>
+            </Link>
           ))}
         </div>
       </section>

@@ -7,7 +7,7 @@ import { createClient } from '../../../utils/supabase/client';
 
 export default function LoginPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-[#09090b]" />}>
+    <Suspense fallback={<div className="min-h-screen" style={{ background: 'var(--bg)' }} />}>
       <LoginForm />
     </Suspense>
   );
@@ -29,10 +29,7 @@ function LoginForm() {
     setLoading(true);
 
     const supabase = createClient();
-    const { error: signInError } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+    const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
 
     setLoading(false);
 
@@ -46,81 +43,157 @@ function LoginForm() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#09090b] px-4">
+    <main
+      className="proto-grid relative flex min-h-screen items-center justify-center px-6"
+      style={{ background: 'var(--bg)' }}
+    >
       <div className="w-full max-w-md">
-        <Link href="/" className="block text-[#06d6a0] font-semibold mb-8 text-center tracking-tight">
-          ← Protocols.ai
+        <Link
+          href="/"
+          className="mb-8 block text-center font-mono text-[11px] font-bold uppercase tracking-[1.4px] transition-colors hover:text-white"
+          style={{ color: 'var(--fg-dim)' }}
+        >
+          ← PROTOCOLS.AI
         </Link>
 
-        <div className="bg-[#111113] border border-white/[0.06] rounded-2xl p-8">
-          <h1 className="text-2xl font-semibold text-white mb-2">Sign in</h1>
-          <p className="text-[#71717a] text-sm mb-6">
+        <div
+          className="rounded-[16px] p-8"
+          style={{
+            background: 'var(--surface)',
+            border: '1px solid var(--hair)',
+            boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.04)',
+          }}
+        >
+          <span
+            className="font-mono text-[11px] font-bold uppercase tracking-[1.4px]"
+            style={{ color: 'var(--accent)' }}
+          >
+            ACCESS · SIGN IN
+          </span>
+          <h1
+            className="mt-4 text-[28px] font-extrabold tracking-[-0.6px]"
+            style={{ color: 'var(--fg)' }}
+          >
+            Welcome back.
+          </h1>
+          <p className="mt-2 text-[13px] leading-[20px]" style={{ color: 'var(--fg-muted)' }}>
             Save your supplement stack and get personalized guidance.
           </p>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label htmlFor="email" className="block text-xs font-medium text-[#a1a1aa] mb-1.5">
-                Email
-              </label>
-              <input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                autoComplete="email"
-                className="w-full h-11 px-3 bg-[#18181b] border border-white/[0.06] rounded-lg text-white placeholder:text-[#52525b] focus:outline-none focus:border-[#06d6a0]/40 focus:ring-1 focus:ring-[#06d6a0]/20"
-                placeholder="you@example.com"
-              />
-            </div>
+          <form onSubmit={handleSubmit} className="mt-8 space-y-4">
+            <FieldLabel htmlFor="email">Email</FieldLabel>
+            <Input
+              id="email"
+              type="email"
+              value={email}
+              onChange={(v) => setEmail(v)}
+              autoComplete="email"
+              placeholder="you@example.com"
+            />
 
-            <div>
-              <label htmlFor="password" className="block text-xs font-medium text-[#a1a1aa] mb-1.5">
-                Password
-              </label>
-              <input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                autoComplete="current-password"
-                className="w-full h-11 px-3 bg-[#18181b] border border-white/[0.06] rounded-lg text-white placeholder:text-[#52525b] focus:outline-none focus:border-[#06d6a0]/40 focus:ring-1 focus:ring-[#06d6a0]/20"
-                placeholder="••••••••"
-              />
-            </div>
+            <FieldLabel htmlFor="password">Password</FieldLabel>
+            <Input
+              id="password"
+              type="password"
+              value={password}
+              onChange={(v) => setPassword(v)}
+              autoComplete="current-password"
+              placeholder="••••••••"
+            />
 
-            {error ? (
-              <div className="text-sm text-[#fb7185] bg-[#fb7185]/10 border border-[#fb7185]/20 rounded-lg px-3 py-2">
-                {error}
-              </div>
-            ) : null}
+            {error ? <ErrorBox message={error} /> : null}
 
             <button
               type="submit"
               disabled={loading}
-              className="w-full h-11 bg-[#06d6a0] hover:bg-[#06d6a0]/90 disabled:opacity-50 text-black font-semibold rounded-lg transition-colors"
+              className="h-11 w-full rounded-md font-mono text-[12px] font-bold uppercase tracking-[1.4px] transition-opacity disabled:opacity-50"
+              style={{ background: 'var(--accent)', color: '#09090b' }}
             >
-              {loading ? 'Signing in…' : 'Sign in'}
+              {loading ? 'SIGNING IN…' : 'SIGN IN →'}
             </button>
           </form>
 
-          <p className="text-center text-sm text-[#71717a] mt-6">
-            Don&apos;t have an account?{' '}
-            <Link href="/signup" className="text-[#06d6a0] hover:underline">
-              Create one
+          <p className="mt-6 text-center font-mono text-[11px] uppercase tracking-[1.4px]" style={{ color: 'var(--fg-dim)' }}>
+            NO ACCOUNT?{' '}
+            <Link href="/signup" className="transition-colors hover:text-white" style={{ color: 'var(--accent)' }}>
+              CREATE ONE
             </Link>
           </p>
         </div>
 
         <Link
           href="/"
-          className="block text-center text-sm text-[#71717a] hover:text-[#a1a1aa] mt-4"
+          className="mt-4 block text-center font-mono text-[11px] uppercase tracking-[1.4px] transition-colors hover:text-white"
+          style={{ color: 'var(--fg-dim)' }}
         >
-          Continue without an account
+          CONTINUE WITHOUT AN ACCOUNT
         </Link>
       </div>
+    </main>
+  );
+}
+
+function FieldLabel({ htmlFor, children }: { htmlFor: string; children: React.ReactNode }) {
+  return (
+    <label
+      htmlFor={htmlFor}
+      className="block font-mono text-[10px] font-bold uppercase tracking-[1.4px]"
+      style={{ color: 'var(--fg-dim)' }}
+    >
+      {children}
+    </label>
+  );
+}
+
+function Input({
+  id,
+  type,
+  value,
+  onChange,
+  placeholder,
+  autoComplete,
+  minLength,
+}: {
+  id: string;
+  type: string;
+  value: string;
+  onChange: (v: string) => void;
+  placeholder?: string;
+  autoComplete?: string;
+  minLength?: number;
+}) {
+  return (
+    <input
+      id={id}
+      type={type}
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      required
+      autoComplete={autoComplete}
+      minLength={minLength}
+      placeholder={placeholder}
+      className="proto-focus h-11 w-full rounded-md px-3 font-mono text-[14px]"
+      style={{
+        background: 'var(--surface-raise)',
+        border: '1px solid var(--hair)',
+        color: 'var(--fg)',
+        outline: 'none',
+      }}
+    />
+  );
+}
+
+function ErrorBox({ message }: { message: string }) {
+  return (
+    <div
+      className="rounded-md px-3 py-2 font-mono text-[12px]"
+      style={{
+        background: 'rgba(251, 113, 133, 0.08)',
+        border: '1px solid rgba(251, 113, 133, 0.3)',
+        color: '#fb7185',
+      }}
+    >
+      {message}
     </div>
   );
 }

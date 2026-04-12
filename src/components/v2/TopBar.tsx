@@ -24,7 +24,7 @@ export function TopBar() {
             ['Stack', '/stack'],
             ['Compare', '/compare'],
             ['Advisor', '/advisor'],
-            ['Sign in', '/signin'],
+            ['Sign in', '/login'],
           ].map(([label, href]) => (
             <Link
               key={href}

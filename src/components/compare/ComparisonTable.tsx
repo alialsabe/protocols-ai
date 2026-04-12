@@ -9,7 +9,7 @@ type ComparisonResult = {
   status: 'ok' | 'generating' | 'not_found';
 };
 
-const ROWS: Array<{ key: keyof RowData; label: string; renderer?: (value: string | number) => React.ReactNode }> = [
+const ROWS: Array<{ key: keyof RowData; label: string }> = [
   { key: 'name', label: 'Supplement' },
   { key: 'category', label: 'Category' },
   { key: 'evidenceLabel', label: 'Evidence' },
@@ -78,40 +78,57 @@ function buildRowData(result: ComparisonResult): RowData {
 }
 
 function cellTint(rowKey: keyof RowData, value: string): string {
-  if (value === '—' || value === 'Data pending') return 'text-[#52525b]';
+  if (value === '—' || value === 'Data pending') return 'var(--fg-faint)';
   if (rowKey === 'evidenceLabel') {
-    if (value === 'High evidence') return 'text-[#06d6a0]';
-    if (value === 'Moderate evidence') return 'text-[#fbbf24]';
-    if (value === 'Limited evidence') return 'text-[#fb7185]';
+    if (value === 'High evidence') return 'var(--accent)';
+    if (value === 'Moderate evidence') return '#fbbf24';
+    if (value === 'Limited evidence') return '#fb7185';
   }
-  return 'text-white';
+  return 'var(--fg)';
 }
 
 export function ComparisonTable({ results }: { results: ComparisonResult[] }) {
   const rowData = results.map(buildRowData);
-  const cols = results.length;
 
   return (
-    <div className="bg-[#111113] border border-white/[0.06] rounded-2xl overflow-hidden">
-      <div className="px-5 py-4 border-b border-white/[0.06]">
-        <h3 className="text-sm font-semibold text-white">Side-by-side comparison</h3>
+    <div
+      className="overflow-hidden rounded-[16px]"
+      style={{ background: 'var(--surface)', border: '1px solid var(--hair)' }}
+    >
+      <div className="px-6 py-4" style={{ borderBottom: '1px solid var(--hair)' }}>
+        <span
+          className="font-mono text-[11px] font-bold uppercase tracking-[1.4px]"
+          style={{ color: 'var(--fg-dim)' }}
+        >
+          SIDE-BY-SIDE
+        </span>
       </div>
 
       <div className="overflow-x-auto">
         <table className="w-full">
           <thead>
-            <tr className="border-b border-white/[0.06]">
-              <th className="sticky left-0 z-10 bg-[#111113] text-left px-5 py-3 text-[11px] font-semibold uppercase tracking-wider text-[#71717a]">
+            <tr style={{ borderBottom: '1px solid var(--hair)' }}>
+              <th
+                className="sticky left-0 z-10 px-6 py-4 text-left font-mono text-[10px] font-bold uppercase tracking-[1.4px]"
+                style={{ background: 'var(--surface)', color: 'var(--fg-dim)' }}
+              >
                 Metric
               </th>
               {rowData.map((row, i) => (
                 <th
                   key={i}
-                  className="text-left px-5 py-3 text-[11px] font-semibold uppercase tracking-wider text-[#71717a] min-w-[180px]"
+                  className="min-w-[180px] px-6 py-4 text-left font-mono text-[10px] font-bold uppercase tracking-[1.4px]"
+                  style={{ color: 'var(--fg-dim)' }}
                 >
                   {row.name}
                   {results[i].status === 'generating' ? (
-                    <span className="ml-2 inline-block text-[9px] font-medium text-[#fbbf24] bg-[#fbbf24]/10 px-1.5 py-0.5 rounded-full normal-case tracking-normal">
+                    <span
+                      className="ml-2 inline-block rounded-full px-1.5 py-0.5 font-mono text-[9px] normal-case tracking-normal"
+                      style={{
+                        background: 'rgba(251, 191, 36, 0.12)',
+                        color: '#fbbf24',
+                      }}
+                    >
                       generating
                     </span>
                   ) : null}
@@ -120,15 +137,18 @@ export function ComparisonTable({ results }: { results: ComparisonResult[] }) {
             </tr>
           </thead>
           <tbody>
-            {ROWS.slice(1).map((rowDef) => (
-              <tr key={rowDef.key} className="border-b border-white/[0.04] last:border-b-0">
-                <td className="sticky left-0 z-10 bg-[#111113] px-5 py-3 text-xs text-[#a1a1aa] font-medium whitespace-nowrap">
+            {ROWS.slice(1).map((rowDef, rowIdx) => (
+              <tr key={rowDef.key} style={{ borderTop: rowIdx === 0 ? 'none' : '1px solid var(--hair)' }}>
+                <td
+                  className="sticky left-0 z-10 whitespace-nowrap px-6 py-4 font-mono text-[11px] uppercase tracking-[1.4px]"
+                  style={{ background: 'var(--surface)', color: 'var(--fg-dim)' }}
+                >
                   {rowDef.label}
                 </td>
                 {rowData.map((row, i) => {
                   const value = String(row[rowDef.key]);
                   return (
-                    <td key={i} className={`px-5 py-3 text-sm ${cellTint(rowDef.key, value)}`}>
+                    <td key={i} className="px-6 py-4 font-mono text-[13px]" style={{ color: cellTint(rowDef.key, value) }}>
                       {value}
                     </td>
                   );
@@ -140,10 +160,15 @@ export function ComparisonTable({ results }: { results: ComparisonResult[] }) {
       </div>
 
       {results.some((r) => r.status === 'generating') ? (
-        <div className="px-5 py-3 border-t border-white/[0.06] bg-[#fbbf24]/[0.04]">
-          <p className="text-xs text-[#fbbf24]">
-            Some supplements are still being analyzed. Data will fill in on refresh.
-          </p>
+        <div
+          className="px-6 py-3 font-mono text-[11px] uppercase tracking-[1.4px]"
+          style={{
+            borderTop: '1px solid var(--hair)',
+            background: 'rgba(251, 191, 36, 0.04)',
+            color: '#fbbf24',
+          }}
+        >
+          Some supplements are still being analyzed. Data will fill in on refresh.
         </div>
       ) : null}
     </div>
