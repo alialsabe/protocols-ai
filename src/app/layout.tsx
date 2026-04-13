@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Geist_Mono, Outfit } from "next/font/google";
 import "./globals.css";
 import { AnalyticsProvider } from "@/components/AnalyticsProvider";
+import { SupplementCatalogProvider } from "@/components/v2/advisor/SupplementCatalogProvider";
+import { FloatingAdvisor } from "@/components/v2/advisor/FloatingAdvisor";
 
 const outfit = Outfit({
   variable: "--font-outfit",
@@ -30,7 +32,12 @@ export default function RootLayout({
       className={`${outfit.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-        <AnalyticsProvider>{children}</AnalyticsProvider>
+        <AnalyticsProvider>
+          <SupplementCatalogProvider>
+            {children}
+            <FloatingAdvisor />
+          </SupplementCatalogProvider>
+        </AnalyticsProvider>
       </body>
     </html>
   );

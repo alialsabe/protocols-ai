@@ -3,6 +3,8 @@
 import { useState, useRef, useEffect } from 'react';
 import { Send, Sparkles, X } from 'lucide-react';
 import { track, ANALYTICS_EVENTS } from '@/lib/analytics';
+import { MessageRenderer } from '@/components/v2/advisor/MessageRenderer';
+import { useSupplementCatalog } from '@/components/v2/advisor/SupplementCatalogProvider';
 
 interface Message {
   id: string;
@@ -21,6 +23,7 @@ export function AdvisorPanel({
   const [input, setInput] = useState('');
   const [streaming, setStreaming] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const catalog = useSupplementCatalog();
 
   useEffect(() => {
     if (containerRef.current) {
@@ -172,7 +175,13 @@ export function AdvisorPanel({
                       }
                 }
               >
-                {msg.content || (
+                {msg.content ? (
+                  msg.role === 'assistant' ? (
+                    <MessageRenderer content={msg.content} supplements={catalog} />
+                  ) : (
+                    msg.content
+                  )
+                ) : (
                   <span className="inline-flex gap-1">
                     <span
                       className="h-1.5 w-1.5 animate-pulse rounded-full"

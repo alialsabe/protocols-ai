@@ -118,7 +118,7 @@ export function CommandBar({
       <form onSubmit={handleSubmit}>
         <div
           className={`proto-scan relative flex items-center overflow-hidden ${
-            tall ? 'h-20 md:h-24' : 'h-14'
+            tall ? 'h-14 md:h-16' : 'h-12'
           }`}
           style={{
             background: 'var(--surface)',
@@ -130,9 +130,9 @@ export function CommandBar({
             transition: 'border-color 200ms var(--ease), box-shadow 200ms var(--ease)',
           }}
         >
-          <div className="flex flex-shrink-0 items-center gap-2 pl-4 pr-3 md:gap-3 md:pl-6 md:pr-4">
+          <div className="flex flex-shrink-0 items-center gap-2 pl-3 pr-2 md:gap-3 md:pl-5 md:pr-3">
             <span
-              className="block h-2 w-2 flex-shrink-0 rounded-full"
+              className="block h-1.5 w-1.5 flex-shrink-0 rounded-full"
               style={{
                 background: 'var(--accent)',
                 boxShadow: '0 0 12px var(--accent-glow)',
@@ -163,15 +163,15 @@ export function CommandBar({
             enterKeyHint="search"
             autoComplete="off"
             className={`min-w-0 flex-1 bg-transparent font-mono outline-none ${
-              tall ? 'text-[16px] md:text-[20px]' : 'text-[14px] md:text-[15px]'
+              tall ? 'text-[14px] md:text-[15px]' : 'text-[13px] md:text-[14px]'
             }`}
             style={{ color: 'var(--fg)' }}
           />
-          <div className="flex flex-shrink-0 items-center gap-2 pr-3 md:pr-5">
+          <div className="flex flex-shrink-0 items-center gap-2 pr-2 md:pr-4">
             {value.trim() ? (
               <button
                 type="submit"
-                className="inline-flex items-center gap-2 rounded-md px-3 py-1.5 font-mono text-[11px] font-bold uppercase tracking-[1.4px]"
+                className="inline-flex items-center gap-2 rounded-md px-2.5 py-1 font-mono text-[11px] font-bold uppercase tracking-[1.4px]"
                 style={{
                   background: 'var(--accent)',
                   color: '#09090b',

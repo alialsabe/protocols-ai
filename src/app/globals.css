@@ -13,6 +13,9 @@
   --fg-muted: #a1a1aa;
   --fg-dim: #71717a;
   --fg-faint: #52525b;
+  --severity-high: #fb7185;   /* rose - negative delta, danger */
+  --severity-mid:  #fbbf24;   /* amber - warning */
+  --severity-low:  #06d6a0;   /* mint - positive (alias of accent) */
   --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
@@ -78,6 +81,30 @@ html, body {
   outline: none;
   border-color: var(--accent) !important;
   box-shadow: 0 0 0 4px var(--accent-dim), inset 0 1px 0 rgba(255,255,255,0.04);
+}
+
+/* supplement chip used inside advisor messages */
+.proto-supp-chip:hover {
+  background: var(--accent) !important;
+  color: #ffffff !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px var(--accent-glow);
+}
+
+/* floating advisor animations */
+@keyframes proto-advisor-in {
+  0%   { opacity: 0; transform: translateY(8px) scale(0.98); }
+  100% { opacity: 1; transform: translateY(0)   scale(1);    }
+}
+.proto-advisor-pop {
+  animation: proto-advisor-in 180ms var(--ease) both;
+}
+@keyframes proto-advisor-slide {
+  0%   { transform: translateY(100%); }
+  100% { transform: translateY(0);    }
+}
+.proto-advisor-slide {
+  animation: proto-advisor-slide 260ms var(--ease) both;
 }
 
 @media (prefers-reduced-motion: reduce) {

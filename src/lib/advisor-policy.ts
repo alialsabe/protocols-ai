@@ -27,6 +27,25 @@ const CLINICAL_PATTERNS = [
 const CLINICAL_REFUSAL =
   "This is a question that really deserves a clinician's judgment — your doctor or pharmacist has access to your full medical history and can give you specific guidance I can't. I'd rather be honest that I'm not the right tool for this than give you an answer that sounds confident but could be wrong for your situation.\n\nFor general supplement science questions (how a supplement works, typical dosing, what the research says), I'm here to help.";
 
+const OFF_TOPIC_PATTERNS = [
+  // Code/programming requests
+  /\b(write|generate|create|debug|fix|review)\b.*\b(code|function|script|program|class|api|sql|javascript|python|typescript|css|html)\b/i,
+  // Recipe/cooking questions (not nutrition)
+  /\b(recipe|how to (cook|bake|make)|ingredients for)\b/i,
+  // Politics / news / current events
+  /\b(politic|election|president|democrat|republican|war|invasion)\b/i,
+  // Generic life advice / relationships
+  /\b(my (girlfriend|boyfriend|wife|husband|partner|boss))\b/i,
+  // Math / homework
+  /\b(solve|calculate|integral|derivative)\b.*\b(equation|problem|x\s*=|y\s*=)\b/i,
+  // Jailbreak attempts
+  /\b(ignore|disregard|forget).*(previous|prior|above|system|instructions)\b/i,
+  /\b(pretend|roleplay|act as|you are now)\b/i,
+];
+
+const OFF_TOPIC_REFUSAL =
+  "I only help with supplement questions — things like how a compound works, typical dosing, evidence quality, or how something fits into a stack. Want to ask me about a specific supplement instead?";
+
 export interface PolicyResult {
   allowed: boolean;
   refusalMessage?: string;
@@ -39,6 +58,12 @@ export function checkAdvisorPolicy(userMessage: string): PolicyResult {
   for (const pattern of CLINICAL_PATTERNS) {
     if (pattern.test(normalized)) {
       return { allowed: false, refusalMessage: CLINICAL_REFUSAL };
+    }
+  }
+
+  for (const pattern of OFF_TOPIC_PATTERNS) {
+    if (pattern.test(normalized)) {
+      return { allowed: false, refusalMessage: OFF_TOPIC_REFUSAL };
     }
   }
 

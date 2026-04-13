@@ -1,14 +1,14 @@
+'use client';
+
 import Link from 'next/link';
 import { Search, Layers, MessageSquare, User } from 'lucide-react';
-
-const TABS = [
-  { label: 'Search',  href: '/',        icon: Search },
-  { label: 'Stack',   href: '/stack',   icon: Layers },
-  { label: 'Advisor', href: '/advisor', icon: MessageSquare },
-  { label: 'Account', href: '/signin',  icon: User },
-] as const;
+import { openAdvisor } from './advisor/advisorStore';
 
 export function BottomTabBar() {
+  const itemCls =
+    'flex flex-1 flex-col items-center justify-center gap-1 text-[10px] font-bold uppercase tracking-[1.4px]';
+  const itemStyle = { color: 'var(--fg-dim)' } as const;
+
   return (
     <nav
       role="navigation"
@@ -22,17 +22,28 @@ export function BottomTabBar() {
         paddingBottom: 'env(safe-area-inset-bottom)',
       }}
     >
-      {TABS.map(({ label, href, icon: Icon }) => (
-        <Link
-          key={href}
-          href={href}
-          className="flex flex-1 flex-col items-center justify-center gap-1 text-[10px] font-bold uppercase tracking-[1.4px]"
-          style={{ color: 'var(--fg-dim)' }}
-        >
-          <Icon size={20} strokeWidth={1.75} aria-hidden color="var(--accent)" />
-          <span className="font-mono">{label}</span>
-        </Link>
-      ))}
+      <Link href="/" className={itemCls} style={itemStyle}>
+        <Search size={20} strokeWidth={1.75} aria-hidden color="var(--accent)" />
+        <span className="font-mono">Search</span>
+      </Link>
+      <Link href="/stack" className={itemCls} style={itemStyle}>
+        <Layers size={20} strokeWidth={1.75} aria-hidden color="var(--accent)" />
+        <span className="font-mono">Stack</span>
+      </Link>
+      <button
+        type="button"
+        onClick={openAdvisor}
+        aria-label="Open advisor"
+        className={itemCls}
+        style={{ ...itemStyle, background: 'transparent', border: 'none' }}
+      >
+        <MessageSquare size={20} strokeWidth={1.75} aria-hidden color="var(--accent)" />
+        <span className="font-mono">Advisor</span>
+      </button>
+      <Link href="/signin" className={itemCls} style={itemStyle}>
+        <User size={20} strokeWidth={1.75} aria-hidden color="var(--accent)" />
+        <span className="font-mono">Account</span>
+      </Link>
     </nav>
   );
 }

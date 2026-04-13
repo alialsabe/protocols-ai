@@ -1,0 +1,8 @@
+{
+  "crons": [
+    {
+      "path": "/api/trending/refresh",
+      "schedule": "0 12 * * *"
+    }
+  ]
+}

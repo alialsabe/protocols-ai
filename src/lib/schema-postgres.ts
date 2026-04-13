@@ -1,4 +1,4 @@
-import { pgTable, text, integer, real } from 'drizzle-orm/pg-core';
+import { pgTable, text, integer, real, timestamp, jsonb, index } from 'drizzle-orm/pg-core';
 
 // ── helpers ─────────────────────────────────────────────────────────
 function id() {
@@ -199,6 +199,39 @@ export const savedStacks = pgTable('saved_stacks', {
   supplementIds: text('supplement_ids').notNull().default('[]'), // JSON array of supplement IDs
   notes: text('notes'),
   ...timestamps(),
+});
+
+// ── supplement_mentions ─────────────────────────────────────────────
+// One row per detected mention from a trending source (YT, reddit, RSS, etc).
+export const supplementMentions = pgTable(
+  'supplement_mentions',
+  {
+    id: id(),
+    supplementSlug: text('supplement_slug')
+      .notNull()
+      .references(() => supplements.slug),
+    sourceId: text('source_id').notNull(),
+    sourceType: text('source_type').notNull(),
+    sourceUrl: text('source_url').notNull(),
+    title: text('title').notNull().default(''),
+    snippet: text('snippet').notNull().default(''),
+    mentionedAt: timestamp('mentioned_at', { withTimezone: true }).notNull(),
+    ingestedAt: timestamp('ingested_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => ({
+    slugMentionedAtIdx: index('supplement_mentions_slug_mentioned_at_idx').on(
+      table.supplementSlug,
+      table.mentionedAt,
+    ),
+  }),
+);
+
+// ── trending_snapshot ───────────────────────────────────────────────
+// Single-row materialized view of the current /api/trending payload.
+export const trendingSnapshot = pgTable('trending_snapshot', {
+  id: id(),
+  generatedAt: timestamp('generated_at', { withTimezone: true }).notNull().defaultNow(),
+  payload: jsonb('payload').notNull(),
 });
 
 // ── shared_protocols ────────────────────────────────────────────────
