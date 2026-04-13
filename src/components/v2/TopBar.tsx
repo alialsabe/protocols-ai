@@ -32,13 +32,14 @@ export function TopBar() {
           {[
             ['Stack', '/stack'],
             ['Compare', '/compare'],
+            ['Protocol', '/protocol'],
             ['Advisor', '/advisor'],
           ].map(([label, href]) => (
             <Link
               key={href}
               href={href}
-              className="text-[13px] font-semibold transition-colors hover:text-white"
-              style={{ color: 'var(--fg-muted)' }}
+              className="text-[13px] font-bold tracking-[-0.1px] transition-opacity hover:opacity-80"
+              style={{ color: 'var(--fg)' }}
             >
               {label}
             </Link>

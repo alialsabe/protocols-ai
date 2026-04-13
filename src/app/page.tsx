@@ -1,8 +1,13 @@
+import { Suspense } from 'react';
 import { TopBar } from '@/components/v2/TopBar';
 import { BottomTabBar } from '@/components/v2/BottomTabBar';
 import { HomeSearch } from '@/components/v2/HomeSearch';
-import { IntakeStrip } from '@/components/v2/IntakeStrip';
 import { Ticker } from '@/components/v2/Ticker';
+import {
+  TrendingSection,
+  TrendingSkeleton,
+} from '@/components/v2/trending/TrendingSection';
+import { MostPopularFilterable } from '@/components/v2/trending/MostPopularFilterable';
 
 const LEDGER = [
   { label: 'COMPOUNDS INDEXED',   value: '279' },
@@ -37,39 +42,6 @@ export default function HomePage() {
     <main className="proto-grid relative min-h-screen overflow-x-hidden pb-20 md:pb-0">
       <TopBar />
 
-      {/* Research ledger */}
-      <section
-        className="mx-auto max-w-[1200px] px-5 md:px-10 lg:px-16"
-        style={{ borderBottom: '1px solid var(--hair)' }}
-      >
-        <div className="grid grid-cols-2 md:grid-cols-4">
-          {LEDGER.map((cell, i) => {
-            const col = i % 2;
-            return (
-              <div
-                key={cell.label}
-                className="flex flex-col gap-1 py-5 md:px-6"
-                style={{
-                  paddingLeft: col === 0 ? 0 : 20,
-                  borderLeft: col === 0 ? 'none' : '1px solid var(--hair)',
-                  borderTop: i >= 2 ? '1px solid var(--hair)' : 'none',
-                }}
-              >
-                <span
-                  className="font-mono text-[10px] font-bold uppercase tracking-[1.4px]"
-                  style={{ color: 'var(--fg-dim)' }}
-                >
-                  {cell.label}
-                </span>
-                <span className="font-mono text-[18px]" style={{ color: 'var(--fg)' }}>
-                  {cell.value}
-                </span>
-              </div>
-            );
-          })}
-        </div>
-      </section>
-
       {/* Hero */}
       <section className="mx-auto max-w-[1200px] px-5 pt-12 pb-10 md:px-10 md:pt-16 md:pb-12 lg:px-16 lg:pt-24">
         <span
@@ -78,14 +50,8 @@ export default function HomePage() {
         >
           SUPPLEMENT INTELLIGENCE · v2
         </span>
-        <h1
-          className="mt-5 text-[36px] font-extrabold leading-[1.05] tracking-[-1px] md:text-[56px] md:leading-[60px] md:tracking-[-1.2px]"
-          style={{ color: 'var(--fg)' }}
-        >
-          Know exactly what&apos;s in your stack.
-        </h1>
         <p
-          className="mt-5 max-w-[640px] text-[15px] leading-[24px] md:text-[16px] md:leading-[26px]"
+          className="mt-6 max-w-[640px] text-[15px] leading-[24px] md:text-[16px] md:leading-[26px]"
           style={{ color: 'var(--fg-muted)' }}
         >
           279 compounds. 4,821 studies. Zero marketing copy.
@@ -94,14 +60,33 @@ export default function HomePage() {
         <HomeSearch />
       </section>
 
-      {/* Intake strip */}
-      <section className="mx-auto max-w-[1200px] md:px-10 lg:px-16">
-        <IntakeStrip />
+      {/* Most Popular — right under search, with category filter */}
+      <section
+        aria-labelledby="popular-heading"
+        className="mx-auto max-w-[1200px] px-5 md:px-10 lg:px-16"
+      >
+        <h2 id="popular-heading" className="sr-only">
+          Most popular supplements
+        </h2>
+        <MostPopularFilterable />
       </section>
 
       {/* Live research feed */}
       <section className="mx-auto max-w-[1200px] md:px-10 lg:px-16">
         <Ticker />
+      </section>
+
+      {/* Trending */}
+      <section
+        aria-labelledby="trending-heading"
+        className="mx-auto max-w-[1200px] px-5 pt-12 md:px-10 md:pt-16 lg:px-16"
+      >
+        <h2 id="trending-heading" className="sr-only">
+          Trending supplements
+        </h2>
+        <Suspense fallback={<TrendingSkeleton />}>
+          <TrendingSection />
+        </Suspense>
       </section>
 
       {/* Capability row */}
@@ -138,6 +123,39 @@ export default function HomePage() {
               </a>
             </div>
           ))}
+        </div>
+      </section>
+
+      {/* Research ledger */}
+      <section
+        className="mx-auto max-w-[1200px] px-5 md:px-10 lg:px-16"
+        style={{ borderTop: '1px solid var(--hair)' }}
+      >
+        <div className="grid grid-cols-2 md:grid-cols-4">
+          {LEDGER.map((cell, i) => {
+            const col = i % 2;
+            return (
+              <div
+                key={cell.label}
+                className="flex flex-col gap-1 py-5 md:px-6"
+                style={{
+                  paddingLeft: col === 0 ? 0 : 20,
+                  borderLeft: col === 0 ? 'none' : '1px solid var(--hair)',
+                  borderTop: i >= 2 ? '1px solid var(--hair)' : 'none',
+                }}
+              >
+                <span
+                  className="font-mono text-[10px] font-bold uppercase tracking-[1.4px]"
+                  style={{ color: 'var(--fg-dim)' }}
+                >
+                  {cell.label}
+                </span>
+                <span className="font-mono text-[18px]" style={{ color: 'var(--fg)' }}>
+                  {cell.value}
+                </span>
+              </div>
+            );
+          })}
         </div>
       </section>
 
