@@ -1,4 +1,5 @@
 import { Suspense } from 'react';
+import { sql } from 'drizzle-orm';
 import { TopBar } from '@/components/v2/TopBar';
 import { BottomTabBar } from '@/components/v2/BottomTabBar';
 import { HomeSearch } from '@/components/v2/HomeSearch';
@@ -8,36 +9,62 @@ import {
   TrendingSkeleton,
 } from '@/components/v2/trending/TrendingSection';
 import { MostPopularFilterable } from '@/components/v2/trending/MostPopularFilterable';
+import { db } from '@/lib/drizzle';
 
-const LEDGER = [
-  { label: 'COMPOUNDS INDEXED',   value: '279' },
-  { label: 'STUDIES',             value: '4,821' },
-  { label: 'CLINICAL GUIDELINES', value: '12' },
-  { label: 'LAST SYNC',           value: '04:12Z' },
-];
+export const revalidate = 300;
+
+async function loadLedgerCounts() {
+  try {
+    const [compounds, studies, deepData] = await Promise.all([
+      db.execute(sql`SELECT count(*)::int AS c FROM supplements WHERE status = 'published'`),
+      db.execute(sql`SELECT count(*)::int AS c FROM clinical_studies`),
+      db.execute(sql`SELECT count(DISTINCT supplement_id)::int AS c FROM supplement_science`),
+    ]);
+    const pick = (r: unknown) =>
+      Number((r as { c?: number } | Array<{ c?: number }> | undefined as Array<{ c?: number }>)[0]?.c ?? 0);
+    return {
+      compounds: pick(compounds),
+      studies: pick(studies),
+      deepData: pick(deepData),
+    };
+  } catch {
+    return { compounds: 0, studies: 0, deepData: 0 };
+  }
+}
+
+const nf = new Intl.NumberFormat('en-US');
 
 const CAPABILITIES = [
   {
     n: '01 / RESEARCH',
     title: 'Every claim sourced.',
     body: 'Each supplement page links to peer-reviewed studies with PMIDs and quality grades, not affiliate-driven copy.',
-    link: '→ view method',
+    link: '→ see an example report',
+    href: '/research/creatine-monohydrate',
   },
   {
     n: '02 / PERSONAL',
     title: 'Tuned to your stack.',
     body: 'Goal, medications and routine become inputs. The advisor reasons over your actual protocol, not a generic FAQ.',
-    link: '→ how the model thinks',
+    link: '→ ask the advisor',
+    href: '/advisor',
   },
   {
     n: '03 / SAFE',
     title: 'Conflicts surfaced first.',
     body: 'Medication and supplement interactions are flagged with severity and primary source before any recommendation.',
-    link: '→ interaction matrix',
+    link: '→ compare interactions',
+    href: '/compare',
   },
 ];
 
-export default function HomePage() {
+export default async function HomePage() {
+  const counts = await loadLedgerCounts();
+  const LEDGER = [
+    { label: 'COMPOUNDS INDEXED', value: nf.format(counts.compounds) },
+    { label: 'CLINICAL STUDIES',  value: nf.format(counts.studies) },
+    { label: 'DEEP DATA',         value: nf.format(counts.deepData) },
+  ];
   return (
     <>
       {/* Background layers — fixed, GPU-composited, behind all page content */}
@@ -60,7 +87,7 @@ export default function HomePage() {
           className="mt-6 max-w-[640px] text-[15px] leading-[24px] md:text-[16px] md:leading-[26px]"
           style={{ color: 'var(--fg-muted)' }}
         >
-          279 compounds. 4,821 studies. Zero marketing copy.
+          {nf.format(counts.compounds)} compounds. {nf.format(counts.studies)} studies. Zero marketing copy.
         </p>
 
         <HomeSearch />
@@ -123,7 +150,7 @@ export default function HomePage() {
               <a
                 className="mt-2 inline-flex min-h-[44px] items-center font-mono text-[12px] transition-colors hover:text-white"
                 style={{ color: 'var(--accent)' }}
-                href="#"
+                href={c.href}
               >
                 {c.link}
               </a>
@@ -137,31 +164,26 @@ export default function HomePage() {
         className="mx-auto max-w-[1200px] px-5 md:px-10 lg:px-16"
         style={{ borderTop: '1px solid var(--hair)' }}
       >
-        <div className="grid grid-cols-2 md:grid-cols-4">
-          {LEDGER.map((cell, i) => {
-            const col = i % 2;
-            return (
-              <div
-                key={cell.label}
-                className="flex flex-col gap-1 py-5 md:px-6"
-                style={{
-                  paddingLeft: col === 0 ? 0 : 20,
-                  borderLeft: col === 0 ? 'none' : '1px solid var(--hair)',
-                  borderTop: i >= 2 ? '1px solid var(--hair)' : 'none',
-                }}
+        <div className="grid grid-cols-1 md:grid-cols-3">
+          {LEDGER.map((cell, i) => (
+            <div
+              key={cell.label}
+              className={`flex flex-col gap-1 py-5 md:px-6 ${
+                i > 0 ? 'border-t md:border-t-0 md:border-l' : ''
+              }`}
+              style={{ borderColor: 'var(--hair)' }}
+            >
+              <span
+                className="font-mono text-[10px] font-bold uppercase tracking-[1.4px]"
+                style={{ color: 'var(--fg-dim)' }}
               >
-                <span
-                  className="font-mono text-[10px] font-bold uppercase tracking-[1.4px]"
-                  style={{ color: 'var(--fg-dim)' }}
-                >
-                  {cell.label}
-                </span>
-                <span className="font-mono text-[18px]" style={{ color: 'var(--fg)' }}>
-                  {cell.value}
-                </span>
-              </div>
-            );
-          })}
+                {cell.label}
+              </span>
+              <span className="font-mono text-[18px]" style={{ color: 'var(--fg)' }}>
+                {cell.value}
+              </span>
+            </div>
+          ))}
         </div>
       </section>
 
