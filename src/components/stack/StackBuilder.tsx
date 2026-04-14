@@ -390,7 +390,7 @@ export function StackBuilder() {
                 </span>
 
                 <Link
-                  href={`/supplement/${allSupplements.find((s) => s.id === item.id)?.slug ?? item.id}`}
+                  href={`/research/${allSupplements.find((s) => s.id === item.id)?.slug ?? item.id}`}
                   className="inline-flex min-h-[44px] items-center font-mono text-[11px] font-bold uppercase tracking-[1.4px] transition-colors hover:text-white"
                   style={{ color: 'var(--accent)' }}
                 >
