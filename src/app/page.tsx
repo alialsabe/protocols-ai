@@ -39,7 +39,13 @@ const CAPABILITIES = [
 
 export default function HomePage() {
   return (
-    <main className="proto-grid relative min-h-screen overflow-x-hidden pb-20 md:pb-0">
+    <>
+      {/* Background layers — fixed, GPU-composited, behind all page content */}
+      <div className="proto-bg-noise" aria-hidden="true" />
+      <div className="proto-bg-bloom" aria-hidden="true" />
+      <div className="proto-bg-vignette" aria-hidden="true" />
+
+    <main className="proto-grid relative min-h-screen overflow-x-hidden pb-20 md:pb-0" style={{ zIndex: 1 }}>
       <TopBar />
 
       {/* Hero */}
@@ -191,5 +197,6 @@ export default function HomePage() {
 
       <BottomTabBar />
     </main>
+    </>
   );
 }
