@@ -11,23 +11,25 @@ import {
 import { MostPopularFilterable } from '@/components/v2/trending/MostPopularFilterable';
 import { db } from '@/lib/drizzle';
 
-export const revalidate = 300;
+export const dynamic = 'force-dynamic';
+
+type CountRow = { c: number | string };
 
 async function loadLedgerCounts() {
   try {
     const [compounds, studies, deepData] = await Promise.all([
-      db.execute(sql`SELECT count(*)::int AS c FROM supplements WHERE status = 'published'`),
-      db.execute(sql`SELECT count(*)::int AS c FROM clinical_studies`),
-      db.execute(sql`SELECT count(DISTINCT supplement_id)::int AS c FROM supplement_science`),
+      db.execute(sql`SELECT count(*)::int AS c FROM supplements WHERE status = 'published'`) as unknown as Promise<CountRow[]>,
+      db.execute(sql`SELECT count(*)::int AS c FROM clinical_studies`) as unknown as Promise<CountRow[]>,
+      db.execute(sql`SELECT count(DISTINCT supplement_id)::int AS c FROM supplement_science`) as unknown as Promise<CountRow[]>,
     ]);
-    const pick = (r: unknown) =>
-      Number((r as { c?: number } | Array<{ c?: number }> | undefined as Array<{ c?: number }>)[0]?.c ?? 0);
+    const pick = (rows: CountRow[]) => Number(rows[0]?.c ?? 0);
     return {
       compounds: pick(compounds),
       studies: pick(studies),
       deepData: pick(deepData),
     };
-  } catch {
+  } catch (err) {
+    console.error('[home/ledger] count query failed', err);
     return { compounds: 0, studies: 0, deepData: 0 };
   }
 }
