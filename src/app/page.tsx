@@ -21,13 +21,11 @@ async function loadLedgerCounts() {
       db.select({ c: sql<number>`count(*)::int` }).from(clinicalStudies),
       db.select({ c: sql<number>`count(*)::int` }).from(supplementScience),
     ]);
-    const counts = {
+    return {
       compounds: Number(r1[0]?.c ?? 0),
       studies: Number(r2[0]?.c ?? 0),
       deepData: Number(r3[0]?.c ?? 0),
     };
-    console.log('[home/ledger] counts', counts);
-    return counts;
   } catch (err) {
     console.error('[home/ledger] count query failed', err);
     return { compounds: 0, studies: 0, deepData: 0 };
@@ -62,11 +60,10 @@ const CAPABILITIES = [
 
 export default async function HomePage() {
   const counts = await loadLedgerCounts();
-  console.log('[HomePage] counts received', counts);
   const LEDGER = [
     { label: 'COMPOUNDS INDEXED', value: nf.format(counts.compounds) },
     { label: 'CLINICAL STUDIES',  value: nf.format(counts.studies) },
-    { label: `DEEP DATA · DBG${Date.now() % 100000}`, value: nf.format(counts.deepData) },
+    { label: 'DEEP DATA',         value: nf.format(counts.deepData) },
   ];
   return (
     <>
