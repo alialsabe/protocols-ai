@@ -62,10 +62,11 @@ const CAPABILITIES = [
 
 export default async function HomePage() {
   const counts = await loadLedgerCounts();
+  console.log('[HomePage] counts received', counts);
   const LEDGER = [
     { label: 'COMPOUNDS INDEXED', value: nf.format(counts.compounds) },
     { label: 'CLINICAL STUDIES',  value: nf.format(counts.studies) },
-    { label: 'DEEP DATA',         value: nf.format(counts.deepData) },
+    { label: `DEEP DATA · DBG${Date.now() % 100000}`, value: nf.format(counts.deepData) },
   ];
   return (
     <>
