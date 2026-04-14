@@ -20,11 +20,10 @@ async function loadLedgerCounts() {
   try {
     const r1 = await db.execute(sql`SELECT count(*)::int AS c FROM supplements WHERE status = 'published'`);
     const r2 = await db.execute(sql`SELECT count(*)::int AS c FROM clinical_studies`);
-    const r3 = await db.execute(sql`
-      SELECT count(*)::int AS c
-      FROM (SELECT DISTINCT supplement_id FROM supplement_science WHERE supplement_id IS NOT NULL) t
-    `);
-    return { compounds: pick(r1), studies: pick(r2), deepData: pick(r3) };
+    const r3 = await db.execute(sql`SELECT count(*)::int AS c FROM supplement_science`);
+    const counts = { compounds: pick(r1), studies: pick(r2), deepData: pick(r3) };
+    console.log('[home/ledger] counts', counts, 'r3 shape:', JSON.stringify(r3).slice(0, 200));
+    return counts;
   } catch (err) {
     console.error('[home/ledger] count query failed', err);
     return { compounds: 0, studies: 0, deepData: 0 };
