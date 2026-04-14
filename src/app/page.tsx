@@ -1,5 +1,6 @@
 import { Suspense } from 'react';
 import { sql } from 'drizzle-orm';
+import { clinicalStudies, supplements as supplementsTable, supplementScience } from '@/lib/schema-postgres';
 import { TopBar } from '@/components/v2/TopBar';
 import { BottomTabBar } from '@/components/v2/BottomTabBar';
 import { HomeSearch } from '@/components/v2/HomeSearch';
@@ -13,16 +14,19 @@ import { db } from '@/lib/drizzle';
 
 export const dynamic = 'force-dynamic';
 
-type CountRow = { c: number | string };
-
 async function loadLedgerCounts() {
-  const pick = (rows: unknown) => Number((rows as CountRow[] | undefined)?.[0]?.c ?? 0);
   try {
-    const r1 = await db.execute(sql`SELECT count(*)::int AS c FROM supplements WHERE status = 'published'`);
-    const r2 = await db.execute(sql`SELECT count(*)::int AS c FROM clinical_studies`);
-    const r3 = await db.execute(sql`SELECT count(*)::int AS c FROM supplement_science`);
-    const counts = { compounds: pick(r1), studies: pick(r2), deepData: pick(r3) };
-    console.log('[home/ledger] counts', counts, 'r3 shape:', JSON.stringify(r3).slice(0, 200));
+    const [r1, r2, r3] = await Promise.all([
+      db.select({ c: sql<number>`count(*)::int` }).from(supplementsTable).where(sql`status = 'published'`),
+      db.select({ c: sql<number>`count(*)::int` }).from(clinicalStudies),
+      db.select({ c: sql<number>`count(*)::int` }).from(supplementScience),
+    ]);
+    const counts = {
+      compounds: Number(r1[0]?.c ?? 0),
+      studies: Number(r2[0]?.c ?? 0),
+      deepData: Number(r3[0]?.c ?? 0),
+    };
+    console.log('[home/ledger] counts', counts);
     return counts;
   } catch (err) {
     console.error('[home/ledger] count query failed', err);
