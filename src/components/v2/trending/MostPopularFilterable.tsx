@@ -40,6 +40,82 @@ function HeaderBar({ count }: { count: number }) {
   );
 }
 
+function ScoreTooltipLabel() {
+  return (
+    <>
+      {/* Inline styles for the CSS-only tooltip — scoped to this component */}
+      <style>{`
+        .mpf-score-trigger {
+          position: relative;
+          display: inline-flex;
+          align-items: center;
+          gap: 4px;
+          cursor: default;
+        }
+        .mpf-score-trigger .mpf-tooltip {
+          position: absolute;
+          right: 0;
+          top: calc(100% + 6px);
+          width: 260px;
+          background: var(--surface-raise);
+          border: 1px solid var(--hair);
+          border-radius: 8px;
+          padding: 10px 12px;
+          font-family: var(--font-mono, monospace);
+          font-size: 11px;
+          line-height: 1.55;
+          color: var(--fg-muted);
+          box-shadow: 0 4px 16px rgba(0,0,0,0.35);
+          opacity: 0;
+          pointer-events: none;
+          transition: opacity 120ms ease;
+          z-index: 20;
+          white-space: normal;
+          text-transform: none;
+          letter-spacing: 0;
+          font-weight: 400;
+        }
+        .mpf-score-trigger:hover .mpf-tooltip,
+        .mpf-score-trigger:focus-visible .mpf-tooltip {
+          opacity: 1;
+          pointer-events: auto;
+        }
+        .mpf-score-trigger:focus-visible {
+          outline: 1px solid var(--accent);
+          outline-offset: 2px;
+          border-radius: 2px;
+        }
+      `}</style>
+      <span
+        className="mpf-score-trigger font-mono text-[10px] font-bold uppercase tracking-[1.4px]"
+        style={{ color: 'var(--fg-dim)' }}
+        role="button"
+        tabIndex={0}
+        aria-label="Score explanation"
+      >
+        Score
+        <span
+          style={{
+            color: 'var(--fg-dim)',
+            fontSize: '12px',
+            fontWeight: 400,
+            lineHeight: 1,
+            userSelect: 'none',
+          }}
+          aria-hidden
+        >
+          ⓘ
+        </span>
+        <span className="mpf-tooltip" role="tooltip">
+          Composite popularity score (0–100). Weighted log of YouTube views,
+          Reddit posts, and Amazon reviews. Higher = more buzz across creator,
+          community, and commerce.
+        </span>
+      </span>
+    </>
+  );
+}
+
 function Tile({ item, rank }: { item: Supplement; rank: number }) {
   return (
     <Link
@@ -116,6 +192,35 @@ export function MostPopularFilterable() {
   return (
     <div>
       <HeaderBar count={visible.length} />
+
+      {/* Category filter — above the grid */}
+      {categories.length > 0 && (
+        <div
+          className="px-4 py-3 md:px-6"
+          style={{ borderBottom: '1px solid var(--hair)' }}
+        >
+          <CategoryFilter
+            categories={categories}
+            selected={selected}
+            onSelect={setSelected}
+          />
+        </div>
+      )}
+
+      {/* Column label bar: SUPPLEMENT | SCORE (with tooltip) */}
+      <div
+        className="flex items-center justify-between px-5 py-2 md:px-6"
+        style={{ borderBottom: '1px solid var(--hair)' }}
+      >
+        <span
+          className="font-mono text-[10px] font-bold uppercase tracking-[1.4px]"
+          style={{ color: 'var(--fg-dim)' }}
+        >
+          Supplement
+        </span>
+        <ScoreTooltipLabel />
+      </div>
+
       <ol
         className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3"
         style={{ borderRight: '1px solid var(--hair)', borderBottom: '1px solid var(--hair)' }}
@@ -137,16 +242,6 @@ export function MostPopularFilterable() {
           </li>
         )}
       </ol>
-
-      {categories.length > 0 && (
-        <div className="mt-4 px-4 md:px-6">
-          <CategoryFilter
-            categories={categories}
-            selected={selected}
-            onSelect={setSelected}
-          />
-        </div>
-      )}
     </div>
   );
 }
