@@ -16,18 +16,15 @@ export const dynamic = 'force-dynamic';
 type CountRow = { c: number | string };
 
 async function loadLedgerCounts() {
+  const pick = (rows: unknown) => Number((rows as CountRow[] | undefined)?.[0]?.c ?? 0);
   try {
-    const [compounds, studies, deepData] = await Promise.all([
-      db.execute(sql`SELECT count(*)::int AS c FROM supplements WHERE status = 'published'`) as unknown as Promise<CountRow[]>,
-      db.execute(sql`SELECT count(*)::int AS c FROM clinical_studies`) as unknown as Promise<CountRow[]>,
-      db.execute(sql`SELECT count(DISTINCT supplement_id)::int AS c FROM supplement_science`) as unknown as Promise<CountRow[]>,
-    ]);
-    const pick = (rows: CountRow[]) => Number(rows[0]?.c ?? 0);
-    return {
-      compounds: pick(compounds),
-      studies: pick(studies),
-      deepData: pick(deepData),
-    };
+    const r1 = await db.execute(sql`SELECT count(*)::int AS c FROM supplements WHERE status = 'published'`);
+    const r2 = await db.execute(sql`SELECT count(*)::int AS c FROM clinical_studies`);
+    const r3 = await db.execute(sql`
+      SELECT count(*)::int AS c
+      FROM (SELECT DISTINCT supplement_id FROM supplement_science WHERE supplement_id IS NOT NULL) t
+    `);
+    return { compounds: pick(r1), studies: pick(r2), deepData: pick(r3) };
   } catch (err) {
     console.error('[home/ledger] count query failed', err);
     return { compounds: 0, studies: 0, deepData: 0 };
