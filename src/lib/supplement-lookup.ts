@@ -280,19 +280,91 @@ export async function findSupplementByQuery(query: string): Promise<SupplementMa
 }
 
 export async function getSuggestions(query: string, limit = 5): Promise<string[]> {
-  const normalized = query.toLowerCase().trim();
+  const q = query.toLowerCase().trim();
+  if (!q) return [];
+
   const allSupplements = await listSupplementsBasic();
 
-  const scored: Array<{ name: string; distance: number }> = allSupplements.map((supplement: BasicSupplement) => {
+  // Multi-word: require ALL tokens to hit somewhere in the name+aliases haystack
+  const tokens = q.split(/[\s-]+/).filter((t: string) => t.length >= 2);
+  const isMultiWord = tokens.length >= 2;
+
+  // Tiers (lower = better):
+  //   0 — exact match on name
+  //   1 — name starts with query
+  //   2 — alias exact or alias starts with query
+  //   3 — name contains query as substring
+  //   4 — alias contains query as substring
+  //   5+ — Levenshtein-based fuzzy (only if ≥4 chars and no tier 0-4 candidate exists)
+  type ScoredEntry = { name: string; tier: number; nameLen: number };
+  const scored: ScoredEntry[] = [];
+
+  for (const supplement of allSupplements as BasicSupplement[]) {
     const aliases: string[] = JSON.parse(supplement.aliases);
-    const names = [supplement.name.toLowerCase(), supplement.slug, ...aliases.map((alias: string) => alias.toLowerCase())];
-    const distance = Math.min(...names.map((name: string) => levenshteinDistance(normalized, name)));
+    const nameLower = supplement.name.toLowerCase();
 
-    return { name: supplement.name, distance };
-  });
+    if (isMultiWord) {
+      // Multi-word: every token must appear somewhere in the combined haystack
+      const haystack = [nameLower, supplement.slug, ...aliases.map((a: string) => a.toLowerCase())].join(' ');
+      const allHit = tokens.every((t: string) => haystack.includes(t));
+      if (!allHit) continue;
 
-  scored.sort((a: { name: string; distance: number }, b: { name: string; distance: number }) => a.distance - b.distance);
-  return scored.slice(0, limit).map((entry: { name: string; distance: number }) => entry.name);
+      // Score by how short the name is (prefers exact multi-word match over long names)
+      scored.push({ name: supplement.name, tier: 3, nameLen: supplement.name.length });
+      continue;
+    }
+
+    // Single-word path — tiered scoring
+    let tier = Infinity;
+
+    // Tier 0: exact name match
+    if (nameLower === q) {
+      tier = 0;
+    }
+    // Tier 1: name prefix
+    else if (nameLower.startsWith(q)) {
+      tier = 1;
+    }
+    // Tier 2: alias exact or alias prefix
+    else if (aliases.some((a: string) => {
+      const al = a.toLowerCase();
+      return al === q || al.startsWith(q);
+    })) {
+      tier = 2;
+    }
+    // Tier 3: name substring
+    else if (nameLower.includes(q)) {
+      tier = 3;
+    }
+    // Tier 4: alias substring
+    else if (aliases.some((a: string) => a.toLowerCase().includes(q))) {
+      tier = 4;
+    }
+    // Tier 5+: fuzzy Levenshtein (only for queries ≥4 chars)
+    else if (q.length >= 4) {
+      const candidates = [nameLower, supplement.slug, ...aliases.map((a: string) => a.toLowerCase())];
+      const dist = Math.min(...candidates.map((c: string) => levenshteinDistance(q, c)));
+      // Cap fuzzy results — only include if edit distance is ≤ half the query length
+      if (dist <= Math.ceil(q.length / 2)) {
+        tier = 5 + dist;
+      }
+    }
+
+    if (isFinite(tier)) {
+      scored.push({ name: supplement.name, tier, nameLen: supplement.name.length });
+    }
+  }
+
+  // If we have tier 0-4 matches, drop all fuzzy (tier 5+) candidates
+  const hasTiered = scored.some((e: ScoredEntry) => e.tier < 5);
+  const filtered = hasTiered ? scored.filter((e: ScoredEntry) => e.tier < 5) : scored;
+
+  // Sort: primary = tier, secondary = shorter name first, tertiary = alphabetical
+  filtered.sort((a: ScoredEntry, b: ScoredEntry) =>
+    a.tier - b.tier || a.nameLen - b.nameLen || a.name.localeCompare(b.name),
+  );
+
+  return filtered.slice(0, limit).map((e: ScoredEntry) => e.name);
 }
 
 function levenshteinDistance(a: string, b: string): number {
