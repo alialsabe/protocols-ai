@@ -1,4 +1,4 @@
-import { and, desc, eq, gte, sql } from 'drizzle-orm';
+import { and, desc, eq, gte, lt } from 'drizzle-orm';
 import { db } from '../drizzle';
 import {
   supplementMentions,
@@ -91,7 +91,7 @@ async function loadWindow(since: Date, until?: Date): Promise<Map<string, Window
   const conditions = until
     ? and(
         gte(supplementMentions.mentionedAt, since),
-        sql`${supplementMentions.mentionedAt} < ${until}`,
+        lt(supplementMentions.mentionedAt, until),
       )
     : gte(supplementMentions.mentionedAt, since);
 
