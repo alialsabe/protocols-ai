@@ -10,16 +10,16 @@
 // so no manual env loading needed here.
 
 import { isNull, eq } from 'drizzle-orm';
-import { db } from '../src/lib/drizzle.ts';
+import { db } from '../src/lib/drizzle';
 import {
   supplements,
   supplementScience,
   supplementDosage,
-} from '../src/lib/schema-postgres.ts';
-import { lookupSupplement } from '../src/lib/supplement-lookup.ts';
+} from '../src/lib/schema-postgres';
+import { lookupSupplement } from '../src/lib/supplement-lookup';
 
-const TOP_N = 30;
-const DELAY_MS = 2000;
+const TOP_N = Number(process.env.WARMUP_LIMIT ?? process.argv[2] ?? 30);
+const DELAY_MS = Number(process.env.WARMUP_DELAY_MS ?? 1500);
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
