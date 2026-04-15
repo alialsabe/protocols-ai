@@ -1,4 +1,5 @@
-import { and, desc, eq, gte, lt } from 'drizzle-orm';
+import { createHash } from 'node:crypto';
+import { and, desc, eq, gte, lt, sql } from 'drizzle-orm';
 import { db } from '../drizzle';
 import {
   supplementMentions,
@@ -61,10 +62,17 @@ async function gatherMentions(refs: SupplementRef[]): Promise<RawMention[]> {
   return mentions;
 }
 
+// Deterministic per-mention id so re-running refreshTrending() doesn't double
+// count the same source item. Hash of the natural key — same item → same id.
+function mentionIdFor(m: RawMention): string {
+  const key = `${m.sourceType}|${m.sourceId}|${m.sourceUrl}|${m.supplementSlug}`;
+  return `mnt_${createHash('sha256').update(key).digest('hex').slice(0, 24)}`;
+}
+
 async function persistMentions(mentions: RawMention[]) {
   if (mentions.length === 0) return;
   const rows = mentions.map((m) => ({
-    id: `mnt_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`,
+    id: mentionIdFor(m),
     supplementSlug: m.supplementSlug,
     sourceId: m.sourceId,
     sourceType: m.sourceType,
@@ -76,7 +84,10 @@ async function persistMentions(mentions: RawMention[]) {
   // Chunk to avoid hitting parameter limits.
   const chunkSize = 200;
   for (let i = 0; i < rows.length; i += chunkSize) {
-    await db.insert(supplementMentions).values(rows.slice(i, i + chunkSize));
+    await db
+      .insert(supplementMentions)
+      .values(rows.slice(i, i + chunkSize))
+      .onConflictDoNothing({ target: supplementMentions.id });
   }
 }
 
@@ -248,12 +259,25 @@ export async function refreshTrending(): Promise<TrendingApiResponse> {
     generatedAt: now.toISOString(),
   };
 
-  await db.delete(trendingSnapshot);
-  await db.insert(trendingSnapshot).values({
-    id: `tsnap_${Date.now()}`,
-    generatedAt: now,
-    payload,
-  });
+  // Single fixed id + upsert so a refresh failure (or two overlapping
+  // refreshes) can never wipe the snapshot and force the UI to fall back
+  // to mock data. Old snapshot stays in place until a new one successfully
+  // lands.
+  await db
+    .insert(trendingSnapshot)
+    .values({
+      id: 'current',
+      generatedAt: now,
+      payload,
+    })
+    .onConflictDoUpdate({
+      target: trendingSnapshot.id,
+      set: { generatedAt: now, payload: sql`excluded.payload` },
+    });
+
+  // Clean up any legacy snapshot rows from before the fixed-id pattern.
+  // No-op once the migration has run a single time.
+  await db.delete(trendingSnapshot).where(sql`id <> 'current'`);
 
   return payload;
 }
