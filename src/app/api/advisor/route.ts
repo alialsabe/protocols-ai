@@ -1,6 +1,9 @@
 import { cookies } from 'next/headers';
+import { eq } from 'drizzle-orm';
 import { createClient } from '../../../../utils/supabase/server';
 import { checkAdvisorPolicy } from '@/lib/advisor-policy';
+import { db } from '@/lib/drizzle';
+import { savedStacks, supplements as supplementsTable } from '@/lib/schema-postgres';
 
 /**
  * AI Advisor endpoint. Streams a Claude response.
@@ -48,12 +51,60 @@ Whenever you mention a supplement name in your response, wrap it in DOUBLE SQUAR
   - "Compared to [[NMN]], [[NR]] has different bioavailability."
 Do this for EVERY supplement mention, even when listing them. Never wrap non-supplement words. Never use any other formatting (no markdown, no asterisks, no headers). Just plain text with [[Supplement Name]] tokens.`;
 
+const MAX_MESSAGES = 12;
+const MAX_MESSAGE_CHARS = 4000;
+
+function sanitizeMessages(raw: unknown): AdvisorMessage[] {
+  if (!Array.isArray(raw)) return [];
+  const cleaned: AdvisorMessage[] = [];
+  for (const m of raw) {
+    if (!m || typeof m !== 'object') continue;
+    const role = (m as { role?: unknown }).role;
+    const content = (m as { content?: unknown }).content;
+    if (role !== 'user' && role !== 'assistant') continue;
+    if (typeof content !== 'string') continue;
+    const trimmed = content.slice(0, MAX_MESSAGE_CHARS);
+    if (trimmed.trim().length === 0) continue;
+    cleaned.push({ role, content: trimmed });
+    if (cleaned.length >= MAX_MESSAGES) break;
+  }
+  return cleaned;
+}
+
+async function loadStackSupplementsForUser(userId: string): Promise<string[]> {
+  try {
+    const rows = await db
+      .select({ supplementIds: savedStacks.supplementIds })
+      .from(savedStacks)
+      .where(eq(savedStacks.userId, userId))
+      .limit(1);
+    if (!rows[0]) return [];
+    let ids: string[] = [];
+    try {
+      const parsed = JSON.parse(rows[0].supplementIds ?? '[]');
+      if (Array.isArray(parsed)) ids = parsed.filter((x) => typeof x === 'string');
+    } catch {
+      return [];
+    }
+    if (ids.length === 0) return [];
+    const names: string[] = [];
+    for (const id of ids.slice(0, 25)) {
+      const r = await db
+        .select({ name: supplementsTable.name })
+        .from(supplementsTable)
+        .where(eq(supplementsTable.id, id))
+        .limit(1);
+      if (r[0]?.name) names.push(r[0].name);
+    }
+    return names;
+  } catch {
+    return [];
+  }
+}
+
 export async function POST(request: Request) {
   const payload = await request.json().catch(() => ({}));
-  const messages: AdvisorMessage[] = Array.isArray(payload?.messages) ? payload.messages : [];
-  const stackSupplements: string[] = Array.isArray(payload?.stackSupplements)
-    ? payload.stackSupplements
-    : [];
+  const messages = sanitizeMessages((payload as { messages?: unknown })?.messages);
 
   const lastUserMessage = [...messages].reverse().find((m) => m.role === 'user');
   if (!lastUserMessage) {
@@ -66,22 +117,22 @@ export async function POST(request: Request) {
     return plainTextResponse(policy.refusalMessage ?? 'I cannot answer that question.');
   }
 
-  // Load user profile (best-effort — anonymous users are welcome)
-  let userContext = '';
+  // Stack context is derived server-side from the authenticated user, NEVER
+  // from the request payload — clients are not trusted to declare which
+  // supplements they take.
+  let userContext = 'The user is browsing anonymously (no saved stack).';
   try {
     const cookieStore = await cookies();
     const supabase = createClient(cookieStore);
     const { data: userData } = await supabase.auth.getUser();
     if (userData.user) {
-      userContext = `The user is signed in.`;
-      if (stackSupplements.length > 0) {
-        userContext += ` Their saved stack includes: ${stackSupplements.join(', ')}.`;
-      }
-    } else {
-      userContext = 'The user is browsing anonymously (no saved stack).';
+      const stackNames = await loadStackSupplementsForUser(userData.user.id);
+      userContext = stackNames.length > 0
+        ? `The user is signed in. Their saved stack includes: ${stackNames.join(', ')}.`
+        : 'The user is signed in (no saved stack yet).';
     }
   } catch {
-    userContext = 'The user is browsing anonymously (no saved stack).';
+    // Fall through to anonymous default.
   }
 
   // Check API key — gracefully degrade if not configured

@@ -15,7 +15,7 @@ export async function GET() {
   const { data: userData } = await supabase.auth.getUser();
 
   if (!userData.user) {
-    return NextResponse.json({ stack: null });
+    return NextResponse.json({ stack: null, authenticated: false });
   }
 
   const rows = await db
@@ -25,7 +25,7 @@ export async function GET() {
     .limit(1);
 
   if (rows.length === 0) {
-    return NextResponse.json({ stack: null });
+    return NextResponse.json({ stack: null, authenticated: true });
   }
 
   const stack = rows[0];
@@ -44,6 +44,7 @@ export async function GET() {
   }
 
   return NextResponse.json({
+    authenticated: true,
     stack: {
       id: stack.id,
       name: stack.name,

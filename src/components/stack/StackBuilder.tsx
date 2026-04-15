@@ -57,17 +57,16 @@ export function StackBuilder() {
 
         if (stackRes.ok) {
           const data = await stackRes.json();
+          // The API returns an explicit `authenticated` flag — anonymous users
+          // get { stack: null, authenticated: false } and we must NOT treat
+          // that as logged in.
+          setIsLoggedIn(Boolean(data.authenticated));
           if (data.stack) {
             setStackId(data.stack.id);
             setStackName(data.stack.name ?? 'My Stack');
             const ids: string[] = data.stack.supplementIds ?? [];
             const names: string[] = data.stack.supplementNames ?? [];
             setItems(ids.map((id: string, i: number) => ({ id, name: names[i] ?? id })));
-            setIsLoggedIn(true);
-          } else {
-            // stackRes ok but no stack — user is logged out or has no stack yet
-            // If it returned 200 with stack: null, the user might be logged in but have no stack
-            setIsLoggedIn(true);
           }
         } else {
           setIsLoggedIn(false);
@@ -131,8 +130,8 @@ export function StackBuilder() {
     setShareUrl(null);
   }
 
-  async function handleSave() {
-    if (!isLoggedIn) return;
+  async function handleSave(): Promise<string | null> {
+    if (!isLoggedIn) return null;
     setSaving(true);
     setSaveStatus('idle');
     try {
@@ -148,28 +147,32 @@ export function StackBuilder() {
         const data = await res.json();
         setStackId(data.id);
         setSaveStatus('saved');
-      } else {
-        setSaveStatus('error');
+        return data.id ?? null;
       }
+      setSaveStatus('error');
+      return null;
     } catch {
       setSaveStatus('error');
+      return null;
     } finally {
       setSaving(false);
     }
   }
 
   async function handleShare() {
-    if (!stackId) {
-      // Save first, then share
-      await handleSave();
+    // setStackId is async — never trust the closure value of stackId after a
+    // save in the same tick. Use the id returned by handleSave() directly.
+    let id = stackId;
+    if (!id) {
+      id = await handleSave();
     }
-    if (!stackId) return;
+    if (!id) return;
     setSharing(true);
     try {
       const res = await fetch('/api/stack/share', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ stackId }),
+        body: JSON.stringify({ stackId: id }),
       });
       if (res.ok) {
         const data = await res.json();
@@ -347,7 +350,9 @@ export function StackBuilder() {
             {suggestions.slice(0, 10).map((s) => (
               <li key={s}>
                 <button
-                  onMouseDown={() => addSupplement(s)}
+                  type="button"
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => addSupplement(s)}
                   className="flex w-full min-h-[44px] items-center px-4 text-[14px] text-left transition-colors hover:bg-white/5"
                   style={{ color: 'var(--fg)' }}
                   role="option"
