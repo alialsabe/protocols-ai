@@ -149,7 +149,7 @@ export async function TrendingSection() {
   const items = data.trending.slice(0, 8);
 
   return (
-    <div className="proto-scan-ambient">
+    <div className="proto-scan-ambient" style={{ borderBottom: '1px solid var(--hair)' }}>
       <HeaderBar updatedAt={updatedAt} stale={stale} />
       <ol className="flex flex-col" aria-label="Trending supplements, last 7 days">
         {items.map((item, i) => (
@@ -164,7 +164,7 @@ export async function TrendingSection() {
 
 export function TrendingSkeleton() {
   return (
-    <div className="proto-scan-ambient">
+    <div className="proto-scan-ambient" style={{ borderBottom: '1px solid var(--hair)' }}>
       <HeaderBar updatedAt="--:--" stale={false} />
       <ol className="flex flex-col" aria-hidden>
         {Array.from({ length: 6 }).map((_, i) => (
