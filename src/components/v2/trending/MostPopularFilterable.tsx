@@ -2,7 +2,9 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { CategoryFilter } from '@/components/v2/CategoryFilter';
+import { withViewTransition } from '@/lib/view-transition';
 
 interface Supplement {
   slug: string;
@@ -117,12 +119,20 @@ function ScoreTooltipLabel() {
 }
 
 function Tile({ item, rank }: { item: Supplement; rank: number }) {
+  const router = useRouter();
+  const href = `/research/${encodeURIComponent(item.slug)}`;
   return (
     <Link
-      href={`/research/${encodeURIComponent(item.slug)}`}
+      href={href}
       className="proto-tile group flex flex-col gap-4 px-5 py-5 transition-colors md:px-6 md:py-6"
       style={{ borderTop: '1px solid var(--hair)', borderLeft: '1px solid var(--hair)' }}
       aria-label={`Rank ${rank}: ${item.name}, popularity ${item.popularityScore}`}
+      onClick={(e) => {
+        // Respect modifier clicks (cmd/ctrl/shift/middle) — let the browser handle them
+        if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
+        e.preventDefault();
+        withViewTransition(() => router.push(href));
+      }}
     >
       <div className="flex items-start justify-between gap-4">
         <div className="flex min-w-0 flex-col gap-1">
@@ -136,7 +146,10 @@ function Tile({ item, rank }: { item: Supplement; rank: number }) {
           </span>
           <span
             className="truncate text-[15px] font-extrabold uppercase tracking-[-0.2px] transition-colors group-hover:text-white md:text-[16px]"
-            style={{ color: 'var(--fg)' }}
+            style={{
+              color: 'var(--fg)',
+              viewTransitionName: `supp-name-${item.slug}`,
+            } as React.CSSProperties}
           >
             {item.name}
           </span>

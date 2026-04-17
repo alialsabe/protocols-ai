@@ -65,7 +65,7 @@ export default async function ResearchQueryPage({
       <TopBar />
 
       <section className="mx-auto max-w-[1200px] px-5 pb-24 md:px-10 lg:px-16">
-        <ReportHeader report={report} />
+        <ReportHeader report={report} slug={q} />
         <ScoreStrip report={report} />
 
         {!hasData && (

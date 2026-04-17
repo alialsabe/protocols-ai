@@ -2,7 +2,7 @@ import type { ProtocolReport } from '@/lib/protocol-types';
 import { getTimeToFeelIt } from '@/lib/stack-utils';
 import { ReportActions } from './ReportActions';
 
-export function ReportHeader({ report }: { report: ProtocolReport }) {
+export function ReportHeader({ report, slug }: { report: ProtocolReport; slug?: string }) {
   const name = report.name ?? 'Unknown supplement';
   const family = report.supplementTypes?.[0] ?? report.baseCompound ?? 'compound';
   const timeToFeel = getTimeToFeelIt(report) ?? '—';
@@ -20,7 +20,10 @@ export function ReportHeader({ report }: { report: ProtocolReport }) {
         </span>
         <h1
           className="mt-3 text-[40px] font-extrabold leading-[1.05] tracking-[-1.2px]"
-          style={{ color: 'var(--fg)' }}
+          style={{
+            color: 'var(--fg)',
+            ...(slug ? { viewTransitionName: `supp-name-${slug}` } : {}),
+          } as React.CSSProperties}
         >
           {name}
         </h1>
