@@ -81,12 +81,7 @@ export function TrendingRowsClient({
   generatedAt: string;
 }) {
   const changed = useTrendingDiff(
-    items.map((it) => ({
-      slug: it.slug,
-      name: it.name,
-      mentionCount: it.mentionCount,
-      deltaWeek: it.deltaWeek,
-    })),
+    items.map((it) => ({ slug: it.slug, deltaWeek: it.deltaWeek })),
     generatedAt,
   );
 

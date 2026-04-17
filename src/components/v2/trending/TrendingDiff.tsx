@@ -4,8 +4,6 @@ import { useEffect, useRef, useState } from 'react';
 
 type TrendingRow = {
   slug: string;
-  name: string;
-  mentionCount: number;
   deltaWeek: number;
 };
 
@@ -16,6 +14,18 @@ type SeenState = {
 };
 
 const STORAGE_KEY = 'protoai_trending_seen';
+
+function isSeenState(x: unknown): x is SeenState {
+  return (
+    typeof x === 'object' &&
+    x !== null &&
+    typeof (x as { generatedAt: unknown }).generatedAt === 'string' &&
+    typeof (x as { ranks: unknown }).ranks === 'object' &&
+    (x as { ranks: unknown }).ranks !== null &&
+    typeof (x as { deltas: unknown }).deltas === 'object' &&
+    (x as { deltas: unknown }).deltas !== null
+  );
+}
 
 /**
  * Given the current trending rows + generatedAt, returns a set of slugs
@@ -34,11 +44,17 @@ export function useTrendingDiff(rows: TrendingRow[], generatedAt: string) {
     let seen: SeenState | null = null;
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) seen = JSON.parse(raw) as SeenState;
+      if (raw) {
+        const parsed: unknown = JSON.parse(raw);
+        if (isSeenState(parsed)) seen = parsed;
+      }
     } catch { /* ignore corrupt blob */ }
 
-    if (seen && seen.generatedAt !== generatedAt) {
+    if (seen && seen.generatedAt === generatedAt) return;
+
+    if (seen) {
       const diffs = new Set<string>();
+      // New slugs (no prev rank) pulse as "changed"; delta check requires a prior value, so new rows aren't double-flagged.
       rows.forEach((r, i) => {
         const prevRank = seen!.ranks[r.slug];
         const prevDelta = seen!.deltas[r.slug];
