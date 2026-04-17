@@ -223,3 +223,19 @@ html, body {
   transform: translateY(-4px);
   box-shadow: 0 0 0 2px var(--accent), 0 12px 28px var(--accent-glow);
 }
+
+/* Pulse used on freshly-changed trending deltas */
+@keyframes proto-pulse {
+  0%   { opacity: 1; transform: scale(1); }
+  30%  { opacity: 1; transform: scale(1.08); filter: drop-shadow(0 0 8px var(--accent-glow)); }
+  100% { opacity: 1; transform: scale(1); }
+}
+.proto-pulse {
+  animation: proto-pulse 600ms var(--ease) both;
+}
+
+/* FLIP helpers — `.proto-row` transitions its transform so translate-based
+   position shifts animate smoothly when rank changes */
+.proto-row {
+  transition: transform 400ms var(--ease);
+}
