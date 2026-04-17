@@ -168,3 +168,14 @@ html, body {
   }
   .proto-scan::after { display: none; }
 }
+
+/* reveal-on-scroll — sections fade + slide up when they enter the viewport */
+.reveal {
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity 400ms var(--ease), transform 400ms var(--ease);
+}
+.reveal.is-revealed {
+  opacity: 1;
+  transform: translateY(0);
+}

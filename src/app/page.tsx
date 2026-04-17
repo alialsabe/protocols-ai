@@ -11,6 +11,7 @@ import {
 } from '@/components/v2/trending/TrendingSection';
 import { MostPopularFilterable } from '@/components/v2/trending/MostPopularFilterable';
 import { CountUp } from '@/components/ui/CountUp';
+import { Reveal } from '@/components/ui/Reveal';
 import { db } from '@/lib/drizzle';
 
 export const dynamic = 'force-dynamic';
@@ -102,7 +103,9 @@ export default async function HomePage() {
         <h2 id="popular-heading" className="sr-only">
           Most popular supplements
         </h2>
-        <MostPopularFilterable />
+        <Reveal>
+          <MostPopularFilterable />
+        </Reveal>
       </section>
 
       {/* Live research feed */}
@@ -118,46 +121,50 @@ export default async function HomePage() {
         <h2 id="trending-heading" className="sr-only">
           Trending supplements
         </h2>
-        <Suspense fallback={<TrendingSkeleton />}>
-          <TrendingSection />
-        </Suspense>
+        <Reveal>
+          <Suspense fallback={<TrendingSkeleton />}>
+            <TrendingSection />
+          </Suspense>
+        </Reveal>
       </section>
 
       {/* Capability row */}
       <section className="mx-auto max-w-[1200px] px-5 py-16 md:px-10 md:py-20 lg:px-16">
-        <div className="flex flex-col gap-10 md:grid md:grid-cols-3 md:gap-0">
-          {CAPABILITIES.map((c, i) => (
-            <div
-              key={c.n}
-              className={`flex flex-col gap-3 md:px-8 ${
-                i === 0 ? '' : 'border-t pt-10 md:border-t-0 md:pt-0 md:border-l'
-              }`}
-              style={{
-                borderColor: 'var(--hair)',
-              }}
-            >
-              <span
-                className="font-mono text-[11px] font-bold uppercase tracking-[1.4px]"
-                style={{ color: 'var(--fg-dim)' }}
+        <Reveal>
+          <div className="flex flex-col gap-10 md:grid md:grid-cols-3 md:gap-0">
+            {CAPABILITIES.map((c, i) => (
+              <div
+                key={c.n}
+                className={`flex flex-col gap-3 md:px-8 ${
+                  i === 0 ? '' : 'border-t pt-10 md:border-t-0 md:pt-0 md:border-l'
+                }`}
+                style={{
+                  borderColor: 'var(--hair)',
+                }}
               >
-                {c.n}
-              </span>
-              <h2 className="text-[20px] font-extrabold tracking-[-0.4px]" style={{ color: 'var(--fg)' }}>
-                {c.title}
-              </h2>
-              <p className="text-[14px] leading-[22px]" style={{ color: 'var(--fg-muted)' }}>
-                {c.body}
-              </p>
-              <a
-                className="mt-2 inline-flex min-h-[44px] items-center font-mono text-[12px] transition-colors hover:text-white"
-                style={{ color: 'var(--accent)' }}
-                href={c.href}
-              >
-                {c.link}
-              </a>
-            </div>
-          ))}
-        </div>
+                <span
+                  className="font-mono text-[11px] font-bold uppercase tracking-[1.4px]"
+                  style={{ color: 'var(--fg-dim)' }}
+                >
+                  {c.n}
+                </span>
+                <h2 className="text-[20px] font-extrabold tracking-[-0.4px]" style={{ color: 'var(--fg)' }}>
+                  {c.title}
+                </h2>
+                <p className="text-[14px] leading-[22px]" style={{ color: 'var(--fg-muted)' }}>
+                  {c.body}
+                </p>
+                <a
+                  className="mt-2 inline-flex min-h-[44px] items-center font-mono text-[12px] transition-colors hover:text-white"
+                  style={{ color: 'var(--accent)' }}
+                  href={c.href}
+                >
+                  {c.link}
+                </a>
+              </div>
+            ))}
+          </div>
+        </Reveal>
       </section>
 
       {/* Research ledger */}
@@ -165,29 +172,31 @@ export default async function HomePage() {
         className="mx-auto max-w-[1200px] px-5 md:px-10 lg:px-16"
         style={{ borderTop: '1px solid var(--hair)' }}
       >
-        <div className="grid grid-cols-1 md:grid-cols-3">
-          {LEDGER.map((cell, i) => (
-            <div
-              key={cell.label}
-              className={`flex flex-col gap-1 py-5 md:px-6 ${
-                i > 0 ? 'border-t md:border-t-0 md:border-l' : ''
-              }`}
-              style={{ borderColor: 'var(--hair)' }}
-            >
-              <span
-                className="font-mono text-[10px] font-bold uppercase tracking-[1.4px]"
-                style={{ color: 'var(--fg-dim)' }}
+        <Reveal>
+          <div className="grid grid-cols-1 md:grid-cols-3">
+            {LEDGER.map((cell, i) => (
+              <div
+                key={cell.label}
+                className={`flex flex-col gap-1 py-5 md:px-6 ${
+                  i > 0 ? 'border-t md:border-t-0 md:border-l' : ''
+                }`}
+                style={{ borderColor: 'var(--hair)' }}
               >
-                {cell.label}
-              </span>
-              <CountUp
-                value={cell.value}
-                className="font-mono text-[18px]"
-                style={{ color: 'var(--fg)' }}
-              />
-            </div>
-          ))}
-        </div>
+                <span
+                  className="font-mono text-[10px] font-bold uppercase tracking-[1.4px]"
+                  style={{ color: 'var(--fg-dim)' }}
+                >
+                  {cell.label}
+                </span>
+                <CountUp
+                  value={cell.value}
+                  className="font-mono text-[18px]"
+                  style={{ color: 'var(--fg)' }}
+                />
+              </div>
+            ))}
+          </div>
+        </Reveal>
       </section>
 
       {/* Footer */}
