@@ -23,7 +23,7 @@ export function ReportHeader({ report, slug }: { report: ProtocolReport; slug?: 
           style={{
             color: 'var(--fg)',
             ...(slug ? { viewTransitionName: `supp-name-${slug}` } : {}),
-          } as React.CSSProperties}
+          }}
         >
           {name}
         </h1>

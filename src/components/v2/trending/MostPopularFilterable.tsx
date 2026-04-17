@@ -127,9 +127,8 @@ function Tile({ item, rank }: { item: Supplement; rank: number }) {
       className="proto-tile group flex flex-col gap-4 px-5 py-5 transition-colors md:px-6 md:py-6"
       style={{ borderTop: '1px solid var(--hair)', borderLeft: '1px solid var(--hair)' }}
       aria-label={`Rank ${rank}: ${item.name}, popularity ${item.popularityScore}`}
-      onClick={(e) => {
-        // Respect modifier clicks (cmd/ctrl/shift/middle) — let the browser handle them
-        if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
+      onNavigate={(e) => {
+        // onNavigate fires ONLY for SPA navigation — modifier/middle clicks bypass it
         e.preventDefault();
         withViewTransition(() => router.push(href));
       }}
@@ -149,7 +148,7 @@ function Tile({ item, rank }: { item: Supplement; rank: number }) {
             style={{
               color: 'var(--fg)',
               viewTransitionName: `supp-name-${item.slug}`,
-            } as React.CSSProperties}
+            }}
           >
             {item.name}
           </span>
