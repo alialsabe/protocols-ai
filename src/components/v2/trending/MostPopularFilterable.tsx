@@ -120,7 +120,7 @@ function Tile({ item, rank }: { item: Supplement; rank: number }) {
   return (
     <Link
       href={`/research/${encodeURIComponent(item.slug)}`}
-      className="group flex flex-col gap-4 px-5 py-5 transition-colors md:px-6 md:py-6"
+      className="proto-tile group flex flex-col gap-4 px-5 py-5 transition-colors md:px-6 md:py-6"
       style={{ borderTop: '1px solid var(--hair)', borderLeft: '1px solid var(--hair)' }}
       aria-label={`Rank ${rank}: ${item.name}, popularity ${item.popularityScore}`}
     >

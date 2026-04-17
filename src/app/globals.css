@@ -205,3 +205,21 @@ html, body {
 @media (prefers-reduced-motion: reduce) {
   .proto-scan-ambient::after { display: none; }
 }
+
+/* Supplement tile interactive states — used on Most Popular grid tiles.
+   4px lift + mint glow on hover/focus. Desktop pointer only. */
+.proto-tile {
+  transition: transform 180ms var(--ease), box-shadow 180ms var(--ease), border-color 180ms var(--ease);
+}
+@media (hover: hover) and (pointer: fine) {
+  .proto-tile:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 28px var(--accent-glow);
+    border-color: var(--accent) !important;
+  }
+}
+.proto-tile:focus-visible {
+  outline: none;
+  transform: translateY(-4px);
+  box-shadow: 0 0 0 2px var(--accent), 0 12px 28px var(--accent-glow);
+}
