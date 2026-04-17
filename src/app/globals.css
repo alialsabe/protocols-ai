@@ -179,3 +179,29 @@ html, body {
   opacity: 1;
   transform: translateY(0);
 }
+
+/* Ambient scan beam — slower, subtler than the CommandBar beam.
+   Used on data tables / grids to reinforce the "instrument panel" feel. */
+@keyframes proto-scan-ambient {
+  0%   { transform: translateX(-100%); opacity: 0; }
+  10%  { opacity: 1; }
+  90%  { opacity: 1; }
+  100% { transform: translateX(100%); opacity: 0; }
+}
+.proto-scan-ambient {
+  position: relative;
+  overflow: hidden;
+}
+.proto-scan-ambient::after {
+  content: '';
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(6, 214, 160, 0.4), transparent);
+  transform: translateX(-100%);
+  animation: proto-scan-ambient 12s linear infinite;
+  pointer-events: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .proto-scan-ambient::after { display: none; }
+}

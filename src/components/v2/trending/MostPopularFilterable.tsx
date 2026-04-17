@@ -190,7 +190,7 @@ export function MostPopularFilterable() {
   }, [all, selected]);
 
   return (
-    <div>
+    <div className="proto-scan-ambient">
       <HeaderBar count={visible.length} />
 
       {/* Category filter — above the grid */}
