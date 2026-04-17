@@ -10,6 +10,7 @@ import {
   TrendingSkeleton,
 } from '@/components/v2/trending/TrendingSection';
 import { MostPopularFilterable } from '@/components/v2/trending/MostPopularFilterable';
+import { CountUp } from '@/components/ui/CountUp';
 import { db } from '@/lib/drizzle';
 
 export const dynamic = 'force-dynamic';
@@ -61,9 +62,9 @@ const CAPABILITIES = [
 export default async function HomePage() {
   const counts = await loadLedgerCounts();
   const LEDGER = [
-    { label: 'COMPOUNDS INDEXED', value: nf.format(counts.compounds) },
-    { label: 'CLINICAL STUDIES',  value: nf.format(counts.studies) },
-    { label: 'DEEP DATA',         value: nf.format(counts.deepData) },
+    { label: 'COMPOUNDS INDEXED', value: counts.compounds },
+    { label: 'CLINICAL STUDIES',  value: counts.studies },
+    { label: 'DEEP DATA',         value: counts.deepData },
   ];
   return (
     <>
@@ -179,9 +180,11 @@ export default async function HomePage() {
               >
                 {cell.label}
               </span>
-              <span className="font-mono text-[18px]" style={{ color: 'var(--fg)' }}>
-                {cell.value}
-              </span>
+              <CountUp
+                value={cell.value}
+                className="font-mono text-[18px]"
+                style={{ color: 'var(--fg)' }}
+              />
             </div>
           ))}
         </div>
