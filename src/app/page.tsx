@@ -6,9 +6,9 @@ import { BottomTabBar } from '@/components/v2/BottomTabBar';
 import { HomeSearch } from '@/components/v2/HomeSearch';
 import { Ticker } from '@/components/v2/Ticker';
 import {
-  TrendingSection,
-  TrendingSkeleton,
-} from '@/components/v2/trending/TrendingSection';
+  SplitDeckSection,
+  SplitDeckSkeleton,
+} from '@/components/v2/molecule/SplitDeckSection';
 import { MostPopularFilterable } from '@/components/v2/trending/MostPopularFilterable';
 import { CountUp } from '@/components/ui/CountUp';
 import { Reveal } from '@/components/ui/Reveal';
@@ -77,8 +77,13 @@ export default async function HomePage() {
     <main className="proto-grid relative min-h-screen overflow-x-hidden pb-20 md:pb-0" style={{ zIndex: 1 }}>
       <TopBar />
 
-      {/* Hero */}
-      <section className="mx-auto max-w-[1200px] px-5 pt-12 pb-10 md:px-10 md:pt-16 md:pb-12 lg:px-16 lg:pt-24">
+      {/* Hero: SplitDeck — holographic molecule + trending list */}
+      <Suspense fallback={<SplitDeckSkeleton />}>
+        <SplitDeckSection />
+      </Suspense>
+
+      {/* Search — now below the hero */}
+      <section className="mx-auto max-w-[1200px] px-5 pt-6 pb-6 md:px-10 md:pt-8 md:pb-8 lg:px-16">
         <span
           className="font-mono text-[11px] font-bold uppercase tracking-[1.4px]"
           style={{ color: 'var(--accent)' }}
@@ -86,16 +91,15 @@ export default async function HomePage() {
           SUPPLEMENT INTELLIGENCE · v2
         </span>
         <p
-          className="mt-6 max-w-[640px] text-[15px] leading-[24px] md:text-[16px] md:leading-[26px]"
+          className="mt-4 max-w-[640px] text-[15px] leading-[24px] md:text-[16px] md:leading-[26px]"
           style={{ color: 'var(--fg-muted)' }}
         >
           {nf.format(counts.compounds)} compounds. {nf.format(counts.studies)} studies. Zero marketing copy.
         </p>
-
         <HomeSearch />
       </section>
 
-      {/* Most Popular — right under search, with category filter */}
+      {/* Most Popular */}
       <section
         aria-labelledby="popular-heading"
         className="mx-auto max-w-[1200px] px-5 md:px-10 lg:px-16"
@@ -111,21 +115,6 @@ export default async function HomePage() {
       {/* Live research feed */}
       <section className="mx-auto max-w-[1200px] md:px-10 lg:px-16">
         <Ticker />
-      </section>
-
-      {/* Trending */}
-      <section
-        aria-labelledby="trending-heading"
-        className="mx-auto max-w-[1200px] px-5 pt-12 md:px-10 md:pt-16 lg:px-16"
-      >
-        <h2 id="trending-heading" className="sr-only">
-          Trending supplements
-        </h2>
-        <Reveal>
-          <Suspense fallback={<TrendingSkeleton />}>
-            <TrendingSection />
-          </Suspense>
-        </Reveal>
       </section>
 
       {/* Capability row */}
