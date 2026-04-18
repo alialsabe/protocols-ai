@@ -30,6 +30,7 @@ export function TopBar() {
         {/* Desktop nav — hidden on mobile, bottom tab bar replaces */}
         <nav role="navigation" className="hidden items-center gap-6 md:flex">
           {[
+            ['Home', '/'],
             ['Stack', '/stack'],
             ['Compare', '/compare'],
             ['Protocol', '/protocol'],
