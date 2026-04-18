@@ -1,0 +1,151 @@
+23667548
+  -OEChem-04182609222D
+
+ 20 19  0     1  0  0  0  0  0999 V2000
+    2.0000   -0.8958    0.0000 Na  0  3  0  0  0  0  0  0  0  0  0  0
+    5.3122   -0.5357    0.0000 O   0  0  0  0  0  0  0  0  0  0  0  0
+    3.6372    1.5521    0.0000 O   0  0  0  0  0  0  0  0  0  0  0  0
+    2.7431   -0.2266    0.0000 O   0  5  0  0  0  0  0  0  0  0  0  0
+    5.3692    2.5521    0.0000 O   0  0  0  0  0  0  0  0  0  0  0  0
+    3.4154   -2.2957    0.0000 O   0  0  0  0  0  0  0  0  0  0  0  0
+    5.5910   -2.2957    0.0000 O   0  0  0  0  0  0  0  0  0  0  0  0
+    4.5032    0.0521    0.0000 C   0  0  2  0  0  0  0  0  0  0  0  0
+    4.5032    1.0521    0.0000 C   0  0  2  0  0  0  0  0  0  0  0  0
+    3.6942   -0.5357    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0
+    5.3692    1.5521    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0
+    4.0032   -1.4867    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0
+    5.0032   -1.4867    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0
+    5.2606    0.4380    0.0000 H   0  0  0  0  0  0  0  0  0  0  0  0
+    3.9663    0.7421    0.0000 H   0  0  0  0  0  0  0  0  0  0  0  0
+    5.5813    0.9695    0.0000 H   0  0  0  0  0  0  0  0  0  0  0  0
+    5.9798    1.6598    0.0000 H   0  0  0  0  0  0  0  0  0  0  0  0
+    3.6372    2.1721    0.0000 H   0  0  0  0  0  0  0  0  0  0  0  0
+    5.9062    2.8621    0.0000 H   0  0  0  0  0  0  0  0  0  0  0  0
+    3.6676   -2.8621    0.0000 H   0  0  0  0  0  0  0  0  0  0  0  0
+  2  8  1  0  0  0  0
+  2 13  1  0  0  0  0
+  9  3  1  1  0  0  0
+  3 18  1  0  0  0  0
+  4 10  1  0  0  0  0
+  5 11  1  0  0  0  0
+  5 19  1  0  0  0  0
+  6 12  1  0  0  0  0
+  6 20  1  0  0  0  0
+  7 13  2  0  0  0  0
+  8  9  1  0  0  0  0
+  8 10  1  0  0  0  0
+  8 14  1  6  0  0  0
+  9 11  1  0  0  0  0
+  9 15  1  0  0  0  0
+ 10 12  2  0  0  0  0
+ 11 16  1  0  0  0  0
+ 11 17  1  0  0  0  0
+ 12 13  1  0  0  0  0
+M  CHG  2   1   1   4  -1
+M  END
+> <PUBCHEM_COMPOUND_CID>
+23667548
+
+> <PUBCHEM_COMPOUND_CANONICALIZED>
+1
+
+> <PUBCHEM_CACTVS_COMPLEXITY>
+237
+
+> <PUBCHEM_CACTVS_HBOND_ACCEPTOR>
+6
+
+> <PUBCHEM_CACTVS_HBOND_DONOR>
+3
+
+> <PUBCHEM_CACTVS_ROTATABLE_BOND>
+2
+
+> <PUBCHEM_CACTVS_SUBSKEYS>
+AAADcYBgOCAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAGgAACAAACBSggAIACAAABgCIAADQCAIAAAAgIAAACABAAEgBFAAAIAACUAAFwAALIQJAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==
+
+> <PUBCHEM_IUPAC_OPENEYE_NAME>
+sodium (2R)-2-[(1S)-1,2-dihydroxyethyl]-4-hydroxy-5-oxo-2H-furan-3-olate
+
+> <PUBCHEM_IUPAC_CAS_NAME>
+sodium (2R)-2-[(1S)-1,2-dihydroxyethyl]-4-hydroxy-5-oxo-2H-furan-3-olate
+
+> <PUBCHEM_IUPAC_NAME_MARKUP>
+sodium (2<I>R</I>)-2-[(1<I>S</I>)-1,2-dihydroxyethyl]-4-hydroxy-5-oxo-2<I>H</I>-furan-3-olate
+
+> <PUBCHEM_IUPAC_NAME>
+sodium (2R)-2-[(1S)-1,2-dihydroxyethyl]-4-hydroxy-5-oxo-2H-furan-3-olate
+
+> <PUBCHEM_IUPAC_SYSTEMATIC_NAME>
+sodium (2R)-2-[(1S)-1,2-bis(oxidanyl)ethyl]-4-oxidanyl-5-oxidanylidene-2H-furan-3-olate
+
+> <PUBCHEM_IUPAC_TRADITIONAL_NAME>
+sodium (2R)-2-[(1S)-1,2-dihydroxyethyl]-4-hydroxy-5-keto-2H-furan-3-olate
+
+> <PUBCHEM_IUPAC_INCHI>
+InChI=1S/C6H8O6.Na/c7-1-2(8)5-3(9)4(10)6(11)12-5;/h2,5,7-10H,1H2;/q;+1/p-1/t2-,5+;/m0./s1
+
+> <PUBCHEM_IUPAC_INCHIKEY>
+PPASLZSBLFJQEF-RXSVEWSESA-M
+
+> <PUBCHEM_EXACT_MASS>
+198.01403222
+
+> <PUBCHEM_MOLECULAR_FORMULA>
+C6H7NaO6
+
+> <PUBCHEM_MOLECULAR_WEIGHT>
+198.11
+
+> <PUBCHEM_SMILES>
+C([C@@H]([C@@H]1C(=C(C(=O)O1)O)[O-])O)O.[Na+]
+
+> <PUBCHEM_CONNECTIVITY_SMILES>
+C(C(C1C(=C(C(=O)O1)O)[O-])O)O.[Na+]
+
+> <PUBCHEM_CACTVS_TPSA>
+110
+
+> <PUBCHEM_MONOISOTOPIC_WEIGHT>
+198.01403222
+
+> <PUBCHEM_TOTAL_CHARGE>
+0
+
+> <PUBCHEM_HEAVY_ATOM_COUNT>
+13
+
+> <PUBCHEM_ATOM_DEF_STEREO_COUNT>
+2
+
+> <PUBCHEM_ATOM_UDEF_STEREO_COUNT>
+0
+
+> <PUBCHEM_BOND_DEF_STEREO_COUNT>
+0
+
+> <PUBCHEM_BOND_UDEF_STEREO_COUNT>
+0
+
+> <PUBCHEM_ISOTOPIC_ATOM_COUNT>
+0
+
+> <PUBCHEM_COMPONENT_COUNT>
+2
+
+> <PUBCHEM_CACTVS_TAUTO_COUNT>
+-1
+
+> <PUBCHEM_NONSTANDARDBOND>
+1  4  7
+
+> <PUBCHEM_COORDINATE_TYPE>
+1
+5
+255
+
+> <PUBCHEM_BONDANNOTATIONS>
+9  3  5
+8  14  6
+
+$$$$

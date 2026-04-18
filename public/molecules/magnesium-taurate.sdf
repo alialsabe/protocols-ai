@@ -1,0 +1,156 @@
+13343447
+  -OEChem-04182609212D
+
+ 27 24  0     0  0  0  0  0  0999 V2000
+    5.1350    0.1270    0.0000 S   0  0  0  0  0  0  0  0  0  0  0  0
+    8.5991    0.1270    0.0000 S   0  0  0  0  0  0  0  0  0  0  0  0
+    6.8671    0.1270    0.0000 Mg  0  2  0  0  0  0  0  0  0  0  0  0
+    6.0010    0.6270    0.0000 O   0  5  0  0  0  0  0  0  0  0  0  0
+    7.7331    0.6270    0.0000 O   0  5  0  0  0  0  0  0  0  0  0  0
+    4.6350    0.9930    0.0000 O   0  0  0  0  0  0  0  0  0  0  0  0
+    5.6350   -0.7390    0.0000 O   0  0  0  0  0  0  0  0  0  0  0  0
+    9.0991    0.9930    0.0000 O   0  0  0  0  0  0  0  0  0  0  0  0
+    8.0991   -0.7390    0.0000 O   0  0  0  0  0  0  0  0  0  0  0  0
+    2.5369   -0.3730    0.0000 N   0  0  0  0  0  0  0  0  0  0  0  0
+   11.1972   -0.3730    0.0000 N   0  0  0  0  0  0  0  0  0  0  0  0
+    4.2690   -0.3730    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0
+    9.4651   -0.3730    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0
+    3.4030    0.1270    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0
+   10.3312    0.1270    0.0000 C   0  0  0  0  0  0  0  0  0  0  0  0
+    3.8705   -0.8480    0.0000 H   0  0  0  0  0  0  0  0  0  0  0  0
+    4.6675   -0.8480    0.0000 H   0  0  0  0  0  0  0  0  0  0  0  0
+    9.0666   -0.8480    0.0000 H   0  0  0  0  0  0  0  0  0  0  0  0
+    9.8637   -0.8480    0.0000 H   0  0  0  0  0  0  0  0  0  0  0  0
+    3.8015    0.6019    0.0000 H   0  0  0  0  0  0  0  0  0  0  0  0
+    3.0044    0.6019    0.0000 H   0  0  0  0  0  0  0  0  0  0  0  0
+   10.7297    0.6019    0.0000 H   0  0  0  0  0  0  0  0  0  0  0  0
+    9.9326    0.6019    0.0000 H   0  0  0  0  0  0  0  0  0  0  0  0
+    2.0000   -0.0630    0.0000 H   0  0  0  0  0  0  0  0  0  0  0  0
+    2.5369   -0.9930    0.0000 H   0  0  0  0  0  0  0  0  0  0  0  0
+   11.7341   -0.0630    0.0000 H   0  0  0  0  0  0  0  0  0  0  0  0
+   11.1972   -0.9930    0.0000 H   0  0  0  0  0  0  0  0  0  0  0  0
+  1  4  1  0  0  0  0
+  1  6  2  0  0  0  0
+  1  7  2  0  0  0  0
+  1 12  1  0  0  0  0
+  2  5  1  0  0  0  0
+  2  8  2  0  0  0  0
+  2  9  2  0  0  0  0
+  2 13  1  0  0  0  0
+ 10 14  1  0  0  0  0
+ 10 24  1  0  0  0  0
+ 10 25  1  0  0  0  0
+ 11 15  1  0  0  0  0
+ 11 26  1  0  0  0  0
+ 11 27  1  0  0  0  0
+ 12 14  1  0  0  0  0
+ 12 16  1  0  0  0  0
+ 12 17  1  0  0  0  0
+ 13 15  1  0  0  0  0
+ 13 18  1  0  0  0  0
+ 13 19  1  0  0  0  0
+ 14 20  1  0  0  0  0
+ 14 21  1  0  0  0  0
+ 15 22  1  0  0  0  0
+ 15 23  1  0  0  0  0
+M  CHG  3   3   2   4  -1   5  -1
+M  END
+> <PUBCHEM_COMPOUND_CID>
+13343447
+
+> <PUBCHEM_COMPOUND_CANONICALIZED>
+1
+
+> <PUBCHEM_CACTVS_COMPLEXITY>
+107
+
+> <PUBCHEM_CACTVS_HBOND_ACCEPTOR>
+8
+
+> <PUBCHEM_CACTVS_HBOND_DONOR>
+2
+
+> <PUBCHEM_CACTVS_ROTATABLE_BOND>
+2
+
+> <PUBCHEM_CACTVS_SUBSKEYS>
+AAADccBjOABgACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHAQQAAAAAADFQASAAABAAAIAAAAAAHBAAAAAAAAAAIAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==
+
+> <PUBCHEM_IUPAC_OPENEYE_NAME>
+magnesium bis(2-aminoethanesulfonate)
+
+> <PUBCHEM_IUPAC_CAS_NAME>
+magnesium bis(2-aminoethanesulfonate)
+
+> <PUBCHEM_IUPAC_NAME_MARKUP>
+magnesium bis(2-aminoethanesulfonate)
+
+> <PUBCHEM_IUPAC_NAME>
+magnesium bis(2-aminoethanesulfonate)
+
+> <PUBCHEM_IUPAC_SYSTEMATIC_NAME>
+magnesium bis(2-azanylethanesulfonate)
+
+> <PUBCHEM_IUPAC_TRADITIONAL_NAME>
+magnesium bis(2-aminoethanesulfonate)
+
+> <PUBCHEM_IUPAC_INCHI>
+InChI=1S/2C2H7NO3S.Mg/c2*3-1-2-7(4,5)6;/h2*1-3H2,(H,4,5,6);/q;;+2/p-2
+
+> <PUBCHEM_IUPAC_INCHIKEY>
+YZURQOBSFRVSEB-UHFFFAOYSA-L
+
+> <PUBCHEM_EXACT_MASS>
+271.9987201
+
+> <PUBCHEM_MOLECULAR_FORMULA>
+C4H12MgN2O6S2
+
+> <PUBCHEM_MOLECULAR_WEIGHT>
+272.6
+
+> <PUBCHEM_SMILES>
+C(CS(=O)(=O)[O-])N.C(CS(=O)(=O)[O-])N.[Mg+2]
+
+> <PUBCHEM_CONNECTIVITY_SMILES>
+C(CS(=O)(=O)[O-])N.C(CS(=O)(=O)[O-])N.[Mg+2]
+
+> <PUBCHEM_CACTVS_TPSA>
+183
+
+> <PUBCHEM_MONOISOTOPIC_WEIGHT>
+271.9987201
+
+> <PUBCHEM_TOTAL_CHARGE>
+0
+
+> <PUBCHEM_HEAVY_ATOM_COUNT>
+15
+
+> <PUBCHEM_ATOM_DEF_STEREO_COUNT>
+0
+
+> <PUBCHEM_ATOM_UDEF_STEREO_COUNT>
+0
+
+> <PUBCHEM_BOND_DEF_STEREO_COUNT>
+0
+
+> <PUBCHEM_BOND_UDEF_STEREO_COUNT>
+0
+
+> <PUBCHEM_ISOTOPIC_ATOM_COUNT>
+0
+
+> <PUBCHEM_COMPONENT_COUNT>
+3
+
+> <PUBCHEM_CACTVS_TAUTO_COUNT>
+-1
+
+> <PUBCHEM_COORDINATE_TYPE>
+1
+5
+255
+
+$$$$
