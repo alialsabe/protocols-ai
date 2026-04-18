@@ -13,26 +13,31 @@ import { MostPopularFilterable } from '@/components/v2/trending/MostPopularFilte
 import { CountUp } from '@/components/ui/CountUp';
 import { Reveal } from '@/components/ui/Reveal';
 import { db } from '@/lib/drizzle';
+import { unstable_cache } from 'next/cache';
 
 export const dynamic = 'force-dynamic';
 
-async function loadLedgerCounts() {
-  try {
-    const [r1, r2, r3] = await Promise.all([
-      db.select({ c: sql<number>`count(*)::int` }).from(supplementsTable).where(sql`status = 'published'`),
-      db.select({ c: sql<number>`count(*)::int` }).from(clinicalStudies),
-      db.select({ c: sql<number>`count(*)::int` }).from(supplementScience),
-    ]);
-    return {
-      compounds: Number(r1[0]?.c ?? 0),
-      studies: Number(r2[0]?.c ?? 0),
-      deepData: Number(r3[0]?.c ?? 0),
-    };
-  } catch (err) {
-    console.error('[home/ledger] count query failed', err);
-    return { compounds: 0, studies: 0, deepData: 0 };
-  }
-}
+const loadLedgerCounts = unstable_cache(
+  async () => {
+    try {
+      const [r1, r2, r3] = await Promise.all([
+        db.select({ c: sql<number>`count(*)::int` }).from(supplementsTable).where(sql`status = 'published'`),
+        db.select({ c: sql<number>`count(*)::int` }).from(clinicalStudies),
+        db.select({ c: sql<number>`count(*)::int` }).from(supplementScience),
+      ]);
+      return {
+        compounds: Number(r1[0]?.c ?? 0),
+        studies: Number(r2[0]?.c ?? 0),
+        deepData: Number(r3[0]?.c ?? 0),
+      };
+    } catch (err) {
+      console.error('[home/ledger] count query failed', err);
+      return { compounds: 0, studies: 0, deepData: 0 };
+    }
+  },
+  ['ledger-counts'],
+  { revalidate: 3600 },
+);
 
 const nf = new Intl.NumberFormat('en-US');
 
