@@ -551,7 +551,7 @@ export async function lookupSupplement(query: string, biometrics?: Biometrics): 
     subject: match.name,
     baseCompound: match.baseCompound ?? undefined,
     specificForm: match.specificForm ?? undefined,
-    supplementTypes: typeRows.map(t => t.typeName),
+    supplementTypes: typeRows.length > 0 ? typeRows.map(t => t.typeName) : (match.category ? [match.category] : []),
     summary: bundleTyped?.social?.transcriptSummary || '',
     science: bundleTyped?.science ? {
       summary: bundleTyped.science.summary || bundleTyped.social?.transcriptSummary || '',
