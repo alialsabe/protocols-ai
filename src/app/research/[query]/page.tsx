@@ -2,11 +2,12 @@ import { TopBar } from '@/components/v2/TopBar';
 import { BottomTabBar } from '@/components/v2/BottomTabBar';
 import { ReportHeader } from '@/components/research/ReportHeader';
 import { ScoreStrip } from '@/components/research/ScoreStrip';
-import { OverviewSection } from '@/components/research/OverviewSection';
+import { ReadingLevelOverview } from '@/components/research/ReadingLevelOverview';
 import { EvidenceSection } from '@/components/research/EvidenceSection';
 import { DosageSection } from '@/components/research/DosageSection';
 import { InteractionsSection } from '@/components/research/InteractionsSection';
 import { StackSection } from '@/components/research/StackSection';
+import { ExtractionSection } from '@/components/research/ExtractionSection';
 import { VideosSection } from '@/components/research/VideosSection';
 import { EmptyReport } from '@/components/research/EmptyReport';
 import { lookupSupplement } from '@/lib/supplement-lookup';
@@ -76,13 +77,27 @@ export default async function ResearchQueryPage({
           </div>
         )}
 
-        <div className="mt-16 flex flex-col gap-16">
-          <OverviewSection report={report} />
-          <EvidenceSection report={report} />
-          <DosageSection report={report} />
-          <InteractionsSection report={report} />
-          <StackSection report={report} currentSlug={q} />
-          <VideosSection slug={q} />
+        {/*
+          Two-column layout on md+: main content left, stack sidebar right.
+          On mobile everything stacks — the sidebar appears between Overview
+          and Dosage via the `order-*` Tailwind classes below.
+        */}
+        <div className="mt-12 grid gap-12 md:mt-16 md:grid-cols-[minmax(0,1fr)_320px] md:gap-10 lg:grid-cols-[minmax(0,1fr)_360px]">
+          {/* Main column */}
+          <div className="flex min-w-0 flex-col gap-14">
+            <ReadingLevelOverview report={report} />
+            <DosageSection report={report} />
+            <EvidenceSection report={report} />
+            <ExtractionSection report={report} />
+            {/* Interactions intentionally below the fold — see council verdict */}
+            <InteractionsSection report={report} />
+            <VideosSection slug={q} />
+          </div>
+
+          {/* Stack sidebar */}
+          <aside className="flex flex-col gap-6 md:sticky md:top-24 md:self-start">
+            <StackSection report={report} currentSlug={q} />
+          </aside>
         </div>
       </section>
 

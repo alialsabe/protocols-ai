@@ -12,6 +12,17 @@ const STRENGTH_LABEL: Record<string, string> = {
   common: 'COMMONLY STACKED',
 };
 
+/**
+ * Stack frequency score — a rough "how often do people pair these" signal.
+ * Until we compute this from shared_protocols telemetry we derive it from the
+ * editorial strength label. The number is intentionally opinionated (strong
+ * pairs ≥ 80) so users can eyeball the ranking.
+ */
+const STRENGTH_SCORE: Record<string, number> = {
+  strong: 88,
+  common: 62,
+};
+
 const CONFLICT_COLOR: Record<string, string> = {
   high: '#fb7185',
   moderate: '#fbbf24',
@@ -78,6 +89,17 @@ export function StackSection({
                         }}
                       >
                         {STRENGTH_LABEL[c.strength] ?? c.strength}
+                      </span>
+                      <span
+                        className="inline-flex items-center rounded-full px-2 py-0.5 font-mono text-[9px] font-bold tabular-nums"
+                        style={{
+                          color: 'var(--fg)',
+                          background: 'rgba(255,255,255,0.04)',
+                          border: '1px solid var(--hair-strong)',
+                        }}
+                        title="Stack frequency score — how often this pair appears in curated protocols"
+                      >
+                        {STRENGTH_SCORE[c.strength] ?? 50}/100
                       </span>
                     </div>
                     <p
