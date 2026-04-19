@@ -21,13 +21,13 @@ export default function StackPage() {
           className="font-mono text-[11px] font-bold uppercase tracking-[1.4px]"
           style={{ color: 'var(--accent)' }}
         >
-          Stack Builder
+          My Routine
         </span>
         <h1
           className="mt-2 text-[28px] font-extrabold leading-[1.1] tracking-[-0.6px] md:text-[36px]"
           style={{ color: 'var(--fg)' }}
         >
-          Your supplement protocol.
+          Your daily supplement routine.
         </h1>
       </section>
 

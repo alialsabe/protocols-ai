@@ -225,7 +225,7 @@ export function StackBuilder() {
             className="font-mono text-[11px] font-bold uppercase tracking-[1.4px]"
             style={{ color: 'var(--fg-dim)' }}
           >
-            Stack Name
+            Routine Name
           </span>
           <input
             type="text"
@@ -233,7 +233,7 @@ export function StackBuilder() {
             onChange={(e) => { setStackName(e.target.value); setSaveStatus('idle'); }}
             className="bg-transparent text-[20px] font-extrabold tracking-[-0.4px] outline-none"
             style={{ color: 'var(--fg)' }}
-            placeholder="Name your stack"
+            placeholder="Name your routine"
             aria-label="Stack name"
           />
         </div>
@@ -378,7 +378,7 @@ export function StackBuilder() {
             className="font-mono text-[13px] tracking-[0.5px]"
             style={{ color: 'var(--fg-muted)' }}
           >
-            Search above to add your first compound.
+            Search above to add your first supplement.
           </p>
         ) : (
           <ol className="flex flex-col">
@@ -438,10 +438,10 @@ export function StackBuilder() {
               className="font-mono text-[11px] font-bold uppercase tracking-[1.4px]"
               style={{ color: 'var(--accent)' }}
             >
-              Save Your Stack
+              Save Your Routine
             </span>
             <p className="text-[14px]" style={{ color: 'var(--fg-muted)' }}>
-              Sign in to save your stack, track changes, and share with others.
+              Sign in to save your routine, track changes, and share with others.
             </p>
           </div>
           <Link

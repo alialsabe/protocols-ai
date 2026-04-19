@@ -51,10 +51,10 @@ const CAPABILITIES = [
   },
   {
     n: '02 / PERSONAL',
-    title: 'Tuned to your stack.',
-    body: 'Goal, medications and routine become inputs. The advisor reasons over your actual protocol, not a generic FAQ.',
-    link: '→ ask the advisor',
-    href: '/advisor',
+    title: 'Your daily routine, auto-built.',
+    body: "Add your supplements and get a conflict-resolved daily schedule — morning, midday, evening, bedtime blocks derived from each compound's pharmacokinetics and timing rules.",
+    link: '→ build your routine',
+    href: '/stack',
   },
   {
     n: '03 / SAFE',
