@@ -6,9 +6,9 @@ import { BottomTabBar } from '@/components/v2/BottomTabBar';
 import { HomeSearch } from '@/components/v2/HomeSearch';
 import { Ticker } from '@/components/v2/Ticker';
 import {
-  SplitDeckSection,
-  SplitDeckSkeleton,
-} from '@/components/v2/molecule/SplitDeckSection';
+  QuickGlanceHero,
+  QuickGlanceFallback,
+} from '@/components/v2/QuickGlanceHero';
 import { MostPopularFilterable } from '@/components/v2/trending/MostPopularFilterable';
 import { CountUp } from '@/components/ui/CountUp';
 import { Reveal } from '@/components/ui/Reveal';
@@ -82,9 +82,9 @@ export default async function HomePage() {
     <main className="proto-grid relative min-h-screen overflow-x-hidden pb-20 md:pb-0" style={{ zIndex: 1 }}>
       <TopBar />
 
-      {/* Hero: SplitDeck — holographic molecule + trending list */}
-      <Suspense fallback={<SplitDeckSkeleton />}>
-        <SplitDeckSection />
+      {/* Hero: quick glance at today's top compound — replaces the molecule animation. */}
+      <Suspense fallback={<QuickGlanceFallback />}>
+        <QuickGlanceHero />
       </Suspense>
 
       {/* Search — now below the hero */}
