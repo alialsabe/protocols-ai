@@ -49,14 +49,8 @@ export async function VideosSection({ slug }: { slug: string }) {
               href={v.sourceUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="group flex items-start gap-4 px-6 py-4 transition-colors"
+              className="group flex items-start gap-4 px-6 py-4 transition-colors proto-video-row"
               style={{ textDecoration: 'none' }}
-              onMouseOver={(e) => {
-                (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.02)';
-              }}
-              onMouseOut={(e) => {
-                (e.currentTarget as HTMLElement).style.background = '';
-              }}
             >
               {/* YouTube icon */}
               <span

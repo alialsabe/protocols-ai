@@ -688,3 +688,7 @@ html, body {
   text-transform: uppercase;
   cursor: pointer;
 }
+
+.proto-video-row:hover {
+  background: rgba(255, 255, 255, 0.02);
+}
