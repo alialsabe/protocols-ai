@@ -46,7 +46,7 @@ type ConflictRow = Awaited<ReturnType<typeof listConflicts>>[number];
 type MedicineInteractionRow = Awaited<ReturnType<typeof listMedicineInteractionsBySupplementId>>[number];
 
 type SupplementBundleRow = {
-  science?: { findings: string; interactions: string; sideEffects: string } | null;
+  science?: { summary: string; findings: string; interactions: string; sideEffects: string } | null;
   social?: { anecdotes: string; transcriptSummary: string } | null;
   sentiment?: { positive: number; neutral: number; negative: number; topPositive: string; topNegative: string } | null;
   dosage?: { loading: string | null; maintenance: string; formula: string | null; unit: string; perKgFactor: number | null } | null;
@@ -554,7 +554,7 @@ export async function lookupSupplement(query: string, biometrics?: Biometrics): 
     supplementTypes: typeRows.map(t => t.typeName),
     summary: bundleTyped?.social?.transcriptSummary || '',
     science: bundleTyped?.science ? {
-      summary: bundleTyped.social?.transcriptSummary || '',
+      summary: bundleTyped.science.summary || bundleTyped.social?.transcriptSummary || '',
       sourceCount: science.length,
       findings: science,
       interactions,

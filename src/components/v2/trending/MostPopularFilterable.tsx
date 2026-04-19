@@ -1,9 +1,11 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { CategoryFilter } from '@/components/v2/CategoryFilter';
+import { getSupplementImage } from '@/lib/supplement-image';
 import { withViewTransition } from '@/lib/view-transition';
 
 interface Supplement {
@@ -121,11 +123,17 @@ function ScoreTooltipLabel() {
 function Tile({ item, rank }: { item: Supplement; rank: number }) {
   const router = useRouter();
   const href = `/research/${encodeURIComponent(item.slug)}`;
+  const imgSrc = getSupplementImage(item.slug);
   return (
     <Link
       href={href}
       className="proto-tile group flex flex-col gap-4 px-5 py-5 transition-colors md:px-6 md:py-6"
-      style={{ borderTop: '1px solid var(--hair)', borderLeft: '1px solid var(--hair)' }}
+      style={{
+        borderTop: '1px solid var(--hair)',
+        borderLeft: '1px solid var(--hair)',
+        position: 'relative',
+        overflow: 'hidden',
+      }}
       aria-label={`Rank ${rank}: ${item.name}, popularity ${item.popularityScore}`}
       onNavigate={(e) => {
         // onNavigate fires ONLY for SPA navigation — modifier/middle clicks bypass it
@@ -133,7 +141,17 @@ function Tile({ item, rank }: { item: Supplement; rank: number }) {
         withViewTransition(() => router.push(href));
       }}
     >
-      <div className="flex items-start justify-between gap-4">
+      {imgSrc ? (
+        <Image
+          src={imgSrc}
+          alt=""
+          fill
+          sizes="(max-width: 768px) 100vw, 33vw"
+          style={{ objectFit: 'cover', opacity: 0.08, pointerEvents: 'none' }}
+          aria-hidden
+        />
+      ) : null}
+      <div className="flex items-start justify-between gap-4" style={{ position: 'relative', zIndex: 1 }}>
         <div className="flex min-w-0 flex-col gap-1">
           <span
             className="font-mono text-[10px] font-bold uppercase tracking-[1.4px]"

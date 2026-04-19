@@ -381,7 +381,7 @@ export const scienceData = [
 export const socialData = supplementsData.map((s, i) => ({
   id: `soc-${i + 1}`,
   supplementId: s.id,
-  transcriptSummary: `Influencers often discuss ${s.name} for practical stacking and adherence.`,
+  transcriptSummary: `${s.name} is discussed across research-focused channels for its role in supporting physiological function. See the Evidence section for peer-reviewed studies.`,
   anecdotes: JSON.stringify([
     { quote: `${s.name} was one of the most discussed additions to my protocol.`, source: 'YouTube Transcript', reliability: 'medium', stance: 'pro' },
   ]),

@@ -15,26 +15,16 @@
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { MoleculeCard } from './MoleculeCard';
-import { getRender } from './data';
+import { getRender, SUPPLEMENT_RENDERS } from './data';
 import { MobileMoleculeToggle } from './MobileMoleculeToggle';
-import type { TrendingItem } from '@/components/v2/trending/types';
+import { useSdfMolecule } from '@/lib/useSdfMolecule';
+import type { MostPopularItem } from '@/components/v2/trending/types';
 
 type Props = {
-  items: TrendingItem[];
+  items: MostPopularItem[];
   generatedAt: string;
   stale: boolean;
 };
-
-function formatDelta(deltaWeek: number): { label: string; positive: boolean } {
-  const pct = Math.round(deltaWeek * 100);
-  if (pct >= 0) return { label: `+${pct}%`, positive: true };
-  return { label: `${pct}%`, positive: false };
-}
-
-function formatMentions(n: number): string {
-  if (n >= 1000) return `${(n / 1000).toFixed(1)}k`;
-  return String(n);
-}
 
 export function SplitDeck({ items, generatedAt, stale }: Props) {
   const [activeSlug, setActiveSlug] = useState(items[0]?.slug ?? 'creatine');
@@ -46,9 +36,22 @@ export function SplitDeck({ items, generatedAt, stale }: Props) {
     }
   }, [items, activeSlug]);
 
-  const active = useMemo(() => items.find((i) => i.slug === activeSlug) ?? items[0], [items, activeSlug]);
-  const activeRender = useMemo(() => getRender(activeSlug), [activeSlug]);
-  const activeDelta = active?.deltaWeek;
+  // Pass the human-readable name so the card shows the right label even
+  // before the SDF resolves (for slugs not in SUPPLEMENT_RENDERS).
+  const activeName = useMemo(
+    () => items.find((i) => i.slug === activeSlug)?.name ?? activeSlug,
+    [items, activeSlug],
+  );
+  const activeRender = useMemo(() => getRender(activeSlug, activeName), [activeSlug, activeName]);
+  const sdfMolecule = useSdfMolecule(activeSlug);
+
+  // Merge real PubChem geometry when available; keep formula from hand-authored
+  // data if the slug has its own entry, else blank (shows as 'BLEND' in card header).
+  const resolvedRender = useMemo(() => {
+    if (!sdfMolecule || activeRender.kind !== 'single') return activeRender;
+    const formula = activeSlug in SUPPLEMENT_RENDERS ? activeRender.molecule.formula : '';
+    return { ...activeRender, molecule: { ...sdfMolecule, formula } };
+  }, [activeRender, sdfMolecule, activeSlug]);
 
   const updatedAt = useMemo(() => {
     try {
@@ -71,7 +74,7 @@ export function SplitDeck({ items, generatedAt, stale }: Props) {
       <div className="proto-split-deck-grid">
         {/* Left — molecule card (hidden on mobile) */}
         <div className="proto-split-deck-card">
-          <MoleculeCard render={activeRender} deltaWeek={activeDelta} />
+          <MoleculeCard render={resolvedRender} />
         </div>
 
         {/* Right — trending list */}
@@ -79,7 +82,7 @@ export function SplitDeck({ items, generatedAt, stale }: Props) {
           <div className="proto-split-deck-list-head">
             <div className="proto-split-deck-list-head-left">
               <span className="proto-dot" aria-hidden />
-              <span>Trending / 7D</span>
+              <span>Popularity Ranking</span>
             </div>
             <div className="proto-split-deck-list-head-right">
               {stale && <span className="proto-stale">Stale</span>}
@@ -89,7 +92,6 @@ export function SplitDeck({ items, generatedAt, stale }: Props) {
 
           <ol className="proto-split-deck-rows">
             {items.slice(0, 8).map((item, idx) => {
-              const delta = formatDelta(item.deltaWeek);
               const isActive = item.slug === activeSlug;
               return (
                 <li key={item.slug} className={`proto-split-deck-row ${isActive ? 'active' : ''}`}>
@@ -106,11 +108,8 @@ export function SplitDeck({ items, generatedAt, stale }: Props) {
                       {(idx + 1).toString().padStart(2, '0')}
                     </span>
                     <span className="proto-split-deck-row-name">{item.name}</span>
-                    <span className="proto-split-deck-row-mentions">
-                      {formatMentions(item.mentionCount)}
-                    </span>
-                    <span className={`proto-split-deck-row-delta ${delta.positive ? 'pos' : 'neg'}`}>
-                      {delta.label}
+                    <span className="proto-split-deck-row-score">
+                      {item.score}
                     </span>
                   </button>
                   <Link
@@ -128,7 +127,7 @@ export function SplitDeck({ items, generatedAt, stale }: Props) {
       </div>
 
       {/* Mobile: full-screen molecule toggle */}
-      <MobileMoleculeToggle render={activeRender} deltaWeek={activeDelta} name={active?.name ?? ''} />
+      <MobileMoleculeToggle render={resolvedRender} name={items.find(i => i.slug === activeSlug)?.name ?? ''} />
     </section>
   );
 }

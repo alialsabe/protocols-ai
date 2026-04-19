@@ -45,9 +45,20 @@ export function MoleculeCard({ render, deltaWeek, minimalChrome = false }: Props
   const [swapKey, setSwapKey] = useState(render.slug);
   const [fadeIn, setFadeIn] = useState(1);
   const [visible, setVisible] = useState(true);
+  const [pulseKey, setPulseKey] = useState(0);
+  const hasMountedRef = useRef(false);
   const dragActive = useRef(false);
   const lastPointer = useRef<{ x: number; y: number } | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  // First mount plays the long cinematic assembly; subsequent swaps are snappier.
+  const assemblyDuration = hasMountedRef.current ? 1100 : 3800;
+
+  const handleAssemblyComplete = useCallback(() => {
+    hasMountedRef.current = true;
+    // Trigger a one-shot bloom pulse via CSS (key bump restarts the animation).
+    setPulseKey((k) => k + 1);
+  }, []);
 
   // WebGL capability check (client-only)
   useEffect(() => {
@@ -61,14 +72,15 @@ export function MoleculeCard({ render, deltaWeek, minimalChrome = false }: Props
     return () => document.removeEventListener('visibilitychange', onVis);
   }, []);
 
-  // Swap transition: fade out, swap key, fade back in.
+  // Swap transition: brief fade-out masks the Canvas remount, then the
+  // new molecule plays its own assembly animation (800ms).
   useEffect(() => {
     if (render.slug === swapKey) return;
     setFadeIn(0);
     const t1 = window.setTimeout(() => {
       setSwapKey(render.slug);
       setFadeIn(1);
-    }, 180);
+    }, 90);
     return () => window.clearTimeout(t1);
   }, [render.slug, swapKey]);
 
@@ -118,6 +130,7 @@ export function MoleculeCard({ render, deltaWeek, minimalChrome = false }: Props
       ref={containerRef}
       className="proto-mol-card"
       data-has-gl={hasGL}
+      data-pulse={pulseKey}
       onPointerDown={hasGL ? onPointerDown : undefined}
       onPointerMove={hasGL ? onPointerMove : undefined}
       onPointerUp={hasGL ? onPointerUp : undefined}
@@ -137,9 +150,19 @@ export function MoleculeCard({ render, deltaWeek, minimalChrome = false }: Props
             }}
           >
             {render.kind === 'single' ? (
-              <MoleculeScene molecule={render.molecule} dragActive={dragActive} />
+              <MoleculeScene
+                molecule={render.molecule}
+                dragActive={dragActive}
+                assemblyDuration={assemblyDuration}
+                onAssemblyComplete={handleAssemblyComplete}
+              />
             ) : (
-              <MoleculeScene constellation={render.constellation} dragActive={dragActive} />
+              <MoleculeScene
+                constellation={render.constellation}
+                dragActive={dragActive}
+                assemblyDuration={assemblyDuration}
+                onAssemblyComplete={handleAssemblyComplete}
+              />
             )}
             <EffectComposer>
               <Bloom
@@ -159,6 +182,8 @@ export function MoleculeCard({ render, deltaWeek, minimalChrome = false }: Props
       <div className="proto-mol-scanlines" aria-hidden />
       {/* Vignette + radial bloom */}
       <div className="proto-mol-glow" aria-hidden />
+      {/* Assembly-complete bloom pulse — key-bumped to restart the keyframe */}
+      <div key={pulseKey} className="proto-mol-pulse" aria-hidden />
 
       {/* Chrome: label + delta */}
       {!minimalChrome && (

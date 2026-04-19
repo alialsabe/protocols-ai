@@ -1,4 +1,4 @@
-import { eq, or, sql } from 'drizzle-orm';
+import { desc, eq, or, sql } from 'drizzle-orm';
 import { db } from './drizzle';
 import {
   supplements,
@@ -15,6 +15,7 @@ import {
   supplementTags,
   supplementTypes,
   clinicalStudies,
+  supplementMentions,
 } from './schema-postgres';
 import { isProductionPostgresRuntime } from './database-env';
 
@@ -303,4 +304,22 @@ export async function updateFallbackQueueItem(
     .where(eq(fallbackQueue.id, id));
 
   return result.length ?? 1;
+}
+
+/** Latest YouTube video mentions for a supplement (max 8, newest first). */
+export async function listVideoMentionsBySlug(slug: string) {
+  return db
+    .select({
+      sourceId: supplementMentions.sourceId,
+      sourceUrl: supplementMentions.sourceUrl,
+      title: supplementMentions.title,
+      snippet: supplementMentions.snippet,
+      mentionedAt: supplementMentions.mentionedAt,
+    })
+    .from(supplementMentions)
+    .where(
+      eq(supplementMentions.supplementSlug, slug),
+    )
+    .orderBy(desc(supplementMentions.mentionedAt))
+    .limit(8);
 }

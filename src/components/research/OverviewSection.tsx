@@ -3,14 +3,19 @@ import type { ProtocolReport } from '@/lib/protocol-types';
 export function OverviewSection({ report }: { report: ProtocolReport }) {
   const summary =
     report.science?.summary ||
-    report.social?.transcriptSummary ||
-    `${report.name ?? 'This compound'} is indexed in the Protocols.ai catalog. Detailed mechanism and citation data is pending.`;
+    `${report.name ?? 'This compound'} is indexed in the Protocols.ai catalog. Peer-reviewed mechanism and citation data is pending for this entry.`;
 
-  // Pull 3-5 "what it does" claims from findings titles when available
-  const bullets = (report.science?.findings ?? [])
-    .slice(0, 5)
-    .map((f) => f.title ?? f.claim ?? f.detail ?? '')
-    .filter(Boolean);
+  // Full "effects & uses" list — pull titles + detail from findings.
+  const uses = (report.science?.findings ?? [])
+    .map((f) => ({
+      title: (f.title ?? f.claim ?? '').trim(),
+      detail: (f.detail ?? f.context ?? '').trim(),
+      quality: f.quality,
+    }))
+    .filter((u) => u.title || u.detail);
+
+  // Short "at a glance" chips derived from finding titles.
+  const chips = uses.slice(0, 6).map((u) => u.title).filter(Boolean);
 
   return (
     <section>
@@ -33,24 +38,73 @@ export function OverviewSection({ report }: { report: ProtocolReport }) {
           {summary}
         </p>
 
-        {bullets.length > 0 ? (
+        {chips.length > 0 && (
+          <div className="mt-6 flex flex-wrap gap-2">
+            {chips.map((c, i) => (
+              <span
+                key={i}
+                className="inline-flex items-center rounded-full px-3 py-1 font-mono text-[10px] font-bold uppercase tracking-[1.2px]"
+                style={{
+                  color: 'var(--accent)',
+                  border: '1px solid var(--hair-strong)',
+                  background: 'rgba(255,255,255,0.02)',
+                }}
+              >
+                {c}
+              </span>
+            ))}
+          </div>
+        )}
+
+        {uses.length > 0 && (
           <div className="mt-8">
             <span
               className="font-mono text-[10px] font-bold uppercase tracking-[1.4px]"
               style={{ color: 'var(--fg-dim)' }}
             >
-              WHAT IT DOES
+              EFFECTS &amp; USES
             </span>
-            <ul className="mt-4 flex flex-col gap-2">
-              {bullets.map((b, i) => (
-                <li key={i} className="flex items-start gap-3 text-[14px]" style={{ color: 'var(--fg)' }}>
-                  <span className="mt-[9px] h-px w-3 flex-shrink-0" style={{ background: 'var(--accent)' }} aria-hidden />
-                  <span>{b}</span>
+            <ul className="mt-4 flex flex-col gap-5">
+              {uses.map((u, i) => (
+                <li
+                  key={i}
+                  className="grid grid-cols-[8px_1fr] gap-4 pl-1"
+                >
+                  <span
+                    className="mt-[7px] h-[8px] w-[8px] flex-shrink-0 rounded-full"
+                    style={{
+                      background:
+                        u.quality === 'high'
+                          ? 'var(--accent)'
+                          : u.quality === 'medium'
+                            ? '#fbbf24'
+                            : 'var(--fg-faint)',
+                    }}
+                    aria-hidden
+                  />
+                  <div>
+                    {u.title && (
+                      <div
+                        className="text-[14px] font-semibold tracking-[-0.1px]"
+                        style={{ color: 'var(--fg)' }}
+                      >
+                        {u.title}
+                      </div>
+                    )}
+                    {u.detail && (
+                      <p
+                        className="mt-1 text-[13px] leading-[20px]"
+                        style={{ color: 'var(--fg-muted)' }}
+                      >
+                        {u.detail}
+                      </p>
+                    )}
+                  </div>
                 </li>
               ))}
             </ul>
           </div>
-        ) : null}
+        )}
       </div>
     </section>
   );

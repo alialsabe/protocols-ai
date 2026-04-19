@@ -348,11 +348,28 @@ export const SUPPLEMENT_RENDERS: Record<string, SupplementRender> = {
 };
 
 /**
- * Fallback when a supplement slug has no hand-authored geometry.
- * We use creatine as the default — simple and instantly legible.
+ * Fallback molecule geometry (creatine) used while the real SDF loads.
+ * Exported so SplitDeck can spread-merge real SDF geometry on top.
  */
-export const FALLBACK_RENDER: SupplementRender = SUPPLEMENT_RENDERS['creatine'];
+const _creatineRender = SUPPLEMENT_RENDERS['creatine']!;
+export const FALLBACK_MOLECULE: Molecule =
+  _creatineRender.kind === 'single' ? _creatineRender.molecule : creatine;
 
-export function getRender(slug: string): SupplementRender {
-  return SUPPLEMENT_RENDERS[slug] ?? FALLBACK_RENDER;
+/**
+ * Returns the hand-authored render for known slugs. For everything else,
+ * returns a stub with the correct slug + name so the card header is right
+ * while the SDF fetches in the background.
+ *
+ * Pass `displayName` when you know the human-readable name (e.g. from the
+ * trending list) so it appears in the card before the SDF arrives.
+ */
+export function getRender(slug: string, displayName?: string): SupplementRender {
+  if (SUPPLEMENT_RENDERS[slug]) return SUPPLEMENT_RENDERS[slug]!;
+  // Stub: correct identity, creatine geometry as placeholder.
+  return {
+    slug,
+    name: displayName ?? slug,
+    kind: 'single',
+    molecule: { ...FALLBACK_MOLECULE, id: slug, formula: '' },
+  };
 }

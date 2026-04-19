@@ -6,6 +6,8 @@ import { OverviewSection } from '@/components/research/OverviewSection';
 import { EvidenceSection } from '@/components/research/EvidenceSection';
 import { DosageSection } from '@/components/research/DosageSection';
 import { InteractionsSection } from '@/components/research/InteractionsSection';
+import { StackSection } from '@/components/research/StackSection';
+import { VideosSection } from '@/components/research/VideosSection';
 import { EmptyReport } from '@/components/research/EmptyReport';
 import { lookupSupplement } from '@/lib/supplement-lookup';
 import Link from 'next/link';
@@ -66,7 +68,7 @@ export default async function ResearchQueryPage({
 
       <section className="mx-auto max-w-[1200px] px-5 pb-24 md:px-10 lg:px-16">
         <ReportHeader report={report} slug={q} />
-        <ScoreStrip report={report} />
+        <ScoreStrip report={report} slug={q} />
 
         {!hasData && (
           <div className="mt-10">
@@ -79,6 +81,8 @@ export default async function ResearchQueryPage({
           <EvidenceSection report={report} />
           <DosageSection report={report} />
           <InteractionsSection report={report} />
+          <StackSection report={report} currentSlug={q} />
+          <VideosSection slug={q} />
         </div>
       </section>
 

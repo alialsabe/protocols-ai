@@ -5,16 +5,16 @@ import {
 import { SplitDeck } from './SplitDeck';
 
 /**
- * Server-side wrapper — fetches the trending snapshot and hands the items
- * to the client SplitDeck. Mirrors the pattern used by TrendingSection.
+ * Server-side wrapper — fetches the popularity snapshot and hands the items
+ * to the client SplitDeck. Uses mostPopular (all-time) not 7D trending.
  */
 export async function SplitDeckSection() {
   const data = await getTrendingPayload();
-  if (!data || data.trending.length === 0) {
+  const items = (data?.mostPopular ?? []).slice(0, 8);
+  if (!data || items.length === 0) {
     return <SplitDeckFallback />;
   }
   const stale = isStale(data.generatedAt);
-  const items = data.trending.slice(0, 8);
   return <SplitDeck items={items} generatedAt={data.generatedAt} stale={stale} />;
 }
 
@@ -31,7 +31,7 @@ function SplitDeckFallback() {
           <div className="proto-split-deck-list-head">
             <div className="proto-split-deck-list-head-left">
               <span className="proto-dot" aria-hidden />
-              <span>Trending / 7D</span>
+              <span>Popularity Ranking</span>
             </div>
           </div>
           <div style={{ padding: '2rem 1.5rem', fontFamily: 'monospace', fontSize: 12, color: 'var(--fg-dim)' }}>
@@ -54,7 +54,7 @@ export function SplitDeckSkeleton() {
           <div className="proto-split-deck-list-head">
             <div className="proto-split-deck-list-head-left">
               <span className="proto-dot" aria-hidden />
-              <span>Trending / 7D</span>
+              <span>Popularity Ranking</span>
             </div>
           </div>
           <ol className="proto-split-deck-rows">

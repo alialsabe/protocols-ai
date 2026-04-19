@@ -415,24 +415,15 @@ html, body {
   color: var(--accent);
 }
 
-.proto-split-deck-row-mentions {
+.proto-split-deck-row-score {
   font-family: var(--font-mono);
-  font-size: 11px;
-  color: var(--fg-dim);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--accent);
   text-align: right;
   min-width: 36px;
+  letter-spacing: 0.5px;
 }
-
-.proto-split-deck-row-delta {
-  font-family: var(--font-mono);
-  font-size: 12px;
-  font-weight: 700;
-  text-align: right;
-  min-width: 52px;
-}
-
-.proto-split-deck-row-delta.pos { color: var(--accent); }
-.proto-split-deck-row-delta.neg { color: var(--severity-high); }
 
 .proto-split-deck-row-open {
   display: inline-flex;
@@ -470,7 +461,33 @@ html, body {
 .proto-mol-canvas {
   position: absolute;
   inset: 0;
-  transition: opacity 180ms var(--ease);
+  transition: opacity 90ms var(--ease);
+}
+
+/* Assembly-complete bloom pulse — a radial flash that rides on top of the
+ * scene for ~700ms the moment the cinematic assembly locks in. Key-bumped
+ * via a wrapping `key` prop so the keyframe restarts on every swap. */
+.proto-mol-pulse {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 55% 55% at 50% 50%, rgba(6,214,160,0.55), transparent 65%);
+  mix-blend-mode: screen;
+  opacity: 0;
+  animation: proto-mol-pulse 720ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  z-index: 1;
+}
+
+@keyframes proto-mol-pulse {
+  0%   { opacity: 0;    transform: scale(0.85); }
+  25%  { opacity: 0.95; transform: scale(1.02); }
+  60%  { opacity: 0.45; transform: scale(1.08); }
+  100% { opacity: 0;    transform: scale(1.12); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .proto-mol-pulse { animation: none; opacity: 0; }
 }
 
 .proto-mol-canvas canvas {
