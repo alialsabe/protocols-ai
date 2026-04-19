@@ -1,14 +1,9 @@
-import { Suspense } from 'react';
 import { sql } from 'drizzle-orm';
 import { clinicalStudies, supplements as supplementsTable, supplementScience } from '@/lib/schema-postgres';
 import { TopBar } from '@/components/v2/TopBar';
 import { BottomTabBar } from '@/components/v2/BottomTabBar';
 import { HomeSearch } from '@/components/v2/HomeSearch';
 import { Ticker } from '@/components/v2/Ticker';
-import {
-  QuickGlanceHero,
-  QuickGlanceFallback,
-} from '@/components/v2/QuickGlanceHero';
 import { MostPopularFilterable } from '@/components/v2/trending/MostPopularFilterable';
 import { CountUp } from '@/components/ui/CountUp';
 import { Reveal } from '@/components/ui/Reveal';
@@ -82,26 +77,24 @@ export default async function HomePage() {
     <main className="proto-grid relative min-h-screen overflow-x-hidden pb-20 md:pb-0" style={{ zIndex: 1 }}>
       <TopBar />
 
-      {/* Hero: quick glance at today's top compound — replaces the molecule animation. */}
-      <Suspense fallback={<QuickGlanceFallback />}>
-        <QuickGlanceHero />
-      </Suspense>
-
-      {/* Search — now below the hero */}
-      <section className="mx-auto max-w-[1200px] px-5 pt-6 pb-6 md:px-10 md:pt-8 md:pb-8 lg:px-16">
-        <span
-          className="font-mono text-[11px] font-bold uppercase tracking-[1.4px]"
-          style={{ color: 'var(--accent)' }}
+      {/* Hero: search first */}
+      <section className="mx-auto max-w-[1200px] px-5 pt-12 pb-8 md:px-10 md:pt-20 md:pb-12 lg:px-16">
+        <h1
+          className="max-w-[720px] text-[36px] font-extrabold leading-[1.05] tracking-[-1px] md:text-[56px]"
+          style={{ color: 'var(--fg)' }}
         >
-          SUPPLEMENT INTELLIGENCE · v2
-        </span>
+          Supplement research.<br />
+          <span style={{ color: 'var(--accent)' }}>No marketing copy.</span>
+        </h1>
         <p
-          className="mt-4 max-w-[640px] text-[15px] leading-[24px] md:text-[16px] md:leading-[26px]"
+          className="mt-4 max-w-[540px] text-[15px] leading-[24px]"
           style={{ color: 'var(--fg-muted)' }}
         >
-          {nf.format(counts.compounds)} compounds. {nf.format(counts.studies)} studies. Zero marketing copy.
+          {nf.format(counts.compounds)} compounds · {nf.format(counts.studies)} clinical studies · conflict-resolved daily routines
         </p>
-        <HomeSearch />
+        <div className="mt-8">
+          <HomeSearch />
+        </div>
       </section>
 
       {/* Most Popular */}
