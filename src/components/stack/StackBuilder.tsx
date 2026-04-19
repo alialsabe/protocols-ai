@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import Link from 'next/link';
+import { RoutinePanel } from './RoutinePanel';
 
 interface StackItem {
   id: string;
@@ -184,6 +185,10 @@ export function StackBuilder() {
       setSharing(false);
     }
   }
+
+  // Memoize names array so RoutinePanel's effect doesn't re-run on unrelated re-renders.
+  // (useEffect dep on a fresh array each render = infinite fetch loop)
+  const itemNames = useMemo(() => items.map((i) => i.name), [items]);
 
   // Close dropdown on outside click
   useEffect(() => {
@@ -415,6 +420,9 @@ export function StackBuilder() {
           </ol>
         )}
       </div>
+
+      {/* Your Routine — scheduler-generated timeline + conflict resolver */}
+      <RoutinePanel names={itemNames} />
 
       {/* Soft gate for unauthenticated users */}
       {isLoggedIn === false && (

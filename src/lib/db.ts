@@ -1,4 +1,4 @@
-import { desc, eq, or, sql } from 'drizzle-orm';
+import { and, desc, eq, or, sql } from 'drizzle-orm';
 import { db } from './drizzle';
 import {
   supplements,
@@ -318,7 +318,10 @@ export async function listVideoMentionsBySlug(slug: string) {
     })
     .from(supplementMentions)
     .where(
-      eq(supplementMentions.supplementSlug, slug),
+      and(
+        eq(supplementMentions.supplementSlug, slug),
+        eq(supplementMentions.sourceType, 'youtube'),
+      ),
     )
     .orderBy(desc(supplementMentions.mentionedAt))
     .limit(8);
