@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { X, Plus, Search } from 'lucide-react';
-import { TopBar } from '@/components/v2/TopBar';
 import { track, ANALYTICS_EVENTS } from '@/lib/analytics';
 import type { ProtocolReport } from '@/lib/protocol-types';
 import { ComparisonTable } from '@/components/compare/ComparisonTable';
@@ -74,7 +73,6 @@ export default function ComparePage() {
 
   return (
     <main className="proto-grid relative min-h-screen">
-      <TopBar />
 
       <section className="mx-auto max-w-[1200px] px-6 pt-10 md:px-10 lg:px-16">
         <span

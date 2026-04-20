@@ -4,7 +4,6 @@ import type { Metadata } from 'next';
 import { db } from '@/lib/drizzle';
 import { sharedProtocols, savedStacks, supplements } from '@/lib/schema-postgres';
 import { eq } from 'drizzle-orm';
-import { TopBar } from '@/components/v2/TopBar';
 
 interface SharedPageProps {
   params: Promise<{ publicId: string }>;
@@ -89,7 +88,6 @@ export default async function SharedStackPage({ params }: SharedPageProps) {
 
   return (
     <main className="proto-grid relative min-h-screen">
-      <TopBar />
 
       <section className="mx-auto max-w-[820px] px-6 pt-10 md:px-10 lg:px-16">
         <span

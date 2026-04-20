@@ -1,10 +1,8 @@
-import { TopBar } from '@/components/v2/TopBar';
 import { AdvisorPanel } from '@/components/advisor/AdvisorPanel';
 
 export default function AdvisorPage() {
   return (
     <main className="proto-grid relative min-h-screen">
-      <TopBar />
 
       <section className="mx-auto max-w-[1200px] px-6 pt-10 md:px-10 lg:px-16">
         <span

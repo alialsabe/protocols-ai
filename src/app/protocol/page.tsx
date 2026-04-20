@@ -1,5 +1,3 @@
-import { TopBar } from '@/components/v2/TopBar';
-import { BottomTabBar } from '@/components/v2/BottomTabBar';
 import { ProtocolScheduler } from '@/components/v2/protocol/ProtocolScheduler';
 
 export const metadata = {
@@ -11,7 +9,6 @@ export const metadata = {
 export default function ProtocolPage() {
   return (
     <main className="proto-grid relative min-h-screen overflow-x-hidden pb-20 md:pb-0">
-      <TopBar />
 
       <section
         className="mx-auto max-w-[1200px] px-5 py-6 md:px-10 md:py-8 lg:px-16"
@@ -42,7 +39,6 @@ export default function ProtocolPage() {
         <ProtocolScheduler />
       </section>
 
-      <BottomTabBar />
     </main>
   );
 }

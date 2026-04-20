@@ -1,5 +1,3 @@
-import { TopBar } from '@/components/v2/TopBar';
-import { BottomTabBar } from '@/components/v2/BottomTabBar';
 import Link from 'next/link';
 
 const FIELD_LABELS: Record<string, string> = {
@@ -18,7 +16,6 @@ export default async function ResearchIndexPage({
 
   return (
     <main className="proto-grid relative min-h-screen overflow-x-hidden pb-20 md:pb-0">
-      <TopBar />
 
       <section className="mx-auto max-w-[1200px] px-5 pt-16 pb-24 md:px-10 md:pt-20 lg:px-16 lg:pt-24">
         <span
@@ -83,7 +80,6 @@ export default async function ResearchIndexPage({
         </div>
       </section>
 
-      <BottomTabBar />
     </main>
   );
 }
