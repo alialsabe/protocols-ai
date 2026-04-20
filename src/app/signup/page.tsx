@@ -2,9 +2,11 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { createClient } from '../../../utils/supabase/client';
 
 export default function SignupPage() {
+  const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -17,11 +19,11 @@ export default function SignupPage() {
     setLoading(true);
 
     const supabase = createClient();
-    const { error: signUpError } = await supabase.auth.signUp({
+    const { data, error: signUpError } = await supabase.auth.signUp({
       email,
       password,
       options: {
-        emailRedirectTo: `${window.location.origin}/auth/callback`,
+        emailRedirectTo: `${window.location.origin}/auth/callback?next=/welcome`,
       },
     });
 
@@ -29,6 +31,14 @@ export default function SignupPage() {
 
     if (signUpError) {
       setError(signUpError.message);
+      return;
+    }
+
+    // If Supabase returned a session, email confirmation is disabled —
+    // land the user straight on /welcome. Otherwise show the confirm-email screen.
+    if (data.session) {
+      router.push('/welcome');
+      router.refresh();
       return;
     }
 

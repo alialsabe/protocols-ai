@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { UserMenu } from './UserMenu';
 
 export function Nav() {
   const pathname = usePathname();
@@ -115,17 +116,21 @@ export function Nav() {
           ))}
         </div>
 
-        {/* Date */}
+        {/* Right: date + auth */}
         <div
-          className="footnote"
           style={{
             display: 'flex',
             alignItems: 'center',
             gap: 20,
-            letterSpacing: '0.4px',
           }}
         >
-          {now}
+          <span
+            className="footnote nav-date"
+            style={{ letterSpacing: '0.4px' }}
+          >
+            {now}
+          </span>
+          <UserMenu />
         </div>
       </div>
 
@@ -138,6 +143,7 @@ export function Nav() {
             gap: 20px !important;
           }
           .nav-links-center { display: none !important; }
+          .nav-date { display: none !important; }
         }
       `}</style>
     </nav>
