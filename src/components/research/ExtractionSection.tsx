@@ -153,7 +153,7 @@ function ExtractionRow({
 }) {
   return (
     <div
-      className="grid grid-cols-[120px_1fr] gap-6 py-4"
+      className="grid grid-cols-1 sm:grid-cols-[120px_1fr] gap-2 sm:gap-6 py-4"
       style={{ borderBottom: last ? 'none' : '1px solid var(--hair)' }}
     >
       <span

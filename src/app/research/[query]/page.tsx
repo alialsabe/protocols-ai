@@ -74,6 +74,7 @@ export default async function ResearchQueryPage({
 
       {/* Abstract + key stats — two-column */}
       <div
+        className="research-hero"
         style={{
           display: 'grid',
           gridTemplateColumns: 'minmax(0,1.4fr) minmax(280px,1fr)',
@@ -129,6 +130,7 @@ export default async function ResearchQueryPage({
 
         {/* ── Right: At a glance sidebar ── */}
         <div
+          className="research-glance"
           style={{
             background: 'var(--paper-2)',
             border: '1px solid var(--rule)',
@@ -233,6 +235,7 @@ export default async function ResearchQueryPage({
 
       {/* ── Main sections below the fold ── */}
       <div
+        className="research-below"
         style={{
           display: 'grid',
           gridTemplateColumns: 'minmax(0,1fr) 320px',
@@ -250,7 +253,10 @@ export default async function ResearchQueryPage({
         </div>
 
         {/* Sidebar — stacked companions + stack score */}
-        <aside style={{ display: 'flex', flexDirection: 'column', gap: 24, alignSelf: 'start', position: 'sticky', top: 88 }}>
+        <aside
+          className="research-aside"
+          style={{ display: 'flex', flexDirection: 'column', gap: 24, alignSelf: 'start', position: 'sticky', top: 88 }}
+        >
           <StackSection report={report} currentSlug={q} />
         </aside>
       </div>

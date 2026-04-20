@@ -436,6 +436,26 @@ input::placeholder { color: var(--ink-5); }
   }
   .compound-row .compound-stat:nth-child(3),
   .compound-row .compound-stat:nth-child(4) { display: none; }
+
+  /* Supplement profile — stack everything vertically on mobile.
+     The inline styles use grid-template-columns, so overrides need !important. */
+  .research-hero,
+  .research-below {
+    grid-template-columns: 1fr !important;
+    gap: 32px !important;
+  }
+  .research-hero { padding: 8px 0 32px !important; }
+  .research-below { margin-top: 32px !important; }
+
+  .research-glance {
+    position: static !important;
+    top: auto !important;
+    padding: 20px !important;
+  }
+  .research-aside {
+    position: static !important;
+    top: auto !important;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
