@@ -203,6 +203,7 @@ input::placeholder { color: var(--ink-5); }
 }
 .search-bar input {
   flex: 1;
+  min-width: 0;
   background: transparent;
   border: none; outline: none;
   font-family: var(--font-inter), var(--sans);
@@ -433,9 +434,47 @@ input::placeholder { color: var(--ink-5); }
   .compound-row {
     grid-template-columns: 36px 1fr auto;
     gap: 12px;
+    padding: 18px 0;
   }
   .compound-row .compound-stat:nth-child(3),
   .compound-row .compound-stat:nth-child(4) { display: none; }
+  .compound-name { font-size: 20px; letter-spacing: -0.4px; }
+
+  /* Search bar — shrink input, hide ⌘K hint, tighten gap */
+  .search-bar { gap: 10px; padding: 4px 0; }
+  .search-bar input { font-size: clamp(20px, 6vw, 28px); padding: 8px 0; letter-spacing: -0.4px; }
+  .search-prompt { font-size: 12px; }
+  .search-kbd { display: none; }
+
+  /* Section rule — tighten padding, shrink number badge */
+  .section-rule { padding: 28px 0 14px; gap: 10px; }
+  .section-rule .right { font-size: 10px; }
+
+  /* Sort row — stack vertically so the "Showing X" label has room */
+  .sort-row {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 12px;
+  }
+  .sort-row .toggle { align-self: flex-start; }
+
+  /* Toggle — keep labels on one line, bump touch target */
+  .toggle button {
+    white-space: nowrap;
+    padding: 9px 14px;
+    font-size: 13px;
+  }
+
+  /* Pill — bump touch target to ~40px tall */
+  .pill { padding: 9px 14px; font-size: 13px; }
+
+  /* Suggest dropdown — drop the 3-col grid; let category tag wrap below */
+  .suggest-row {
+    grid-template-columns: 1fr;
+    gap: 6px;
+    padding: 12px 14px;
+  }
+  .suggest-row .name { font-size: 14px; }
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -52,6 +52,7 @@ export function Nav() {
       }}
     >
       <div
+        className="nav-inner"
         style={{
           maxWidth: 1200,
           margin: '0 auto',
@@ -78,7 +79,7 @@ export function Nav() {
             Protocols<span style={{ color: 'var(--accent)' }}>.</span>ai
           </span>
           <span
-            className="footnote"
+            className="footnote nav-ref"
             style={{ marginLeft: 8, fontSize: 10, letterSpacing: '0.8px', textTransform: 'uppercase' }}
           >
             Reference · 2026
@@ -86,7 +87,7 @@ export function Nav() {
         </Link>
 
         {/* Nav links */}
-        <div style={{ display: 'flex', gap: 32, justifySelf: 'center' }}>
+        <div className="nav-links" style={{ display: 'flex', gap: 32, justifySelf: 'center' }}>
           {([
             ['Browse',     '/',       isHome],
             ['My Routine', '/stack',  isRoutine],
@@ -117,7 +118,7 @@ export function Nav() {
 
         {/* Date */}
         <div
-          className="footnote"
+          className="footnote nav-date"
           style={{
             display: 'flex',
             alignItems: 'center',
@@ -129,15 +130,20 @@ export function Nav() {
         </div>
       </div>
 
-      {/* Mobile: compact */}
+      {/* Mobile: compact — hide REFERENCE label + date, shrink padding/gap, keep nav links visible */}
       <style>{`
         @media (max-width: 820px) {
-          .nav-inner-grid {
+          .nav-inner {
             grid-template-columns: auto 1fr !important;
             padding: 14px 20px !important;
-            gap: 20px !important;
+            gap: 16px !important;
           }
-          .nav-links-center { display: none !important; }
+          .nav-ref, .nav-date { display: none !important; }
+          .nav-links { gap: 20px !important; justify-self: end !important; }
+          .nav-links a { font-size: 13px !important; }
+        }
+        @media (max-width: 380px) {
+          .nav-links { gap: 14px !important; }
         }
       `}</style>
     </nav>

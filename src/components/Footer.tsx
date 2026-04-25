@@ -1,6 +1,7 @@
 export function Footer() {
   return (
     <footer
+      className="site-footer"
       style={{
         borderTop: '1px solid var(--rule)',
         marginTop: 80,
@@ -8,7 +9,15 @@ export function Footer() {
         background: 'var(--paper-2)',
       }}
     >
+      <style>{`
+        @media (max-width: 820px) {
+          .site-footer { padding: 28px 20px !important; margin-top: 48px !important; }
+          .site-footer-grid { grid-template-columns: 1fr !important; gap: 20px !important; }
+          .site-footer-grid p, .site-footer-grid span { max-width: none !important; }
+        }
+      `}</style>
       <div
+        className="site-footer-grid"
         style={{
           maxWidth: 1200,
           margin: '0 auto',

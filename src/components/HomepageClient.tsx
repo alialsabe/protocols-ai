@@ -303,6 +303,7 @@ export function HomepageClient({ compounds, totalCompounds, totalStudies }: Prop
 
       {/* Sort + count bar */}
       <div
+        className="sort-row"
         style={{
           display: 'flex',
           justifyContent: 'space-between',
