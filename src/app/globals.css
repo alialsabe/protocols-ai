@@ -475,6 +475,19 @@ input::placeholder { color: var(--ink-5); }
     padding: 12px 14px;
   }
   .suggest-row .name { font-size: 14px; }
+
+  /* Research page — collapse two-column grids to single column */
+  .research-hero-grid,
+  .research-body-grid {
+    grid-template-columns: 1fr !important;
+    gap: 28px !important;
+  }
+  /* Un-sticky the sidebars — sticky makes no sense in a single column */
+  .research-hero-grid > div:last-child,
+  .research-body-grid > aside {
+    position: static !important;
+    top: auto !important;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -74,6 +74,7 @@ export default async function ResearchQueryPage({
 
       {/* Abstract + key stats — two-column */}
       <div
+        className="research-hero-grid"
         style={{
           display: 'grid',
           gridTemplateColumns: 'minmax(0,1.4fr) minmax(280px,1fr)',
@@ -233,6 +234,7 @@ export default async function ResearchQueryPage({
 
       {/* ── Main sections below the fold ── */}
       <div
+        className="research-body-grid"
         style={{
           display: 'grid',
           gridTemplateColumns: 'minmax(0,1fr) 320px',
