@@ -12,6 +12,7 @@
     "db:bootstrap": "tsx scripts/bootstrap-db.ts",
     "db:reset": "tsx scripts/seed.ts --reset",
     "test:golden": "tsx scripts/golden-set.ts",
+    "db:enrich": "tsx scripts/enrich-science-llm.ts",
     "vercel-build": "next build"
   },
   "dependencies": {
@@ -39,6 +40,7 @@
     "three": "^0.169.0"
   },
   "devDependencies": {
+    "@anthropic-ai/sdk": "^0.91.1",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",

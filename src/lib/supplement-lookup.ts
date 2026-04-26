@@ -46,7 +46,7 @@ type ConflictRow = Awaited<ReturnType<typeof listConflicts>>[number];
 type MedicineInteractionRow = Awaited<ReturnType<typeof listMedicineInteractionsBySupplementId>>[number];
 
 type SupplementBundleRow = {
-  science?: { summary: string; findings: string; interactions: string; sideEffects: string } | null;
+  science?: { summary: string; findings: string; interactions: string; sideEffects: string; extras?: string } | null;
   social?: { anecdotes: string; transcriptSummary: string } | null;
   sentiment?: { positive: number; neutral: number; negative: number; topPositive: string; topNegative: string } | null;
   dosage?: { loading: string | null; maintenance: string; formula: string | null; unit: string; perKgFactor: number | null } | null;
@@ -436,6 +436,26 @@ export async function lookupSupplement(query: string, biometrics?: Biometrics): 
   const interactions = bundleTyped?.science ? JSON.parse(bundleTyped.science.interactions) : [];
   const sideEffects = bundleTyped?.science ? JSON.parse(bundleTyped.science.sideEffects) : [];
 
+  // Parse extras (rich plain-English fields). Tolerate missing/malformed.
+  let extras: import('./protocol-types').SupplementExtras | undefined;
+  if (bundleTyped?.science?.extras) {
+    try {
+      const parsed = JSON.parse(bundleTyped.science.extras);
+      if (parsed && typeof parsed === 'object' && parsed.plainSummary) {
+        extras = {
+          plainSummary: parsed.plainSummary || '',
+          keyBenefits: Array.isArray(parsed.keyBenefits) ? parsed.keyBenefits : [],
+          bestFor: Array.isArray(parsed.bestFor) ? parsed.bestFor : [],
+          whoShouldAvoid: Array.isArray(parsed.whoShouldAvoid) ? parsed.whoShouldAvoid : [],
+          whatToExpect: parsed.whatToExpect || '',
+          mechanism: parsed.mechanism || '',
+          commonMyths: Array.isArray(parsed.commonMyths) ? parsed.commonMyths : [],
+          sources: Array.isArray(parsed.sources) ? parsed.sources : [],
+        };
+      }
+    } catch { /* ignore malformed */ }
+  }
+
 
   let dosagePlan: DosagePlan | undefined;
   if (bundleTyped?.dosage) {
@@ -553,6 +573,7 @@ export async function lookupSupplement(query: string, biometrics?: Biometrics): 
     specificForm: match.specificForm ?? undefined,
     supplementTypes: typeRows.length > 0 ? typeRows.map(t => t.typeName) : (match.category ? [match.category] : []),
     summary: bundleTyped?.social?.transcriptSummary || '',
+    extras,
     science: bundleTyped?.science ? {
       summary: bundleTyped.science.summary || bundleTyped.social?.transcriptSummary || '',
       sourceCount: science.length,

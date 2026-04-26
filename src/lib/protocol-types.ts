@@ -171,6 +171,17 @@ export interface StudyCategoryCount {
   count: number;
 }
 
+export interface SupplementExtras {
+  plainSummary: string;
+  keyBenefits: string[];
+  bestFor: string[];
+  whoShouldAvoid: string[];
+  whatToExpect: string;
+  mechanism: string;
+  commonMyths: { myth: string; reality: string }[];
+  sources: string[];
+}
+
 export interface ProtocolReport {
   id?: string;
   query?: string;
@@ -181,6 +192,7 @@ export interface ProtocolReport {
   supplementTypes?: string[];
   summary?: string;
   target?: string;
+  extras?: SupplementExtras;
   science?: {
     summary: string;
     sourceCount: number;

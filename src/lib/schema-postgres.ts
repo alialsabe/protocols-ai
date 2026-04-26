@@ -68,6 +68,8 @@ export const supplementScience = pgTable('supplement_science', {
   medicineInteractions: text('medicine_interactions').notNull().default('[]'),
   // 'manual' (seeded), 'llm_generated' (AI fallback, unverified), 'validated' (QC-approved)
   dataSource: text('data_source').notNull().default('manual'),
+  // JSON: { plainSummary, keyBenefits[], bestFor[], whoShouldAvoid[], whatToExpect, mechanism, commonMyths[], sources[] }
+  extras: text('extras').notNull().default('{}'),
 });
 
 // ── supplement_social ───────────────────────────────────────────────
