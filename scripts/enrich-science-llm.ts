@@ -42,10 +42,12 @@ if (!poolerUrl) throw new Error('Missing DATABASE_URL / SUPABASE_POOLER_URL');
 const OPENROUTER_KEY = process.env.OPENROUTER_API_KEY;
 if (!OPENROUTER_KEY) throw new Error('Missing OPENROUTER_API_KEY');
 
-// DeepSeek V4 Pro is the preferred default but requires OpenRouter privacy
-// settings → "training data" enabled. Falls back to gpt-4o-mini until then.
-// Override any time with ENRICH_MODEL=deepseek/deepseek-v4-pro
-const MODEL = process.env.ENRICH_MODEL ?? 'openai/gpt-4o-mini';
+// DeepSeek V4 Flash: efficiency-tuned MoE (284B/13B activated), 1M context,
+// excellent at structured JSON. V4 Pro is better but heavily rate-limited
+// upstream on OpenRouter's shared pool — Flash actually completes the run.
+// To use Pro: ENRICH_MODEL=deepseek/deepseek-v4-pro (and add your own
+// DeepSeek key at openrouter.ai/settings/integrations to bypass the pool).
+const MODEL = process.env.ENRICH_MODEL ?? 'deepseek/deepseek-v4-flash';
 
 const u = new URL(poolerUrl);
 const sql = postgres({
@@ -60,6 +62,7 @@ const DRY_RUN = process.env.DRY_RUN === '1';
 const FORCE   = process.env.FORCE === '1';
 const LIMIT   = parseInt(process.env.LIMIT ?? '500', 10);
 const ONLY    = process.env.ONLY?.trim().toLowerCase();
+const SPARSE  = process.env.SPARSE === '1';
 const BATCH   = parseInt(process.env.BATCH ?? '10', 10);
 const DELAY   = parseInt(process.env.DELAY ?? '300', 10);
 
@@ -184,7 +187,8 @@ Quality rules:
 
 // ─── OpenRouter call ─────────────────────────────────────────────────────────
 
-async function generate(name: string, slug: string, category: string): Promise<RichBundle | null> {
+async function generate(name: string, slug: string, category: string, attempt = 1): Promise<RichBundle | null> {
+  const MAX_ATTEMPTS = 5;
   try {
     const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
@@ -206,6 +210,19 @@ async function generate(name: string, slug: string, category: string): Promise<R
       }),
     });
 
+    // Retry on rate limit (429) and transient 5xx errors with exponential backoff
+    if (res.status === 429 || res.status >= 500) {
+      if (attempt < MAX_ATTEMPTS) {
+        const wait = Math.min(2000 * Math.pow(2, attempt - 1), 30000) + Math.floor(Math.random() * 1000);
+        console.log(`  ⏳ ${slug} ${res.status} — retry ${attempt}/${MAX_ATTEMPTS} in ${wait}ms`);
+        await new Promise(r => setTimeout(r, wait));
+        return generate(name, slug, category, attempt + 1);
+      }
+      const body = await res.text();
+      console.error(`  ✗ OpenRouter ${res.status} for ${slug} (gave up after ${attempt} tries): ${body.slice(0, 200)}`);
+      return null;
+    }
+
     if (!res.ok) {
       const body = await res.text();
       console.error(`  ✗ OpenRouter ${res.status} for ${slug}: ${body.slice(0, 240)}`);
@@ -223,6 +240,13 @@ async function generate(name: string, slug: string, category: string): Promise<R
     }
     return bundle;
   } catch (err) {
+    // Network errors — retry too
+    if (attempt < MAX_ATTEMPTS) {
+      const wait = Math.min(2000 * Math.pow(2, attempt - 1), 30000);
+      console.log(`  ⏳ ${slug} ${(err as Error).message} — retry ${attempt}/${MAX_ATTEMPTS} in ${wait}ms`);
+      await new Promise(r => setTimeout(r, wait));
+      return generate(name, slug, category, attempt + 1);
+    }
     console.error(`  ✗ ${slug}: ${(err as Error).message}`);
     return null;
   }
@@ -351,27 +375,31 @@ async function upsertSchedule(suppId: string, slug: string, s: ScheduleGen) {
 }
 
 async function upsertCompanionStacks(suppId: string, slug: string, stacks: CompanionStack[], idx: Map<string, ResolvedSup>) {
-  // Wipe any prior rows for this supplement (so re-runs replace cleanly)
-  await sql`DELETE FROM companion_stacks WHERE supplement_id = ${suppId}`;
-  let inserted = 0;
+  // First, resolve all companions BEFORE touching the DB. If we can't resolve
+  // at least 2 valid companions, keep the existing stacks (don't wipe good data
+  // when the new generation produced unresolvable names).
+  const resolved: { stack: CompanionStack; sup: ResolvedSup; index: number }[] = [];
   for (let i = 0; i < stacks.length; i++) {
-    const stack = stacks[i];
-    const resolved = resolveCompanion(stack.name, idx);
-    if (!resolved) continue;
-    if (resolved.id === suppId) continue; // can't stack with self
+    const r = resolveCompanion(stacks[i].name, idx);
+    if (r && r.id !== suppId) resolved.push({ stack: stacks[i], sup: r, index: i });
+  }
+  if (resolved.length < 2) return -1; // signal "kept existing"
+
+  await sql`DELETE FROM companion_stacks WHERE supplement_id = ${suppId}`;
+  for (const { stack, sup, index } of resolved) {
     const why = stack.dosingNote ? `${stack.why} (${stack.dosingNote})` : stack.why;
-    const stkId = `stk-${slug.slice(0, 18)}-${resolved.slug.slice(0, 18)}`.slice(0, 60);
+    const stkId = `stk-${slug.slice(0, 18)}-${sup.slug.slice(0, 18)}`.slice(0, 60);
     await sql`
       INSERT INTO companion_stacks (id, supplement_id, companion_supplement_id, why, strength, sort_order)
-      VALUES (${stkId}, ${suppId}, ${resolved.id}, ${why}, ${stack.strength}, ${i})
+      VALUES (${stkId}, ${suppId}, ${sup.id}, ${why}, ${stack.strength}, ${index})
       ON CONFLICT (id) DO NOTHING
     `;
-    inserted++;
   }
-  return inserted;
+  return resolved.length;
 }
 
 async function upsertMedicineInteractions(suppId: string, slug: string, interactions: MedInt[]) {
+  if (interactions.length === 0) return -1; // keep existing
   await sql`DELETE FROM medicine_interactions WHERE supplement_id = ${suppId}`;
   for (let i = 0; i < interactions.length; i++) {
     const m = interactions[i];
@@ -424,6 +452,21 @@ async function run() {
     rows = await sql<(SupRow & { category: string })[]>`
       SELECT id, slug, name, aliases, category FROM supplements
       WHERE status='published' AND (slug ILIKE ${ONLY} OR name ILIKE ${'%' + ONLY + '%'})
+      LIMIT ${LIMIT}
+    `;
+  } else if (SPARSE) {
+    // Re-enrich supplements that came out sparse: < 3 stacks or < 2 med interactions or empty extras
+    rows = await sql<(SupRow & { category: string })[]>`
+      SELECT s.id, s.slug, s.name, s.aliases, s.category FROM supplements s
+      WHERE s.status='published' AND (
+        (SELECT count(*) FROM companion_stacks cs WHERE cs.supplement_id = s.id) < 3
+        OR (SELECT count(*) FROM medicine_interactions mi WHERE mi.supplement_id = s.id) < 2
+        OR EXISTS (
+          SELECT 1 FROM supplement_science ss
+          WHERE ss.supplement_id = s.id AND coalesce(ss.extras, '{}') = '{}'
+        )
+      )
+      ORDER BY s.popularity_score DESC NULLS LAST
       LIMIT ${LIMIT}
     `;
   } else if (FORCE) {
