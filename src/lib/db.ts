@@ -16,6 +16,7 @@ import {
   supplementTypes,
   clinicalStudies,
   supplementMentions,
+  supplementProduction,
 } from './schema-postgres';
 import { isProductionPostgresRuntime } from './database-env';
 
@@ -182,6 +183,7 @@ export async function getSupplementBundleById(supplementId: string) {
   const dosageRow    = await db.select().from(supplementDosage).where(eq(supplementDosage.supplementId, supplementId)).limit(1);
   const scheduleRow  = await db.select().from(supplementScheduleRules).where(eq(supplementScheduleRules.supplementId, supplementId)).limit(1);
   const affiliateRow = await db.select().from(affiliateOptions).where(eq(affiliateOptions.supplementId, supplementId)).limit(1);
+  const productionRow = await db.select().from(supplementProduction).where(eq(supplementProduction.supplementId, supplementId)).limit(1);
 
   if (!scienceRow[0] && !socialRow[0] && !sentimentRow[0] && !dosageRow[0]) {
     return null;
@@ -196,7 +198,18 @@ export async function getSupplementBundleById(supplementId: string) {
     affiliate: affiliateRow[0]
       ? { ...affiliateRow[0], isActive: affiliateRow[0].isActive === 1 }
       : null,
+    production: productionRow[0] ?? null,
   };
+}
+
+// ── affiliate options (multiple) ───────────────────────────────────────
+
+export async function listAffiliateOptionsBySupplementId(supplementId: string) {
+  return db
+    .select()
+    .from(affiliateOptions)
+    .where(and(eq(affiliateOptions.supplementId, supplementId), eq(affiliateOptions.isActive, 1)))
+    .orderBy(desc(affiliateOptions.priorityScore));
 }
 
 // ── schedule rules ─────────────────────────────────────────────────────
@@ -325,4 +338,26 @@ export async function listVideoMentionsBySlug(slug: string) {
     )
     .orderBy(desc(supplementMentions.mentionedAt))
     .limit(8);
+}
+
+/** Top YouTube videos for a supplement, ranked by view count. Curated channels only. */
+export async function listTopVideoMentionsBySlug(slug: string, limit = 3) {
+  return db
+    .select({
+      sourceId: supplementMentions.sourceId,
+      sourceUrl: supplementMentions.sourceUrl,
+      title: supplementMentions.title,
+      snippet: supplementMentions.snippet,
+      viewCount: supplementMentions.viewCount,
+      mentionedAt: supplementMentions.mentionedAt,
+    })
+    .from(supplementMentions)
+    .where(
+      and(
+        eq(supplementMentions.supplementSlug, slug),
+        eq(supplementMentions.sourceType, 'youtube'),
+      ),
+    )
+    .orderBy(desc(supplementMentions.viewCount))
+    .limit(limit);
 }

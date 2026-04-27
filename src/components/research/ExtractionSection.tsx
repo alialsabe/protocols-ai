@@ -77,7 +77,17 @@ export function ExtractionSection({ report }: { report: ProtocolReport }) {
   const [open, setOpen] = useState(false);
 
   const cat = (report.supplementTypes?.[0] ?? '').toLowerCase();
-  const entry = BY_CATEGORY[cat] ?? DEFAULT_ENTRY;
+  const fallback = BY_CATEGORY[cat] ?? DEFAULT_ENTRY;
+  // Prefer per-supplement copy from the DB when present; fall back to the
+  // category heuristic so unseeded supplements still render something useful.
+  const entry = report.production
+    ? {
+        source: report.production.source || fallback.source,
+        method: report.production.method || fallback.method,
+        purity: report.production.qualityMarkers || fallback.purity,
+      }
+    : fallback;
+  const isCurated = Boolean(report.production && report.production.dataSource === 'manual');
 
   return (
     <section>
@@ -132,9 +142,9 @@ export function ExtractionSection({ report }: { report: ProtocolReport }) {
             className="mt-6 text-[11px] leading-[18px]"
             style={{ color: 'var(--fg-faint)' }}
           >
-            General production overview by supplement category. Specific
-            manufacturing steps vary between brands — consult the product's
-            Certificate of Analysis for batch-level detail.
+            {isCurated
+              ? "Curated for this compound from manufacturer disclosures and pharmacopoeia references. Specific batches still vary between brands — consult the product's Certificate of Analysis."
+              : "General production overview by supplement category. Specific manufacturing steps vary between brands — consult the product's Certificate of Analysis for batch-level detail."}
           </p>
         </div>
       )}

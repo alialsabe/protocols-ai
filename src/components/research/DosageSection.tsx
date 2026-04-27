@@ -18,7 +18,7 @@ export function DosageSection({ report }: { report: ProtocolReport }) {
           overflow: 'hidden',
         }}
       >
-        <div className="grid md:grid-cols-2">
+        <div className="grid gap-px md:grid-cols-2">
           <div className="p-8" style={{ background: 'var(--surface)' }}>
             <span
               className="font-mono text-[10px] font-bold uppercase tracking-[1.4px]"
@@ -80,35 +80,6 @@ export function DosageSection({ report }: { report: ProtocolReport }) {
           </div>
         </div>
 
-        {report.commerce?.affiliateLink ? (
-          <div className="p-5" style={{ background: 'var(--surface-raise)' }}>
-            <div className="flex flex-col items-start justify-between gap-3 md:flex-row md:items-center">
-              <div>
-                <span
-                  className="font-mono text-[10px] font-bold uppercase tracking-[1.4px]"
-                  style={{ color: 'var(--accent)' }}
-                >
-                  ★ RECOMMENDED
-                </span>
-                <p className="mt-1 text-[14px] font-semibold" style={{ color: 'var(--fg)' }}>
-                  {report.commerce.product}
-                </p>
-                <p className="font-mono text-[11px]" style={{ color: 'var(--fg-dim)' }}>
-                  {report.commerce.retailer} · {report.commerce.price}
-                </p>
-              </div>
-              <a
-                href={report.commerce.affiliateLink}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center rounded-md px-4 py-2.5 font-mono text-[11px] font-bold uppercase tracking-[1.4px]"
-                style={{ background: 'var(--accent)', color: '#09090b' }}
-              >
-                Buy →
-              </a>
-            </div>
-          </div>
-        ) : null}
       </div>
     </section>
   );

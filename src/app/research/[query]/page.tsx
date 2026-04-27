@@ -5,6 +5,8 @@ import { InteractionsSection } from '@/components/research/InteractionsSection';
 import { StackSection } from '@/components/research/StackSection';
 import { ExtractionSection } from '@/components/research/ExtractionSection';
 import { VideosSection } from '@/components/research/VideosSection';
+import { TopVideosSection } from '@/components/research/TopVideosSection';
+import { BuyOptionsSection } from '@/components/research/BuyOptionsSection';
 import { AddToRoutineButton } from '@/components/research/AddToRoutineButton';
 import { lookupSupplement } from '@/lib/supplement-lookup';
 import Link from 'next/link';
@@ -57,11 +59,13 @@ export default async function ResearchQueryPage({
   const evGrade   = letterGrade(evScore);
 
   const studyCount     = report.science?.sourceCount ?? report.clinicalStudies?.length ?? 0;
-  const interactCount  = (report.science?.interactions?.length ?? 0) + (report.medicineInteractions?.length ?? 0);
   const dose           = report.dosage?.maintenance ?? '—';
   const doseLoading    = report.dosage?.loading;
-  const timeToFeel     = report.dosage?.formula?.match(/(\d+[-–]\d+\s*(?:weeks?|days?|months?))/i)?.[1]
-    ?? '4–6 wks';
+  // Compact single-sentence "how it's made" pulled from per-supplement DB row
+  // when available; otherwise the ExtractionSection's category fallback.
+  const productionBlurb = report.production?.method?.split(/(?<=[.?!])\s+/)[0]
+    ?? report.production?.source
+    ?? null;
 
   return (
     <div className="page">
@@ -128,50 +132,56 @@ export default async function ResearchQueryPage({
           </div>
         </div>
 
-        {/* ── Right: At a glance sidebar ── */}
+        {/* ── Right: At a glance + Buy options ── */}
         <div
           style={{
-            background: 'var(--paper-2)',
-            border: '1px solid var(--rule)',
-            padding: '24px 28px',
-            borderRadius: 4,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 16,
             alignSelf: 'start',
             position: 'sticky',
             top: 88,
           }}
         >
-          <span className="footnote" style={{ letterSpacing: '1.4px', textTransform: 'uppercase' }}>
-            At a glance
-          </span>
+          <div
+            style={{
+              background: 'var(--paper-2)',
+              border: '1px solid var(--rule)',
+              padding: '24px 28px',
+              borderRadius: 4,
+            }}
+          >
+            <span className="footnote" style={{ letterSpacing: '1.4px', textTransform: 'uppercase' }}>
+              At a glance
+            </span>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginTop: 18 }}>
-            {/* Dose */}
-            <div>
-              <span className="footnote" style={{ letterSpacing: '1.2px', textTransform: 'uppercase' }}>
-                Typical dose
-              </span>
-              <div
-                className="footnote"
-                style={{
-                  fontSize: 22,
-                  fontWeight: 500,
-                  color: 'var(--ink)',
-                  marginTop: 4,
-                  letterSpacing: '-0.2px',
-                  fontFamily: 'var(--font-jetbrains-mono, var(--mono))',
-                }}
-              >
-                {dose}
-              </div>
-              {doseLoading && (
-                <div className="footnote" style={{ marginTop: 4, fontSize: 11 }}>
-                  Loading: {doseLoading}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginTop: 18 }}>
+              {/* Dose */}
+              <div>
+                <span className="footnote" style={{ letterSpacing: '1.2px', textTransform: 'uppercase' }}>
+                  Typical dose
+                </span>
+                <div
+                  className="footnote"
+                  style={{
+                    fontSize: 22,
+                    fontWeight: 500,
+                    color: 'var(--ink)',
+                    marginTop: 4,
+                    letterSpacing: '-0.2px',
+                    fontFamily: 'var(--font-jetbrains-mono, var(--mono))',
+                  }}
+                >
+                  {dose}
                 </div>
-              )}
-            </div>
+                {doseLoading && (
+                  <div className="footnote" style={{ marginTop: 4, fontSize: 11 }}>
+                    Loading: {doseLoading}
+                  </div>
+                )}
+              </div>
 
-            {/* Evidence + Safety */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+              {/* Evidence */}
               <div>
                 <span className="footnote" style={{ letterSpacing: '1.2px', textTransform: 'uppercase' }}>
                   Evidence
@@ -182,53 +192,50 @@ export default async function ResearchQueryPage({
                   </span>
                 </div>
               </div>
-              <div>
-                <span className="footnote" style={{ letterSpacing: '1.2px', textTransform: 'uppercase' }}>
-                  Time to feel
-                </span>
-                <div style={{ fontSize: 14, color: 'var(--ink)', marginTop: 6 }}>{timeToFeel}</div>
-              </div>
-            </div>
 
-            {/* Stat bars */}
-            <div style={{ borderTop: '1px solid var(--rule)', paddingTop: 4 }}>
-              {/* Studies */}
-              <div
-                style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: 8,
-                  padding: '14px 0',
-                  borderBottom: '1px solid var(--rule-soft)',
-                }}
-              >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-                  <span className="footnote">Studies indexed</span>
-                  <span className="footnote" style={{ color: 'var(--ink-2)' }}>{studyCount}</span>
-                </div>
-                <div className="bar-scale">
-                  <div className="track">
-                    <div className="fill" style={{ width: `${Math.min((studyCount / 10) * 100, 100)}%` }} />
-                  </div>
-                </div>
-              </div>
-
-              {/* Interactions */}
-              {interactCount > 0 && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 8, padding: '14px 0' }}>
+              {/* Studies indexed */}
+              <div style={{ borderTop: '1px solid var(--rule)', paddingTop: 14 }}>
+                <div
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 8,
+                  }}
+                >
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-                    <span className="footnote">Interactions</span>
-                    <span className="footnote" style={{ color: 'var(--ink-2)' }}>{interactCount}</span>
+                    <span className="footnote">Studies indexed</span>
+                    <span className="footnote" style={{ color: 'var(--ink-2)' }}>{studyCount}</span>
                   </div>
                   <div className="bar-scale">
                     <div className="track">
-                      <div className="fill" style={{ width: `${Math.min((interactCount / 6) * 100, 100)}%` }} />
+                      <div className="fill" style={{ width: `${Math.min((studyCount / 10) * 100, 100)}%` }} />
                     </div>
                   </div>
                 </div>
-              )}
+              </div>
+
+              {/* How it's made */}
+              <div style={{ borderTop: '1px solid var(--rule-soft)', paddingTop: 14 }}>
+                <span className="footnote" style={{ letterSpacing: '1.2px', textTransform: 'uppercase' }}>
+                  How it's made
+                </span>
+                <p
+                  style={{
+                    fontSize: 12,
+                    lineHeight: 1.55,
+                    color: 'var(--ink-2)',
+                    marginTop: 6,
+                    marginBottom: 0,
+                  }}
+                >
+                  {productionBlurb ?? 'Production details below.'}
+                </p>
+              </div>
             </div>
           </div>
+
+          {/* Buy options panel — directly under At a glance */}
+          <BuyOptionsSection report={report} supplementId={report.id} />
         </div>
       </div>
 
@@ -256,6 +263,9 @@ export default async function ResearchQueryPage({
           <StackSection report={report} currentSlug={q} />
         </aside>
       </div>
+
+      {/* Top videos — the very bottom of the profile */}
+      <TopVideosSection slug={q} />
 
       {/* Disclaimer */}
       <div style={{ padding: '60px 0 40px' }}>

@@ -13,6 +13,7 @@
     "db:reset": "tsx scripts/seed.ts --reset",
     "test:golden": "tsx scripts/golden-set.ts",
     "db:enrich": "tsx scripts/enrich-science-llm.ts",
+    "db:seed-production": "tsx scripts/seed-production-info.ts",
     "vercel-build": "next build"
   },
   "dependencies": {

@@ -52,6 +52,7 @@ type SupplementBundleRow = {
   dosage?: { loading: string | null; maintenance: string; formula: string | null; unit: string; perKgFactor: number | null } | null;
   schedule?: { preferredTime: string; withFood: number | boolean; foodType: string | null; emptyStomach: number | boolean; fatSoluble: number | boolean; stimulant: number | boolean; sedating: number | boolean } | null;
   affiliate?: { affiliateUrl: string; productName: string; partnerName: string; priceDisplay: string | null; trustScore: number; priorityScore: number; productForm: string; countryCode: string; complianceStatus: string; isActive: boolean } | null;
+  production?: { source: string; method: string; qualityMarkers: string; dataSource: string } | null;
 };
 
 const LABDOOR_BRANDS: Record<string, TopBrand[]> = {
@@ -505,6 +506,15 @@ export async function lookupSupplement(query: string, biometrics?: Biometrics): 
     topNegative: bundleTyped.sentiment.topNegative,
   } : undefined;
 
+  const production = bundleTyped?.production
+    ? {
+        source: bundleTyped.production.source,
+        method: bundleTyped.production.method,
+        qualityMarkers: bundleTyped.production.qualityMarkers,
+        dataSource: bundleTyped.production.dataSource as 'manual' | 'llm_generated' | 'category_default',
+      }
+    : undefined;
+
   const commerce: CommerceRecommendation | undefined = bundleTyped?.affiliate ? {
     retailer: bundleTyped.affiliate.partnerName,
     product: bundleTyped.affiliate.productName,
@@ -602,6 +612,7 @@ export async function lookupSupplement(query: string, biometrics?: Biometrics): 
       usdCost: 0,
       roiNote: 'DB lookup — zero inference cost.',
     },
+    production,
   };
 }
 

@@ -171,6 +171,13 @@ export interface StudyCategoryCount {
   count: number;
 }
 
+export interface ProductionInfo {
+  source: string;
+  method: string;
+  qualityMarkers: string;
+  dataSource?: 'manual' | 'llm_generated' | 'category_default';
+}
+
 export interface SupplementExtras {
   plainSummary: string;
   keyBenefits: string[];
@@ -222,4 +229,5 @@ export interface ProtocolReport {
   contraindications?: string[];
   recommendedDosage?: string;
   costPerDayEstimate?: number;
+  production?: ProductionInfo;
 }

@@ -126,6 +126,20 @@ export const supplementConflicts = pgTable('conflicts', {
   severity: text('severity').notNull().default('low'),
 });
 
+// ── supplement_production ───────────────────────────────────────────
+// Per-supplement "how it's made" copy. One row per supplement; falls back
+// to category heuristics in the UI when missing.
+export const supplementProduction = pgTable('supplement_production', {
+  id: id(),
+  supplementId: text('supplement_id').notNull().references(() => supplements.id).unique(),
+  source: text('source').notNull().default(''),
+  method: text('method').notNull().default(''),
+  qualityMarkers: text('quality_markers').notNull().default(''),
+  // 'manual' (curated), 'llm_generated' (AI), 'category_default' (heuristic)
+  dataSource: text('data_source').notNull().default('manual'),
+  ...timestamps(),
+});
+
 // ── medicine_interactions ───────────────────────────────────────────
 export const medicineInteractions = pgTable('medicine_interactions', {
   id: id(),
@@ -217,6 +231,7 @@ export const supplementMentions = pgTable(
     sourceUrl: text('source_url').notNull(),
     title: text('title').notNull().default(''),
     snippet: text('snippet').notNull().default(''),
+    viewCount: integer('view_count').notNull().default(0),
     mentionedAt: timestamp('mentioned_at', { withTimezone: true }).notNull(),
     ingestedAt: timestamp('ingested_at', { withTimezone: true }).notNull().defaultNow(),
   },
