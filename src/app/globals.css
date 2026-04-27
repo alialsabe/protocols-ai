@@ -6,41 +6,41 @@
    ───────────────────────────────────────────────────────────────────────── */
 
 :root {
-  /* Paper */
-  --paper:   #fafaf7;
-  --paper-2: #f4f3ee;
-  --paper-3: #ebeae3;
+  /* Paper — white to light green */
+  --paper:   #ffffff;
+  --paper-2: #f0f7f0;
+  --paper-3: #d8eed8;
 
-  /* Ink */
-  --ink:   #111110;
-  --ink-2: #2c2c2a;
-  --ink-3: #56564f;
-  --ink-4: #84847c;
-  --ink-5: #b6b5ab;
+  /* Ink — black to dark green */
+  --ink:   #0a0f0a;
+  --ink-2: #1a2e1a;
+  --ink-3: #2f5c2f;
+  --ink-4: #5a8a5a;
+  --ink-5: #8db88d;
 
   /* Rules */
-  --rule:      #dcdbd3;
-  --rule-soft: #e8e7df;
+  --rule:      #b0d4b0;
+  --rule-soft: #cce5cc;
 
-  /* Single accent — deep aubergine. Calm, not trendy, not medical-green. */
-  --accent:      #5a1e3a;
-  --accent-tint: #f2eaee;
-  --accent-ink:  #3b1427;
+  /* Accent — gold */
+  --accent:      #c9a84c;
+  --accent-tint: #fdf6e3;
+  --accent-ink:  #8b6914;
 
-  /* Category palette — restrained earth tones */
-  --cat-stress-bg:      #edeae0; --cat-stress-fg:      #52533b;
-  --cat-minerals-bg:    #e8e3d9; --cat-minerals-fg:    #5b4a34;
-  --cat-performance-bg: #eadcd1; --cat-performance-fg: #6b3a22;
-  --cat-cardio-bg:      #e5dcdb; --cat-cardio-fg:      #6a2f2d;
-  --cat-vitamins-bg:    #ecdfca; --cat-vitamins-fg:    #67501c;
-  --cat-focus-bg:       #dde3e5; --cat-focus-fg:       #2c4955;
-  --cat-metabolic-bg:   #e5dfe5; --cat-metabolic-fg:   #4d2f4f;
-  --cat-longevity-bg:   #dae2da; --cat-longevity-fg:   #2c4a33;
+  /* Category palette — green family */
+  --cat-stress-bg:      #dff2e0; --cat-stress-fg:      #1e5c30;
+  --cat-minerals-bg:    #e8f5e0; --cat-minerals-fg:    #2d5c1a;
+  --cat-performance-bg: #d4edda; --cat-performance-fg: #155228;
+  --cat-cardio-bg:      #e0f0e0; --cat-cardio-fg:      #1f4d1f;
+  --cat-vitamins-bg:    #edf7d4; --cat-vitamins-fg:    #3d5c0a;
+  --cat-focus-bg:       #d4ede8; --cat-focus-fg:       #0d4a3a;
+  --cat-metabolic-bg:   #e8f5e8; --cat-metabolic-fg:   #1e4d1e;
+  --cat-longevity-bg:   #d8f0e0; --cat-longevity-fg:   #0f4a28;
 
   /* Evidence grade colors */
-  --grade-a: #2c4a33;
-  --grade-b: #67501c;
-  --grade-c: #6a2f2d;
+  --grade-a: #155228;  /* dark green — strong evidence */
+  --grade-b: #c9a84c;  /* gold — moderate evidence */
+  --grade-c: #b33030;  /* red — weak / conflicted */
 
   /* Typography */
   --sans: "Inter", ui-sans-serif, system-ui, sans-serif;
@@ -60,7 +60,7 @@
   --fg-dim:      var(--ink-4);
   --fg-faint:    var(--ink-5);
   --accent-dim:  var(--accent-tint);
-  --accent-glow: rgba(90,30,58,0.15);
+  --accent-glow: rgba(201,168,76,0.18);
   --severity-high: var(--grade-c);
   --severity-mid:  var(--grade-b);
   --severity-low:  var(--grade-a);
