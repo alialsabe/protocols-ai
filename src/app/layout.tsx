@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+﻿import type { Metadata } from 'next';
 import { Inter, JetBrains_Mono } from 'next/font/google';
 import './globals.css';
 import { AnalyticsProvider } from '@/components/AnalyticsProvider';
@@ -6,6 +6,7 @@ import { SupplementCatalogProvider } from '@/components/v2/advisor/SupplementCat
 import { FloatingAdvisor } from '@/components/v2/advisor/FloatingAdvisor';
 import { Nav } from '@/components/Nav';
 import { Footer } from '@/components/Footer';
+import { PillBackground } from '@/components/PillBackground';
 
 const inter = Inter({
   variable: '--font-inter',
@@ -20,7 +21,7 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'Protocols.ai — Supplement Reference',
+  title: 'Materia — Supplement Reference',
   description:
     'Plain-language research on the supplements people actually take — graded, sourced, and scheduled.',
 };
@@ -34,6 +35,7 @@ export default function RootLayout({
       className={`${inter.variable} ${jetbrainsMono.variable} h-full`}
     >
       <body className="min-h-full flex flex-col">
+        <PillBackground />
         <AnalyticsProvider>
           <SupplementCatalogProvider>
             <Nav />
