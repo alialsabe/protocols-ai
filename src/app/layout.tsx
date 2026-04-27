@@ -36,14 +36,17 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col">
         <PillBackground />
-        <AnalyticsProvider>
-          <SupplementCatalogProvider>
-            <Nav />
-            <main style={{ flex: 1 }}>{children}</main>
-            <Footer />
-            <FloatingAdvisor />
-          </SupplementCatalogProvider>
-        </AnalyticsProvider>
+        {/* z-index: 1 so all content sits above the z-index: 0 background */}
+        <div style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+          <AnalyticsProvider>
+            <SupplementCatalogProvider>
+              <Nav />
+              <main style={{ flex: 1 }}>{children}</main>
+              <Footer />
+              <FloatingAdvisor />
+            </SupplementCatalogProvider>
+          </AnalyticsProvider>
+        </div>
       </body>
     </html>
   );

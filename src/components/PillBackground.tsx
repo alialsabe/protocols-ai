@@ -231,10 +231,9 @@ export const PillBackground: React.FC<{
       style={{
         position: 'fixed',
         inset: 0,
-        zIndex: -1,
+        zIndex: 0,
         pointerEvents: 'none',
         overflow: 'hidden',
-        // Transparent — sits on top of Materia's paper bg
       }}
     >
       <svg
