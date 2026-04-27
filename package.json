@@ -14,7 +14,9 @@
     "test:golden": "tsx scripts/golden-set.ts",
     "db:enrich": "tsx scripts/enrich-science-llm.ts",
     "db:seed-production": "tsx scripts/seed-production-info.ts",
-    "vercel-build": "next build"
+    "vercel-build": "next build",
+    "remotion:studio": "remotion studio src/remotion/Root.tsx",
+    "remotion:render": "remotion render src/remotion/Root.tsx SampleVideo out/video.mp4"
   },
   "dependencies": {
     "@playwright/test": "^1.59.1",
@@ -26,6 +28,8 @@
     "@react-three/drei": "^10.7.7",
     "@react-three/fiber": "^9.6.0",
     "@react-three/postprocessing": "^3.0.4",
+    "@remotion/player": "^4.0.452",
+    "@remotion/renderer": "^4.0.452",
     "@supabase/ssr": "^0.10.0",
     "@supabase/supabase-js": "^2.101.1",
     "clsx": "^2.1.1",
@@ -37,6 +41,7 @@
     "postprocessing": "^6.39.1",
     "react": "19.2.4",
     "react-dom": "19.2.4",
+    "remotion": "^4.0.452",
     "tailwind-merge": "^3.5.0",
     "three": "^0.169.0"
   },
