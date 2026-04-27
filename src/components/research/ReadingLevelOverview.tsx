@@ -32,7 +32,7 @@ export function ReadingLevelOverview({ report }: { report: ProtocolReport }) {
   // Plain content: prefer extras.plainSummary; fallback to first sentences of summary
   const plainSummary = extras?.plainSummary?.trim()
     || sciSummary.replace(/\([^)]*\)/g, '').split(/(?<=[.!?])\s+/).filter(Boolean).slice(0, 2).join(' ')
-    || `${report.name ?? 'This compound'} is indexed in the Protocols.ai catalog. Detailed plain-English coverage is being prepared.`;
+    || `${report.name ?? 'This compound'} is indexed in the Materia catalog. Detailed plain-English coverage is being prepared.`;
 
   const keyBenefits   = extras?.keyBenefits ?? [];
   const bestFor       = extras?.bestFor ?? [];

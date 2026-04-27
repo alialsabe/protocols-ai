@@ -29,7 +29,7 @@ export function Nav() {
     const read = () => {
       try {
         const ids: string[] = JSON.parse(
-          localStorage.getItem('protocolsai.routine.v2') || '[]',
+          localStorage.getItem('materia.routine.v2') || '[]',
         );
         setRoutineCount(ids.length);
       } catch {
@@ -76,7 +76,7 @@ export function Nav() {
             }}
           />
           <span>
-            Protocols<span style={{ color: 'var(--accent)' }}>.</span>ai
+            Materia
           </span>
           <span
             className="footnote nav-ref"

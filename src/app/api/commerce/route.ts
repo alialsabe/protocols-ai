@@ -6,7 +6,7 @@ export async function GET(request: Request) {
 
   // Simulated affiliate price aggregation logic for MVP
   // The Commerce-Agent will eventually use Playwright to scrape this live.
-  const affiliateTag = '?tag=protocolsai-20';
+  const affiliateTag = '?tag=materia-20';
 
   if (!query) {
     return NextResponse.json({ error: 'Product query is required.' }, { status: 400 });

@@ -1,4 +1,4 @@
-Protocols.ai
+Materia
 
 Next.js 16 + TypeScript app with Drizzle ORM.
 

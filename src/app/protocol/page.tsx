@@ -1,7 +1,7 @@
 import { ProtocolScheduler } from '@/components/v2/protocol/ProtocolScheduler';
 
 export const metadata = {
-  title: 'Protocol Scheduler — Protocols.AI',
+  title: 'Protocol Scheduler — Materia',
   description:
     'Generate a daily supplement schedule from your stack. Timing, food context, and interaction warnings.',
 };

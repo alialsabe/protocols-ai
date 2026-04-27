@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'About — Protocols.ai',
+  title: 'About — Materia',
   description: 'A plain-language reference for evidence-graded supplement research.',
 };
 
@@ -29,7 +29,7 @@ export default function AboutPage() {
         </h1>
         <div className="prose">
           <p>
-            Protocols.ai indexes peer-reviewed research on commonly-taken
+            Materia indexes peer-reviewed research on commonly-taken
             supplements. Every claim links to the underlying study and carries
             an evidence grade. There are no affiliate links, no product
             rankings, and no sponsored content.

@@ -65,12 +65,12 @@ export async function generateMetadata({ params }: SharedPageProps): Promise<Met
   const { publicId } = await params;
   const data = await loadShared(publicId).catch(() => null);
   if (!data) {
-    return { title: 'Shared Protocol — Protocols.ai' };
+    return { title: 'Shared Protocol — Materia' };
   }
   const name = data.snapshot.name ?? 'Shared Protocol';
   const count = data.snapshot.supplementNames?.length ?? 0;
   return {
-    title: `${name} — Protocols.ai`,
+    title: `${name} — Materia`,
     description: `A shared supplement protocol with ${count} supplement${count === 1 ? '' : 's'}.`,
     alternates: {
       canonical: `/stack/${publicId}`,

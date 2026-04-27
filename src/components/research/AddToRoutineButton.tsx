@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 
-const ROUTINE_KEY = 'protocolsai.routine.v2';
+const ROUTINE_KEY = 'materia.routine.v2';
 
 function readRoutine(): string[] {
   try { return JSON.parse(localStorage.getItem(ROUTINE_KEY) ?? '[]'); }

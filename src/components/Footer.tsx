@@ -27,7 +27,7 @@ export function Footer() {
         }}
       >
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          <span className="footnote">Protocols.ai</span>
+          <span className="footnote">Materia</span>
           <p
             style={{
               margin: 0,

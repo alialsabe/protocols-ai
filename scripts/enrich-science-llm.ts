@@ -195,8 +195,8 @@ async function generate(name: string, slug: string, category: string, attempt = 
       headers: {
         'Authorization': `Bearer ${OPENROUTER_KEY}`,
         'Content-Type': 'application/json',
-        'HTTP-Referer': 'https://protocols-ai.vercel.app',
-        'X-Title': 'Protocols.ai rich enrichment',
+        'HTTP-Referer': 'https://materia.ai',
+        'X-Title': 'Materia rich enrichment',
       },
       body: JSON.stringify({
         model: MODEL,
@@ -436,7 +436,7 @@ async function processOne(row: SupRow & { category: string }, idx: Map<string, R
 }
 
 async function run() {
-  console.log(`\n🔬 Protocols.ai — RICH science enrichment`);
+  console.log(`\n🔬 Materia — RICH science enrichment`);
   console.log(`   model=${MODEL}  dry=${DRY_RUN}  force=${FORCE}  limit=${LIMIT}  batch=${BATCH}\n`);
 
   await ensureSchema();

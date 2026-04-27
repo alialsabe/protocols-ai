@@ -20,7 +20,7 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'Protocols.ai — Supplement Reference',
+  title: 'Materia — Supplement Reference',
   description:
     'Plain-language research on the supplements people actually take — graded, sourced, and scheduled.',
 };
