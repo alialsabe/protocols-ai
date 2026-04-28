@@ -1,4 +1,4 @@
-# Kinetic + Cinematic frontend for ProtocolsAI
+# Kinetic + Cinematic frontend for Materia
 
 **Date:** 2026-04-17
 **Author:** Claude (brainstormed with Ali)
@@ -6,7 +6,7 @@
 
 ## Goal
 
-Make ProtocolsAI feel **alive and cinematic** without abandoning its "scientific instrument" thesis. The current app looks authoritative but static — this design adds kinetic motion everywhere and 3D molecular structures in two flagship spots (home hero + supplement detail pages), so the app feels like an instrument panel that's actually plugged in and running.
+Make Materia feel **alive and cinematic** without abandoning its "scientific instrument" thesis. The current app looks authoritative but static — this design adds kinetic motion everywhere and 3D molecular structures in two flagship spots (home hero + supplement detail pages), so the app feels like an instrument panel that's actually plugged in and running.
 
 ## Decisions (locked during brainstorm)
 

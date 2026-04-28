@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Turn ProtocolsAI into a kinetic instrument panel with two flagship 3D molecular moments (home hero constellation + supplement detail sticky card), without abandoning the scientific design thesis.
+**Goal:** Turn Materia into a kinetic instrument panel with two flagship 3D molecular moments (home hero constellation + supplement detail sticky card), without abandoning the scientific design thesis.
 
 **Architecture:** Phase 1 adds six kinetic CSS/JS treatments using only native browser APIs (no animation library). Phase 2 adds React Three Fiber, a one-time PubChem SDF acquisition script, and two 3D components. No backend or DB changes.
 
@@ -1014,7 +1014,7 @@ type Result =
 
 async function fetchToFile(url: string, filePath: string): Promise<boolean> {
   try {
-    const res = await fetch(url, { headers: { 'User-Agent': 'protocolsai-molecule-fetcher/1.0' } });
+    const res = await fetch(url, { headers: { 'User-Agent': 'materia-molecule-fetcher/1.0' } });
     if (!res.ok) return false;
     const buf = Buffer.from(await res.arrayBuffer());
     if (buf.length < 32) return false; // empty or error response

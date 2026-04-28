@@ -17,7 +17,7 @@ export function TopBar() {
             className="text-[14px] font-extrabold tracking-[-0.2px]"
             style={{ color: 'var(--fg)' }}
           >
-            PROTOCOLS.AI
+            MATERIA
           </span>
           <span
             className="hidden font-mono text-[10px] uppercase tracking-[1.4px] md:inline"

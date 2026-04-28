@@ -1,4 +1,4 @@
-# Protocols.ai — TODOs
+# Materia — TODOs
 
 _Updated from /plan-ceo-review session 2026-04-11_
 _Previous items (DESIGN.md, mobile tabs, science data, dosage tab, medicine interactions, scheduler) — all shipped._
@@ -22,7 +22,7 @@ _Previous items (DESIGN.md, mobile tabs, science data, dosage tab, medicine inte
 
 ### Research alerts — PubMed polling + email digest
 **What:** Poll PubMed for new studies on supplements in user stacks. Send email digest via Resend when high-quality new RCTs drop on their supplements.
-**Why:** Retention mechanism + content marketing. Creates a reason to return. Positions ProtocolsAI as the ongoing source of truth, not a one-time lookup.
+**Why:** Retention mechanism + content marketing. Creates a reason to return. Positions Materia as the ongoing source of truth, not a one-time lookup.
 **Pros:** High retention value. Viral content marketing if alerts are high quality. Differentiates from static databases.
 **Cons:** Requires Resend (email), PubMed API integration, background cron job.
 **Context:** Deliberately deferred from v2. Build after user accounts ship and the account to email capture loop is validated.

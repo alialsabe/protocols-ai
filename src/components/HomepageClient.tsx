@@ -13,25 +13,39 @@ export interface CompoundRow {
 }
 
 const CATEGORIES = [
-  'Stress & Sleep',
-  'Minerals',
-  'Performance',
-  'Cardiovascular',
-  'Vitamins',
-  'Focus',
-  'Metabolic',
-  'Longevity',
+  'herb_botanical',
+  'essential_vitamin',
+  'essential_mineral',
+  'amino_acid',
+  'specialty_dietary_substance',
+  'trace_mineral',
+  'nootropics',
+  'longevity',
+  'protein',
 ] as const;
 
+const CAT_LABEL: Record<string, string> = {
+  herb_botanical: 'Botanicals',
+  essential_vitamin: 'Vitamins',
+  essential_mineral: 'Minerals',
+  amino_acid: 'Amino Acids',
+  specialty_dietary_substance: 'Specialty',
+  trace_mineral: 'Trace Minerals',
+  nootropics: 'Nootropics',
+  longevity: 'Longevity',
+  protein: 'Protein',
+};
+
 const CAT_COLOR: Record<string, string> = {
-  'Stress & Sleep': '#8c8d60',
-  Minerals: '#9a7e4e',
-  Performance: '#b4612f',
-  Cardiovascular: '#9a413d',
-  Vitamins: '#a68130',
-  Focus: '#446573',
-  Metabolic: '#714274',
-  Longevity: '#4a754f',
+  herb_botanical: '#4a754f',
+  essential_vitamin: '#a68130',
+  essential_mineral: '#9a7e4e',
+  amino_acid: '#b4612f',
+  specialty_dietary_substance: '#714274',
+  trace_mineral: '#8c8d60',
+  nootropics: '#446573',
+  longevity: '#4a754f',
+  protein: '#9a413d',
 };
 
 /** Derive a letter grade from study count */
@@ -166,7 +180,7 @@ function CategoryFilters({ active, setActive, counts, total }: FiltersProps) {
           onClick={() => setActive(active === c ? null : c)}
         >
           <span className="pill-swatch" style={{ background: CAT_COLOR[c] }} />
-          {c}
+          {CAT_LABEL[c] ?? c}
           <span className="count">{counts[c] ?? 0}</span>
         </button>
       ))}

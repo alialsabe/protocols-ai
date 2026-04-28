@@ -79,9 +79,7 @@ export function Nav() {
               flexShrink: 0,
             }}
           />
-          <span>
-            Protocols<span style={{ color: 'var(--accent)' }}>.</span>ai
-          </span>
+          <span>Materia</span>
           <span
             className="footnote nav-ref"
             style={{ marginLeft: 8, fontSize: 10, letterSpacing: '0.8px', textTransform: 'uppercase' }}

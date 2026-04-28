@@ -114,7 +114,7 @@ Rules:
         'content-type': 'application/json',
         authorization: `Bearer ${apiKey}`,
         'http-referer': 'https://protocols.ai',
-        'x-title': 'ProtocolsAI',
+        'x-title': 'Materia',
       },
       body: JSON.stringify({
         model,

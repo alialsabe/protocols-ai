@@ -38,7 +38,7 @@ async function fileExists(filePath: string): Promise<boolean> {
 
 async function fetchToFile(url: string, filePath: string): Promise<boolean> {
   try {
-    const res = await fetch(url, { headers: { 'User-Agent': 'protocolsai-molecule-fetcher/1.0' } });
+    const res = await fetch(url, { headers: { 'User-Agent': 'materia-molecule-fetcher/1.0' } });
     if (!res.ok) return false;
     const buf = Buffer.from(await res.arrayBuffer());
     if (buf.length < 32) return false; // empty or error response
