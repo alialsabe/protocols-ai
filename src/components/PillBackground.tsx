@@ -2,21 +2,19 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 
-// ── Colour palette ───────────────────────────────────────────────────────────
-// Greens — supplement / wellness vibe (visible on light paper bg)
+// ── Colour palette ────────────────────────────────────────────────────────────
 const COLORS = [
   '#A8E6CF', '#69F0AE', '#7DD6B0', '#5CC49A',
   '#B2F2BB', '#4ECDC4', '#26C281', '#88E8C0',
   '#9CCC65', '#66BB6A', '#C5E8A1', '#3DDC97',
 ];
 
-// Deterministic RNG so layout is stable across renders
 function rand(seed: number) {
   const x = Math.sin(seed * 9301 + 49297) * 233280;
   return x - Math.floor(x);
 }
 
-type Shape = 'capsule' | 'tablet';
+type Shape = 'capsule' | 'tablet' | 'scoop';
 
 interface PillSpec {
   id: number;
@@ -25,230 +23,186 @@ interface PillSpec {
   w: number;
   h: number;
   dy: number;
+  rot: number;
 }
 
 function makePill(seed: number): PillSpec {
   const ci = Math.floor(rand(seed) * COLORS.length);
-  const isCap = rand(seed + 1) > 0.3;
-  const h = 16 + Math.floor(rand(seed + 2) * 20);
-  const w = isCap ? Math.round(h * (1.8 + rand(seed + 3) * 0.8)) : h;
+  const r = rand(seed + 1);
+  const shape: Shape = r < 0.14 ? 'scoop' : r < 0.42 ? 'tablet' : 'capsule';
+  const h = 15 + Math.floor(rand(seed + 2) * 18); // 15–33 px
+  const w =
+    shape === 'capsule' ? Math.round(h * (1.8 + rand(seed + 3) * 0.8))
+    : shape === 'scoop'  ? Math.round(h * 2.2)
+    : h;
   return {
     id: seed,
-    shape: isCap ? 'capsule' : 'tablet',
+    shape,
     color: COLORS[ci],
     w,
     h,
     dy: (rand(seed + 4) - 0.5) * 10,
+    rot: (rand(seed + 5) - 0.5) * 28,
   };
 }
 
-const COUNT = 40;
-const SPACING = 100;
-const TOTAL_SPAN = COUNT * SPACING;
+// ── Hollow shapes ─────────────────────────────────────────────────────────────
 
-const LANE1 = Array.from({ length: COUNT }, (_, i) => makePill(i * 7 + 1));
-const LANE2 = Array.from({ length: COUNT }, (_, i) => makePill(i * 7 + 400));
-
-// ── Hollow shapes ────────────────────────────────────────────────────────────
+// Capsule — outline with vertical seam at the join between the two halves
 const Capsule: React.FC<{ p: PillSpec; alpha: number }> = ({ p, alpha }) => {
   const { w, h, color } = p;
   const rx = h / 2;
-  const sw = 1.6;
+  const sw = 1.4;
   return (
     <svg width={w} height={h} style={{ overflow: 'visible' }} opacity={alpha}>
-      <rect
-        x={sw / 2}
-        y={sw / 2}
-        width={w - sw}
-        height={h - sw}
-        rx={rx}
-        ry={rx}
-        fill="none"
-        stroke={color}
-        strokeWidth={sw}
-      />
-      <line
-        x1={w / 2}
-        y1={h * 0.18}
-        x2={w / 2}
-        y2={h * 0.82}
-        stroke={color}
-        strokeWidth={0.9}
-        opacity={0.4}
-      />
+      <rect x={sw / 2} y={sw / 2} width={w - sw} height={h - sw}
+        rx={rx} ry={rx} fill="none" stroke={color} strokeWidth={sw} />
+      {/* Fine seam line at the midpoint — where the two capsule halves join */}
+      <line x1={w / 2} y1={h * 0.14} x2={w / 2} y2={h * 0.86}
+        stroke={color} strokeWidth={0.85} opacity={0.55} strokeLinecap="round" />
     </svg>
   );
 };
 
+// Tablet — outline circle with a horizontal score line across the diameter
 const Tablet: React.FC<{ p: PillSpec; alpha: number }> = ({ p, alpha }) => {
   const { h, color } = p;
-  const r = (h - 1.6) / 2;
-  const sw = 1.6;
+  const r = (h - 1.4) / 2;
+  const sw = 1.4;
   return (
     <svg width={h} height={h} style={{ overflow: 'visible' }} opacity={alpha}>
-      <circle cx={h / 2} cy={h / 2} r={r} fill="none" stroke={color} strokeWidth={sw} />
-      <line
-        x1={h / 2}
-        y1={h * 0.22}
-        x2={h / 2}
-        y2={h * 0.78}
-        stroke={color}
-        strokeWidth={0.9}
-        opacity={0.4}
-      />
+      <circle cx={h / 2} cy={h / 2} r={r}
+        fill="none" stroke={color} strokeWidth={sw} />
+      {/* Horizontal score line (real tablets are split this way) */}
+      <line x1={h * 0.18} y1={h / 2} x2={h * 0.82} y2={h / 2}
+        stroke={color} strokeWidth={0.85} opacity={0.55} strokeLinecap="round" />
     </svg>
   );
 };
 
-// ── Main component ───────────────────────────────────────────────────────────
-export const PillBackground: React.FC<{
-  /** Frames per second the animation re-renders at. 30 is plenty for a bg. */
-  fps?: number;
-}> = ({ fps = 30 }) => {
+// Scoop — hollow measuring spoon: ellipse bowl + angled handle
+const Scoop: React.FC<{ p: PillSpec; alpha: number }> = ({ p, alpha }) => {
+  const { h, color } = p;
+  const bw = h * 1.1;          // bowl width
+  const bh = h * 0.65;         // bowl height
+  const handleLen = h * 1.05;  // handle length
+  const sw = 1.4;
+  const cx = bw / 2 + sw;
+  const cy = bh / 2 + sw;
+  const totalW = bw + handleLen + sw * 2 + 2;
+  const totalH = bh + sw * 2 + h * 0.35; // extra room for handle droop
+  // Handle starts at right rim of bowl, droops slightly downward
+  const hx1 = cx + bw / 2 - sw / 2;
+  const hy1 = cy + bh * 0.08;
+  const hx2 = hx1 + handleLen;
+  const hy2 = hy1 + h * 0.3;
+  return (
+    <svg width={totalW} height={totalH} style={{ overflow: 'visible' }} opacity={alpha}>
+      {/* Bowl */}
+      <ellipse cx={cx} cy={cy} rx={bw / 2 - sw / 2} ry={bh / 2 - sw / 2}
+        fill="none" stroke={color} strokeWidth={sw} />
+      {/* Handle */}
+      <line x1={hx1} y1={hy1} x2={hx2} y2={hy2}
+        stroke={color} strokeWidth={sw * 0.85} strokeLinecap="round" />
+    </svg>
+  );
+};
+
+// ── Layout constants ──────────────────────────────────────────────────────────
+const LANE_SPACING = 195; // px between lanes (in rotated space)
+const SPACING      = 145; // px between pill centres in a lane
+const ROT_DEG      = 28;  // rotation that makes the lanes appear diagonal
+const OPACITY      = 0.30; // uniform faint opacity — background decoration only
+
+export const PillBackground: React.FC<{ fps?: number }> = ({ fps = 30 }) => {
   const [frame, setFrame] = useState(0);
   const [size, setSize] = useState<{ w: number; h: number }>({ w: 1920, h: 1080 });
-  const rafRef = useRef<number | null>(null);
-  const lastTickRef = useRef<number>(0);
+  const rafRef     = useRef<number | null>(null);
+  const lastRef    = useRef(0);
 
-  // Track viewport size + animation clock
   useEffect(() => {
     const onResize = () => setSize({ w: window.innerWidth, h: window.innerHeight });
     onResize();
     window.addEventListener('resize', onResize);
-
     const interval = 1000 / fps;
     const tick = (t: number) => {
-      if (t - lastTickRef.current >= interval) {
-        lastTickRef.current = t;
-        setFrame((f) => f + 1);
+      if (t - lastRef.current >= interval) {
+        lastRef.current = t;
+        setFrame(f => f + 1);
       }
       rafRef.current = requestAnimationFrame(tick);
     };
     rafRef.current = requestAnimationFrame(tick);
-
     return () => {
       window.removeEventListener('resize', onResize);
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
     };
   }, [fps]);
 
-  const { w: width, h: height } = size;
+  const { w: sw, h: sh } = size;
 
-  const speed1 = 5.2;
-  const speed2 = 4.4;
-  const off1 = (frame * speed1) % TOTAL_SPAN;
-  const off2 = (frame * speed2) % TOTAL_SPAN;
+  // Inner container is oversized so the rotated div fully covers the viewport.
+  // At 28° rotation the required oversize is ≈ 60% w × 90% h.
+  const innerW = Math.ceil(sw * 1.65);
+  const innerH = Math.ceil(sh * 1.95);
+  const offsetX = -Math.round((innerW - sw) / 2);
+  const offsetY = -Math.round((innerH - sh) / 2);
 
-  // ── DNA double-helix maths ──────────────────────────────────────────────
-  const cy = height / 2;
-  const amp = height * 0.21;
-  const wavelength = width * 0.72;
-  const twistSpeed = 0.024;
+  const laneCount = Math.ceil(innerH / LANE_SPACING) + 1;
+  const pillCount = Math.ceil(innerW / SPACING)      + 2;
 
-  const phase = (x: number) => (2 * Math.PI * x) / wavelength + frame * twistSpeed;
-  const l1y = (x: number) => cy + amp * Math.sin(phase(x));
-  const l2y = (x: number) => cy + amp * Math.sin(phase(x) + Math.PI);
+  const elements: React.ReactNode[] = [];
 
-  const angleOf = (x: number, offsetPi = 0) => {
-    const slope = (amp * Math.cos(phase(x) + offsetPi) * (2 * Math.PI)) / wavelength;
-    return Math.atan2(slope, 1) * (180 / Math.PI);
-  };
+  for (let li = 0; li < laneCount; li++) {
+    // Each lane scrolls at a slightly different speed (1.2–2.0 px/frame)
+    const speed     = 1.2 + rand(li * 13 + 7) * 0.8;
+    const totalSpan = pillCount * SPACING;
+    const offset    = (frame * speed) % totalSpan;
+    const laneY     = li * LANE_SPACING;
 
-  const l1front = (x: number) => Math.sin(phase(x)) >= 0;
-  const l2front = (x: number) => Math.sin(phase(x) + Math.PI) >= 0;
+    for (let pi = 0; pi < pillCount; pi++) {
+      const p    = makePill(li * 200 + pi);
+      const xRaw = ((pi * SPACING - offset + totalSpan * 10) % totalSpan) - SPACING;
+      if (xRaw < -(p.w + 50) || xRaw > innerW + 50) continue;
 
-  const l1alpha = (x: number) => (l1front(x) ? 0.8 : 0.25);
-  const l2alpha = (x: number) => (l2front(x) ? 0.8 : 0.25);
-
-  type PillEl = { key: string; el: React.ReactNode };
-  const back: PillEl[] = [];
-  const front: PillEl[] = [];
-
-  const buildLane = (
-    pills: PillSpec[],
-    offset: number,
-    yFn: (x: number) => number,
-    angleFn: (x: number) => number,
-    alphaFn: (x: number) => number,
-    frontFn: (x: number) => boolean,
-  ) => {
-    pills.forEach((p, i) => {
-      const xRaw = ((i * SPACING - offset + TOTAL_SPAN * 10) % TOTAL_SPAN) - SPACING;
-      if (xRaw < -(p.w + 60) || xRaw > width + 60) return;
-
-      const xc = xRaw + p.w / 2;
-      const yc = yFn(xc) + p.dy;
-      const rot = angleFn(xc);
-      const alpha = alphaFn(xc);
-
-      const el = (
+      elements.push(
         <div
+          key={`${li}-${pi}`}
           style={{
             position: 'absolute',
             left: xRaw,
-            top: yc - p.h / 2,
-            transform: `rotate(${rot}deg)`,
+            top: laneY + p.dy - p.h / 2,
+            transform: `rotate(${p.rot}deg)`,
             willChange: 'transform',
           }}
         >
-          {p.shape === 'capsule' ? <Capsule p={p} alpha={alpha} /> : <Tablet p={p} alpha={alpha} />}
-        </div>
+          {p.shape === 'capsule' ? <Capsule p={p} alpha={OPACITY} />
+           : p.shape === 'tablet' ? <Tablet p={p} alpha={OPACITY} />
+           : <Scoop p={p} alpha={OPACITY} />}
+        </div>,
       );
-
-      (frontFn(xc) ? front : back).push({ key: `${p.id}-${i}`, el });
-    });
-  };
-
-  buildLane(LANE1, off1, l1y, (x) => angleOf(x, 0), l1alpha, l1front);
-  buildLane(LANE2, off2, l2y, (x) => angleOf(x, Math.PI), l2alpha, l2front);
-
-  // ── DNA rungs ────────────────────────────────────────────────────────────
-  const RUNG_SPACING = 90;
-  const rungOff = (frame * ((speed1 + speed2) / 2)) % RUNG_SPACING;
-  const rungs: React.ReactNode[] = [];
-  for (let rx = -rungOff; rx < width + RUNG_SPACING; rx += RUNG_SPACING) {
-    const y1 = l1y(rx);
-    const y2 = l2y(rx);
-    const spread = Math.abs(y1 - y2) / (amp * 2);
-    const opacity = 0.05 + spread * 0.15;
-    rungs.push(
-      <line
-        key={rx}
-        x1={rx}
-        y1={y1}
-        x2={rx}
-        y2={y2}
-        stroke="#5CC49A"
-        strokeWidth={0.8}
-        opacity={opacity}
-      />,
-    );
+    }
   }
 
   return (
     <div
       aria-hidden
-      style={{
-        position: 'fixed',
-        inset: 0,
-        zIndex: 0,
-        pointerEvents: 'none',
-        overflow: 'hidden',
-      }}
+      style={{ position: 'fixed', inset: 0, zIndex: 0, pointerEvents: 'none', overflow: 'hidden' }}
     >
-      <svg
-        style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', overflow: 'visible' }}
-        xmlns="http://www.w3.org/2000/svg"
+      {/* Rotated wrapper — horizontal lanes become diagonal bands */}
+      <div
+        style={{
+          position: 'absolute',
+          width:  innerW,
+          height: innerH,
+          left:   offsetX,
+          top:    offsetY,
+          transform: `rotate(${ROT_DEG}deg)`,
+          transformOrigin: 'center',
+        }}
       >
-        {rungs}
-      </svg>
-
-      {back.map(({ key, el }) => (
-        <React.Fragment key={key}>{el}</React.Fragment>
-      ))}
-      {front.map(({ key, el }) => (
-        <React.Fragment key={key}>{el}</React.Fragment>
-      ))}
+        {elements}
+      </div>
     </div>
   );
 };
