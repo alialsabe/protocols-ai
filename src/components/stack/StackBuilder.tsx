@@ -7,6 +7,7 @@ import { RoutinePanel } from './RoutinePanel';
 interface StackItem {
   id: string;
   name: string;
+  slug: string;
 }
 
 interface SupplementOption {
@@ -14,6 +15,22 @@ interface SupplementOption {
   name: string;
   slug: string;
   popularityScore: number;
+}
+
+// Single source of truth for the user's routine — same key the AddToRoutineButton
+// on each /research/[slug] page writes, and the Nav badge reads. We store slugs.
+const ROUTINE_KEY = 'protocolsai.routine.v2';
+
+function readLocalRoutine(): string[] {
+  if (typeof window === 'undefined') return [];
+  try { return JSON.parse(localStorage.getItem(ROUTINE_KEY) ?? '[]'); }
+  catch { return []; }
+}
+
+function writeLocalRoutine(slugs: string[]) {
+  if (typeof window === 'undefined') return;
+  localStorage.setItem(ROUTINE_KEY, JSON.stringify(slugs));
+  window.dispatchEvent(new CustomEvent('routine:update'));
 }
 
 export function StackBuilder() {
@@ -32,9 +49,13 @@ export function StackBuilder() {
   const [loading, setLoading] = useState(true);
 
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const autosaveRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const hydratedRef = useRef(false); // suppress autosave during hydration
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Load all supplements for ID lookup and current stack
+  // Hydrate from localStorage (canonical) + reconcile with server stack when
+  // the user is logged in. localStorage is the single source of truth; the
+  // server is a backup that kicks in only on a fresh login / new device.
   useEffect(() => {
     async function init() {
       try {
@@ -43,9 +64,10 @@ export function StackBuilder() {
           fetch('/api/stack'),
         ]);
 
+        let list: SupplementOption[] = [];
         if (suppRes.ok) {
           const data = await suppRes.json();
-          const list: SupplementOption[] = (data.supplements ?? []).map(
+          list = (data.supplements ?? []).map(
             (s: { id?: string; name?: string; slug?: string; popularityScore?: number }) => ({
               id: s.id ?? '',
               name: s.name ?? '',
@@ -56,30 +78,95 @@ export function StackBuilder() {
           setAllSupplements(list);
         }
 
+        const bySlug = new Map(list.map((s) => [s.slug, s]));
+        const byId   = new Map(list.map((s) => [s.id, s]));
+
+        // localStorage = the user's intent, regardless of auth.
+        const localSlugs = readLocalRoutine();
+        const localItems: StackItem[] = localSlugs
+          .map((slug) => bySlug.get(slug))
+          .filter((s): s is SupplementOption => Boolean(s))
+          .map((s) => ({ id: s.id, name: s.name, slug: s.slug }));
+
+        let merged: StackItem[] = localItems;
+        let resolvedStackId: string | null = null;
+        let resolvedName = 'My Stack';
+        let authed = false;
+
         if (stackRes.ok) {
           const data = await stackRes.json();
-          // The API returns an explicit `authenticated` flag — anonymous users
-          // get { stack: null, authenticated: false } and we must NOT treat
-          // that as logged in.
-          setIsLoggedIn(Boolean(data.authenticated));
+          authed = Boolean(data.authenticated);
           if (data.stack) {
-            setStackId(data.stack.id);
-            setStackName(data.stack.name ?? 'My Stack');
-            const ids: string[] = data.stack.supplementIds ?? [];
-            const names: string[] = data.stack.supplementNames ?? [];
-            setItems(ids.map((id: string, i: number) => ({ id, name: names[i] ?? id })));
+            resolvedStackId = data.stack.id;
+            resolvedName    = data.stack.name ?? 'My Stack';
+
+            const serverIds: string[] = data.stack.supplementIds ?? [];
+            const serverItems: StackItem[] = serverIds
+              .map((id: string) => byId.get(id))
+              .filter((s): s is SupplementOption => Boolean(s))
+              .map((s) => ({ id: s.id, name: s.name, slug: s.slug }));
+
+            if (localItems.length === 0 && serverItems.length > 0) {
+              // Fresh login / new device — restore from server, mirror to local.
+              merged = serverItems;
+              writeLocalRoutine(serverItems.map((i) => i.slug));
+            } else if (serverItems.length > 0) {
+              // Both sides have data — union by id, local first (preserves order).
+              const seen = new Set(localItems.map((i) => i.id));
+              const fromServer = serverItems.filter((s) => !seen.has(s.id));
+              merged = [...localItems, ...fromServer];
+              if (fromServer.length > 0) {
+                writeLocalRoutine(merged.map((i) => i.slug));
+              }
+            }
           }
-        } else {
-          setIsLoggedIn(false);
         }
+
+        setIsLoggedIn(authed);
+        setStackId(resolvedStackId);
+        setStackName(resolvedName);
+        setItems(merged);
       } catch {
+        // Fall back to localStorage-only on network failure.
+        const localSlugs = readLocalRoutine();
+        // If we don't have the supplements list, we can't resolve names.
+        setItems(
+          localSlugs.map((slug) => ({ id: slug, name: slug, slug })),
+        );
         setIsLoggedIn(false);
       } finally {
         setLoading(false);
+        hydratedRef.current = true;
       }
     }
     init();
+    return () => {
+      if (autosaveRef.current) clearTimeout(autosaveRef.current);
+    };
   }, []);
+
+  // React to routine changes from elsewhere (the AddToRoutineButton on a
+  // /research/[slug] page, or another tab). Re-hydrate `items` from local.
+  useEffect(() => {
+    if (allSupplements.length === 0) return;
+    const bySlug = new Map(allSupplements.map((s) => [s.slug, s]));
+    function syncFromLocal() {
+      const slugs = readLocalRoutine();
+      const next: StackItem[] = slugs
+        .map((slug) => bySlug.get(slug))
+        .filter((s): s is SupplementOption => Boolean(s))
+        .map((s) => ({ id: s.id, name: s.name, slug: s.slug }));
+      setItems((prev) => {
+        // No-op if the lists are identical (avoid render churn).
+        if (prev.length === next.length && prev.every((p, i) => p.id === next[i].id)) {
+          return prev;
+        }
+        return next;
+      });
+    }
+    window.addEventListener('routine:update', syncFromLocal);
+    return () => window.removeEventListener('routine:update', syncFromLocal);
+  }, [allSupplements]);
 
   // Supplement search
   const search = useCallback(
@@ -110,6 +197,14 @@ export function StackBuilder() {
     debounceRef.current = setTimeout(() => search(val), 200);
   }
 
+  // Single mutator — keeps state, localStorage, and (if authed) the server in sync.
+  const commitItems = useCallback((next: StackItem[]) => {
+    setItems(next);
+    writeLocalRoutine(next.map((i) => i.slug));
+    setSaveStatus('idle');
+    setShareUrl(null);
+  }, []);
+
   function addSupplement(name: string) {
     const match = allSupplements.find((s) => s.name.toLowerCase() === name.toLowerCase());
     if (!match) return;
@@ -118,18 +213,44 @@ export function StackBuilder() {
       setShowDropdown(false);
       return;
     }
-    setItems((prev) => [...prev, { id: match.id, name: match.name }]);
+    commitItems([...items, { id: match.id, name: match.name, slug: match.slug }]);
     setQuery('');
     setSuggestions([]);
     setShowDropdown(false);
-    setSaveStatus('idle');
   }
 
   function removeItem(id: string) {
-    setItems((prev) => prev.filter((i) => i.id !== id));
-    setSaveStatus('idle');
-    setShareUrl(null);
+    commitItems(items.filter((i) => i.id !== id));
   }
+
+  // Autosave to the server for logged-in users — debounced so adding several
+  // supplements in a row only POSTs once.
+  useEffect(() => {
+    if (!hydratedRef.current) return;       // skip during initial hydration
+    if (isLoggedIn !== true)    return;     // anonymous = local only
+    if (autosaveRef.current) clearTimeout(autosaveRef.current);
+    autosaveRef.current = setTimeout(() => {
+      // Fire and forget — explicit Save still exists for force-sync.
+      fetch('/api/stack', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: stackName,
+          supplementIds: items.map((i) => i.id),
+        }),
+      })
+        .then(async (res) => {
+          if (!res.ok) return;
+          const data = await res.json();
+          if (data?.id) setStackId(data.id);
+          setSaveStatus('saved');
+        })
+        .catch(() => { /* keep local-only — explicit Save can retry */ });
+    }, 700);
+    return () => {
+      if (autosaveRef.current) clearTimeout(autosaveRef.current);
+    };
+  }, [items, stackName, isLoggedIn]);
 
   async function handleSave(): Promise<string | null> {
     if (!isLoggedIn) return null;
@@ -438,10 +559,10 @@ export function StackBuilder() {
               className="font-mono text-[11px] font-bold uppercase tracking-[1.4px]"
               style={{ color: 'var(--accent)' }}
             >
-              Save Your Routine
+              Saved on this device
             </span>
             <p className="text-[14px]" style={{ color: 'var(--fg-muted)' }}>
-              Sign in to save your routine, track changes, and share with others.
+              Sign in to sync across devices, unlock your dashboard, and share this routine.
             </p>
           </div>
           <Link
