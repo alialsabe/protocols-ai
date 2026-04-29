@@ -112,7 +112,7 @@ const Scoop: React.FC<{ p: PillSpec; alpha: number }> = ({ p, alpha }) => {
 const LANE_SPACING = 195; // px between lanes (in rotated space)
 const SPACING      = 145; // px between pill centres in a lane
 const ROT_DEG      = 28;  // rotation that makes the lanes appear diagonal
-const OPACITY      = 0.30; // uniform faint opacity — background decoration only
+const OPACITY      = 0.45; // base opacity — fades further in the centre via mask
 
 export const PillBackground: React.FC<{ fps?: number }> = ({ fps = 30 }) => {
   const [frame, setFrame] = useState(0);
@@ -187,7 +187,19 @@ export const PillBackground: React.FC<{ fps?: number }> = ({ fps = 30 }) => {
   return (
     <div
       aria-hidden
-      style={{ position: 'fixed', inset: 0, zIndex: 0, pointerEvents: 'none', overflow: 'hidden' }}
+      style={{
+        position: 'fixed',
+        inset: 0,
+        zIndex: 0,
+        pointerEvents: 'none',
+        overflow: 'hidden',
+        // Fade pills in the central content column so they don't fight with text.
+        // Full opacity at far left/right, ~20% in the middle band.
+        WebkitMaskImage:
+          'linear-gradient(to right, rgba(0,0,0,1) 0%, rgba(0,0,0,0.2) 32%, rgba(0,0,0,0.2) 68%, rgba(0,0,0,1) 100%)',
+        maskImage:
+          'linear-gradient(to right, rgba(0,0,0,1) 0%, rgba(0,0,0,0.2) 32%, rgba(0,0,0,0.2) 68%, rgba(0,0,0,1) 100%)',
+      }}
     >
       {/* Rotated wrapper — horizontal lanes become diagonal bands */}
       <div
