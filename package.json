@@ -11,6 +11,8 @@
     "db:seed": "tsx scripts/seed.ts",
     "db:bootstrap": "tsx scripts/bootstrap-db.ts",
     "db:reset": "tsx scripts/seed.ts --reset",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "test:golden": "tsx scripts/golden-set.ts",
     "db:enrich": "tsx scripts/enrich-science-llm.ts",
     "db:seed-production": "tsx scripts/seed-production-info.ts",
@@ -43,15 +45,21 @@
   "devDependencies": {
     "@anthropic-ai/sdk": "^0.91.1",
     "@tailwindcss/postcss": "^4",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@testing-library/user-event": "^14.6.1",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@types/three": "^0.169.0",
+    "@vitejs/plugin-react": "^6.0.1",
     "drizzle-kit": "^0.31.10",
     "eslint": "^9",
     "eslint-config-next": "16.2.1",
+    "jsdom": "^29.1.0",
     "tailwindcss": "^4",
     "tsx": "^4.21.0",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^4.1.5"
   }
 }

@@ -1,71 +1,9 @@
 import type { ProtocolReport } from './protocol-types';
 
 /**
- * Utilities for stack-level operations: health score, shopping list,
- * dose calculation. All pure functions. Deterministic.
+ * Utilities for stack-level operations: shopping list, dose calculation,
+ * "time to feel it" hints. All pure functions. Deterministic.
  */
-
-export interface StackHealthScore {
-  score: number; // 0-100
-  tip: string;
-}
-
-/**
- * Stack health score formula (from CEO plan):
- *   (avg evidence quality × 0.4) + (goal coverage × 0.4) + (dosage completeness × 0.2)
- *
- * Inputs are 0-1, output is 0-100 integer.
- */
-export function computeStackHealthScore(reports: ProtocolReport[], goals: string[] = []): StackHealthScore {
-  if (reports.length === 0) {
-    return { score: 0, tip: 'Add supplements to see your stack health score.' };
-  }
-
-  // Evidence quality: fraction of high-quality findings across all supplements
-  let totalFindings = 0;
-  let qualityPoints = 0;
-  for (const report of reports) {
-    const findings = report.science?.findings ?? [];
-    totalFindings += findings.length;
-    for (const f of findings) {
-      qualityPoints += f.quality === 'high' ? 1 : f.quality === 'medium' ? 0.5 : 0;
-    }
-  }
-  const avgEvidenceQuality = totalFindings === 0 ? 0 : qualityPoints / totalFindings;
-
-  // Goal coverage: heuristic — if user has goals, check how many of their reports
-  // mention those goals in tags or summaries.
-  const goalCoverage = goals.length === 0
-    ? 0.6 // neutral baseline when no goals
-    : Math.min(1, reports.filter((r) => {
-        const haystack = [
-          r.summary ?? '',
-          ...(r.tags?.map((t) => t.tag) ?? []),
-        ].join(' ').toLowerCase();
-        return goals.some((g) => haystack.includes(g.toLowerCase()));
-      }).length / reports.length);
-
-  // Dosage completeness: fraction of supplements with a maintenance dose
-  const withDosage = reports.filter((r) => r.dosage?.maintenance).length;
-  const dosageCompleteness = withDosage / reports.length;
-
-  const rawScore = avgEvidenceQuality * 0.4 + goalCoverage * 0.4 + dosageCompleteness * 0.2;
-  const score = Math.round(rawScore * 100);
-
-  // Pick the biggest gap as the improvement tip
-  let tip: string;
-  if (avgEvidenceQuality < 0.5) {
-    tip = 'Evidence quality is the weakest part of this stack. Replace lower-quality supplements with well-studied alternatives.';
-  } else if (goalCoverage < 0.5 && goals.length > 0) {
-    tip = 'Most of your supplements don\'t directly target your stated goals. Consider adding targeted options.';
-  } else if (dosageCompleteness < 0.7) {
-    tip = 'Some supplements are missing clear dosing guidance. Research proper doses before starting.';
-  } else {
-    tip = 'Looking good. Keep tracking how you feel and adjust based on results.';
-  }
-
-  return { score, tip };
-}
 
 /**
  * "Time to feel it" tag — heuristic per supplement based on tags/category.

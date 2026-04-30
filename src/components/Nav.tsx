@@ -9,9 +9,9 @@ export function Nav() {
   const pathname = usePathname();
   const isHome      = pathname === '/';
   const isResearch  = pathname.startsWith('/research');
-  const isRoutine   = pathname === '/stack' || pathname === '/stack/';
+  const isRoutine   = pathname === '/routine' || pathname === '/routine/'
+                    || pathname === '/stack'   || pathname === '/stack/';
   const isAbout     = pathname === '/about';
-  const isDashboard = pathname === '/dashboard';
 
   const { user, loading: authLoading } = useAuth();
 
@@ -92,7 +92,7 @@ export function Nav() {
         <div className="nav-links" style={{ display: 'flex', gap: 32, justifySelf: 'center' }}>
           {([
             ['Browse',     '/',          isHome],
-            ['My Routine', '/stack',     isRoutine],
+            ['My Routine', '/routine',   isRoutine],
             ['About',      '/about',     isAbout],
           ] as const).map(([label, href, active]) => (
             <Link
@@ -116,22 +116,6 @@ export function Nav() {
               )}
             </Link>
           ))}
-          {user && (
-            <Link
-              href="/dashboard"
-              style={{
-                fontSize: 13,
-                fontWeight: 500,
-                color: isDashboard ? 'var(--ink)' : 'var(--ink-3)',
-                paddingBottom: 4,
-                borderBottom: isDashboard ? '1px solid var(--ink)' : '1px solid transparent',
-                transition: 'color 150ms var(--ease), border-color 150ms var(--ease)',
-                textDecoration: 'none',
-              }}
-            >
-              Dashboard
-            </Link>
-          )}
         </div>
 
         {/* Date + Auth */}

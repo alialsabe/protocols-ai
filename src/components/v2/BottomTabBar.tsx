@@ -26,9 +26,9 @@ export function BottomTabBar() {
         <Search size={20} strokeWidth={1.75} aria-hidden color="var(--accent)" />
         <span className="font-mono">Search</span>
       </Link>
-      <Link href="/stack" className={itemCls} style={itemStyle}>
+      <Link href="/routine" className={itemCls} style={itemStyle}>
         <Layers size={20} strokeWidth={1.75} aria-hidden color="var(--accent)" />
-        <span className="font-mono">Stack</span>
+        <span className="font-mono">Routine</span>
       </Link>
       <button
         type="button"

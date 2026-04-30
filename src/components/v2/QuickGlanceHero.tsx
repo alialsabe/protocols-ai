@@ -96,7 +96,7 @@ export async function QuickGlanceHero() {
                 View full report →
               </Link>
               <Link
-                href="/stack"
+                href="/routine"
                 className="inline-flex min-h-[44px] items-center px-5 font-mono text-[11px] font-bold uppercase tracking-[1.4px] transition-colors"
                 style={{
                   background: 'transparent',
