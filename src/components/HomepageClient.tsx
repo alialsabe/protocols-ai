@@ -200,7 +200,10 @@ function CompoundRowItem({ s, index }: { s: CompoundRow; index: number }) {
     <Link href={`/research/${s.slug}`} className="compound-row">
       <span className="rank">{String(index + 1).padStart(2, '0')}</span>
       <div>
-        <h3 className="compound-name">{s.name}</h3>
+        <span className="compound-name-wrap">
+          <span className="compound-name-glass" aria-hidden="true" />
+          <h3 className="compound-name">{s.name}</h3>
+        </span>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
           <span className="tag tag--sm" data-cat={s.category}>{s.category}</span>
           {aliases[0] && <span className="compound-sub">{aliases[0]}</span>}
