@@ -11,6 +11,7 @@ import { eq } from 'drizzle-orm';
 import { createClient } from '../../../utils/supabase/server';
 import { StackBuilder } from '@/components/stack/StackBuilder';
 import { PersonalisedAnalysis } from '@/components/stack/PersonalisedAnalysis';
+import { StackAudit } from '@/components/stack/StackAudit';
 import type { Biometrics } from '@/components/stack/BiometricsForm';
 
 export const metadata = {
@@ -99,6 +100,7 @@ export default async function RoutinePage() {
     <div style={{ paddingTop: 0 }}>
       <StackBuilder />
       <div className="mx-auto max-w-[1200px] px-5 md:px-10 lg:px-16">
+        <StackAudit isAuthenticated={isAuthenticated} />
         <PersonalisedAnalysis
           initialBiometrics={initialBiometrics}
           isAuthenticated={isAuthenticated}
