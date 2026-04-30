@@ -217,6 +217,26 @@ export const savedStacks = pgTable('saved_stacks', {
   ...timestamps(),
 });
 
+// A user's current medication list for stack audit checks. Anonymous users keep
+// this only in localStorage.
+export const userMedications = pgTable('user_medications', {
+  id: id(),
+  userId: text('user_id').notNull(), // references auth.users(id)
+  medName: text('med_name').notNull(),
+  dosage: text('dosage'),
+  frequency: text('frequency'),
+  addedAt: timestamp('added_at', { withTimezone: true }).notNull().defaultNow(),
+});
+
+// Write-only audit history for reviewing what was checked at generation time.
+export const auditSessions = pgTable('audit_sessions', {
+  id: id(),
+  userId: text('user_id'), // null for anonymous runs
+  stackSnapshot: jsonb('stack_snapshot').notNull(),
+  findings: jsonb('findings').notNull(),
+  generatedAt: timestamp('generated_at', { withTimezone: true }).notNull().defaultNow(),
+});
+
 // ── supplement_mentions ─────────────────────────────────────────────
 // One row per detected mention from a trending source (YT, reddit, RSS, etc).
 export const supplementMentions = pgTable(
