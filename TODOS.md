@@ -1,7 +1,21 @@
 # Materia — TODOs
 
+_Updated from /plan-eng-review session 2026-04-29 (audit-first pivot)_
 _Updated from /plan-ceo-review session 2026-04-11_
 _Previous items (DESIGN.md, mobile tabs, science data, dosage tab, medicine interactions, scheduler) — all shipped._
+
+---
+
+## From /plan-eng-review 2026-04-29
+
+### Hand-curate redundancy_rules for the audit feature
+**What:** Curate ~30-50 rules covering common supplement-stack redundancies: B-complex + standalone B12 / methylfolate, multivitamin + standalone vitamins, magnesium oxide vs glycinate (bioavailability), creatine HCl vs monohydrate (price/effect parity), separate iron + multivitamin with iron, etc. Each rule: trigger_a, trigger_b, severity (info/low/medium), 1-line rationale.
+**Why:** The audit feature in cut #1 ships with only `supplement_conflicts` data — drug interactions + timing, not redundancies. Without these rules, the audit can't say "your B-complex contains B12; your separate B12 is duplicative." That's one of the four headline value props of the audit ("redundancies" category in the report).
+**Pros:** Sharper audit findings. Saves users money on duplicates (good marketing line). Fills the largest gap in v1.
+**Cons:** 4-8 hours of founder time. Each rule needs a real judgement call.
+**Context:** The cut #1 audit has 5 categories — categories 1-3 + 5 use existing data; category 4 (redundancies) needs this new table. Schema for `redundancy_rules` is in the design doc at `~/.gstack/projects/alialsabe-protocols-ai/alial-main-design-20260429-075618.md`.
+**Effort:** M (human, 4-8h) / S (code to consume)
+**Priority:** P2 — do after audit v1 ships and concierge test validates demand. First feature to add in days 21-30 if validated.
 
 ---
 
