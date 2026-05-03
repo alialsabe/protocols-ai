@@ -1,5 +1,6 @@
 import { listAffiliateOptionsBySupplementId } from '@/lib/db';
 import type { ProtocolReport } from '@/lib/protocol-types';
+import { AffiliateLink } from '@/components/affiliate/AffiliateLink';
 
 type AffiliateRow = {
   id: string;
@@ -23,9 +24,11 @@ type AffiliateRow = {
 export async function BuyOptionsSection({
   report,
   supplementId,
+  slug,
 }: {
   report: ProtocolReport;
   supplementId?: string;
+  slug: string;
 }) {
   let options: AffiliateRow[] = [];
   if (supplementId) {
@@ -80,10 +83,14 @@ export async function BuyOptionsSection({
       </span>
 
       <div style={{ marginTop: 14, display: 'flex', flexDirection: 'column', gap: 10 }}>
-        <a
+        <AffiliateLink
           href={primary.affiliateUrl}
-          target="_blank"
-          rel="noopener noreferrer sponsored"
+          affiliateId={primary.id}
+          partner={primary.partnerName}
+          partnerType={primary.partnerType}
+          slug={slug}
+          surface="supplement-detail"
+          isPrimary
           style={{
             display: 'flex',
             justifyContent: 'space-between',
@@ -121,16 +128,20 @@ export async function BuyOptionsSection({
           >
             Buy →
           </span>
-        </a>
+        </AffiliateLink>
 
         {others.length > 0 && (
           <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 6 }}>
             {others.map((o) => (
               <li key={o.id}>
-                <a
+                <AffiliateLink
                   href={o.affiliateUrl}
-                  target="_blank"
-                  rel="noopener noreferrer sponsored"
+                  affiliateId={o.id}
+                  partner={o.partnerName}
+                  partnerType={o.partnerType}
+                  slug={slug}
+                  surface="supplement-detail"
+                  isPrimary={false}
                   style={{
                     display: 'flex',
                     justifyContent: 'space-between',
@@ -148,7 +159,7 @@ export async function BuyOptionsSection({
                     {o.priceDisplay ? <span style={{ color: 'var(--ink-4)' }}> · {o.priceDisplay}</span> : null}
                   </span>
                   <span style={{ color: 'var(--ink-4)' }}>↗</span>
-                </a>
+                </AffiliateLink>
               </li>
             ))}
           </ul>

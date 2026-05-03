@@ -235,7 +235,7 @@ export default async function ResearchQueryPage({
           </div>
 
           {/* Buy options panel — directly under At a glance */}
-          <BuyOptionsSection report={report} supplementId={report.id} />
+          <BuyOptionsSection report={report} supplementId={report.id} slug={q} />
         </div>
       </div>
 

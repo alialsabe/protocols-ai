@@ -131,28 +131,27 @@ export function Nav() {
           {now}
           {!authLoading && (
             user ? (
-              <form action="/api/auth/signout" method="POST" style={{ margin: 0 }}>
-                <button
-                  type="submit"
-                  style={{
-                    fontFamily: 'var(--font-mono)',
-                    fontSize: 10,
-                    fontWeight: 700,
-                    letterSpacing: '1.2px',
-                    textTransform: 'uppercase',
-                    color: 'var(--ink-4)',
-                    background: 'none',
-                    border: 'none',
-                    cursor: 'pointer',
-                    padding: 0,
-                    transition: 'color 150ms var(--ease)',
-                  }}
-                  onMouseEnter={e => (e.currentTarget.style.color = 'var(--ink)')}
-                  onMouseLeave={e => (e.currentTarget.style.color = 'var(--ink-4)')}
-                >
-                  Sign Out
-                </button>
-              </form>
+              <Link
+                href="/account"
+                style={{
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: 10,
+                  fontWeight: 700,
+                  letterSpacing: '1.2px',
+                  textTransform: 'uppercase',
+                  color: pathname.startsWith('/account') ? 'var(--ink)' : 'var(--ink-4)',
+                  textDecoration: 'none',
+                  transition: 'color 150ms var(--ease)',
+                }}
+                onMouseEnter={e => (e.currentTarget.style.color = 'var(--ink)')}
+                onMouseLeave={e => {
+                  if (!pathname.startsWith('/account')) {
+                    e.currentTarget.style.color = 'var(--ink-4)';
+                  }
+                }}
+              >
+                Account
+              </Link>
             ) : (
               <Link
                 href="/login"
