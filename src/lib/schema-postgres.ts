@@ -1,4 +1,4 @@
-import { pgTable, text, integer, real, timestamp, jsonb, index } from 'drizzle-orm/pg-core';
+import { pgTable, text, integer, real, timestamp, jsonb, numeric, index } from 'drizzle-orm/pg-core';
 
 // ── helpers ─────────────────────────────────────────────────────────
 function id() {
@@ -235,6 +235,32 @@ export const auditSessions = pgTable('audit_sessions', {
   stackSnapshot: jsonb('stack_snapshot').notNull(),
   findings: jsonb('findings').notNull(),
   generatedAt: timestamp('generated_at', { withTimezone: true }).notNull().defaultNow(),
+});
+
+// ── bloodwork ───────────────────────────────────────────────────────
+// Per-upload extracted markers. Privacy: raw_pdf_url is always NULL in v1.
+export const userBloodwork = pgTable('user_bloodwork', {
+  id: id(),
+  userId: text('user_id').notNull(),
+  uploadedAt: timestamp('uploaded_at', { withTimezone: true }).notNull().defaultNow(),
+  source: text('source').notNull(),
+  markers: jsonb('markers').notNull(),
+  rawPdfUrl: text('raw_pdf_url'),
+});
+
+// Curated marker -> supplement-action rule book. Read by the bloodwork
+// pipeline to translate extracted markers into AuditFinding[].
+export const deficiencyRules = pgTable('deficiency_rules', {
+  id: id(),
+  markerName: text('marker_name').notNull(),
+  markerAliases: jsonb('marker_aliases'),
+  unit: text('unit').notNull(),
+  thresholdLow: numeric('threshold_low'),
+  thresholdHigh: numeric('threshold_high'),
+  severity: text('severity').notNull(),
+  supplementSlug: text('supplement_slug'),
+  recommendation: text('recommendation').notNull(),
+  citation: text('citation'),
 });
 
 // ── supplement_mentions ─────────────────────────────────────────────
