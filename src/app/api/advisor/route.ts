@@ -27,7 +27,7 @@ interface AdvisorMessage {
   content: string;
 }
 
-const SYSTEM_PROMPT = `You are the Materia supplement advisor. You ONLY help users with questions about dietary supplements, vitamins, minerals, nootropics, longevity compounds, peptides, and the science behind them — including mechanisms, evidence quality, typical dosing, safety, interactions, stacks, and what the research says.
+const SYSTEM_PROMPT = `You are the Stack Lab supplement advisor. You ONLY help users with questions about dietary supplements, vitamins, minerals, nootropics, longevity compounds, peptides, and the science behind them — including mechanisms, evidence quality, typical dosing, safety, interactions, stacks, and what the research says.
 
 You do NOT answer questions about anything else. Not coding, not recipes, not politics, not general medical conditions, not life advice, not other products. If a user asks something off-topic, respond ONCE with: "I only help with supplement questions. Want to know about a specific compound, dosing, or how something fits in a stack?" Then stop. Do not engage further off-topic.
 
@@ -179,7 +179,7 @@ async function streamLLMResponse(args: {
       'content-type': 'application/json',
       authorization: `Bearer ${args.apiKey}`,
       'http-referer': 'https://protocols.ai',
-      'x-title': 'Materia',
+      'x-title': 'Stack Lab',
     },
     body: JSON.stringify({
       model: args.model,

@@ -3,7 +3,7 @@ import { createClient } from '../../../../utils/supabase/server';
 import { StackAudit } from '@/components/stack/StackAudit';
 
 export const metadata = {
-  title: 'Audit — Materia',
+  title: 'Audit — Stack Lab',
   description: 'Find conflicts, redundancies, and dosing concerns in your stack.',
 };
 

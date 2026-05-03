@@ -1,7 +1,7 @@
 import Link from 'next/link';
 
 export const metadata = {
-  title: 'Not found — Materia',
+  title: 'Not found — Stack Lab',
 };
 
 export default function NotFound() {
@@ -23,7 +23,7 @@ export default function NotFound() {
         className="mt-4 max-w-[440px] text-[15px]"
         style={{ color: 'var(--fg-muted)' }}
       >
-        That URL doesn&apos;t exist on Materia. It may have moved or never existed.
+        That URL doesn&apos;t exist on Stack Lab. It may have moved or never existed.
       </p>
       <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
         <Link

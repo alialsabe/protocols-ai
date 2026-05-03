@@ -5,8 +5,8 @@ import { createClient } from '../../../utils/supabase/server';
 import { AccountActions } from '@/components/account/AccountActions';
 
 export const metadata = {
-  title: 'Account — Materia',
-  description: 'Manage your Materia account, data, and disclaimer acknowledgement.',
+  title: 'Account — Stack Lab',
+  description: 'Manage your Stack Lab account, data, and disclaimer acknowledgement.',
 };
 
 // Server component so we can do a real auth check up front and bail to
@@ -35,7 +35,7 @@ export default async function AccountPage() {
         className="mt-2 text-[32px] font-extrabold tracking-[-0.5px] md:text-[40px]"
         style={{ color: 'var(--fg)' }}
       >
-        Your Materia account
+        Your Stack Lab account
       </h1>
 
       <Card title="Profile">
@@ -49,7 +49,7 @@ export default async function AccountPage() {
 
       <Card title="Your data">
         <p className="text-[14px] leading-[22px]" style={{ color: 'var(--fg-muted)' }}>
-          Materia stores your stack, medications, biometrics, and structured bloodwork markers
+          Stack Lab stores your stack, medications, biometrics, and structured bloodwork markers
           (raw PDFs are never persisted). You own this data.
         </p>
         <ul className="mt-4 flex flex-col gap-3">
@@ -62,14 +62,14 @@ export default async function AccountPage() {
           <ActionItem
             label="Export your data"
             description="Email us to request a JSON export of your stack and bloodwork markers. Self-serve coming soon."
-            href="mailto:hello@materia.app?subject=Data%20export%20request"
+            href="mailto:hello@stacklab.science?subject=Data%20export%20request"
             kind="link"
             external
           />
           <ActionItem
             label="Delete your account"
             description="Email us to request permanent deletion of your account and all associated data. Self-serve coming soon."
-            href="mailto:hello@materia.app?subject=Account%20deletion%20request"
+            href="mailto:hello@stacklab.science?subject=Account%20deletion%20request"
             kind="link"
             external
             destructive
@@ -95,11 +95,11 @@ export default async function AccountPage() {
       >
         Need help with something not listed here?{' '}
         <Link
-          href="mailto:hello@materia.app"
+          href="mailto:hello@stacklab.science"
           className="underline"
           style={{ color: 'var(--accent-ink)' }}
         >
-          hello@materia.app
+          hello@stacklab.science
         </Link>
       </p>
     </article>

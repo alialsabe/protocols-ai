@@ -1,8 +1,8 @@
 import Link from 'next/link';
 
 export const metadata = {
-  title: 'Privacy Policy — Materia',
-  description: 'How Materia collects, uses, stores, and protects your data.',
+  title: 'Privacy Policy — Stack Lab',
+  description: 'How Stack Lab collects, uses, stores, and protects your data.',
 };
 
 export default function PrivacyPage() {
@@ -101,7 +101,7 @@ export default function PrivacyPage() {
 
       <Section title="Children">
         <p>
-          Materia is not directed at children under 18. We do not knowingly collect data from children. If you believe a child has provided us with personal information, contact us and we will delete it.
+          Stack Lab is not directed at children under 18. We do not knowingly collect data from children. If you believe a child has provided us with personal information, contact us and we will delete it.
         </p>
       </Section>
 

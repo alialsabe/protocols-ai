@@ -13,7 +13,7 @@ import { PersonalisedAnalysis } from '@/components/stack/PersonalisedAnalysis';
 import type { Biometrics } from '@/components/stack/BiometricsForm';
 
 export const metadata = {
-  title: 'Analysis — Materia',
+  title: 'Analysis — Stack Lab',
   description: 'Personalised dosing, conflict grading, and biometrics-aware recommendations.',
 };
 

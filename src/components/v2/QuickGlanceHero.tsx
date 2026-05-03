@@ -27,7 +27,7 @@ export async function QuickGlanceHero() {
   const category = report.supplementTypes?.[0] ?? '';
   const summary =
     report.science?.summary?.trim() ||
-    'Indexed compound in the Materia catalog with peer-reviewed citations.';
+    'Indexed compound in the Stack Lab catalog with peer-reviewed citations.';
 
   const topFindings = (report.science?.findings ?? [])
     .map((f) => (f.title ?? f.claim ?? '').trim())

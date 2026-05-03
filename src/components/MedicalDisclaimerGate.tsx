@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 
-const STORAGE_KEY = 'materia.disclaimer.v1';
+const STORAGE_KEY = 'stacklab.disclaimer.v1';
 
 /**
  * First-visit medical disclaimer modal. Shows once per browser, persists
@@ -58,7 +58,7 @@ export function MedicalDisclaimerGate() {
     <div
       role="dialog"
       aria-modal="true"
-      aria-labelledby="materia-disclaimer-title"
+      aria-labelledby="stacklab-disclaimer-title"
       className="fixed inset-0 z-[100] flex items-center justify-center px-5 py-8"
       style={{ background: 'rgba(10, 15, 10, 0.55)' }}
     >
@@ -78,11 +78,11 @@ export function MedicalDisclaimerGate() {
             Before you start
           </span>
           <h2
-            id="materia-disclaimer-title"
+            id="stacklab-disclaimer-title"
             className="mt-2 text-[24px] font-extrabold tracking-[-0.4px]"
             style={{ color: 'var(--fg)' }}
           >
-            Materia is educational, not medical advice
+            Stack Lab is educational, not medical advice
           </h2>
         </div>
 

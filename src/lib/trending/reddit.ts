@@ -19,7 +19,7 @@ export async function fetchRedditMentions(
   let posts: RedditPost[] = [];
   try {
     const res = await fetch(url, {
-      headers: { 'User-Agent': 'materia-trending/1.0' },
+      headers: { 'User-Agent': 'stacklab-trending/1.0' },
     });
     if (!res.ok) {
       console.warn(`[trending/reddit] ${sourceId} ${res.status}`);

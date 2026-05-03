@@ -1,6 +1,6 @@
-Materia
+Stack Lab
 
-Next.js 16 + TypeScript app with Drizzle ORM.
+Next.js 16 + TypeScript app with Drizzle ORM. Evidence-graded supplement reference, stack auditing, and bloodwork analysis.
 
 Database modes
 

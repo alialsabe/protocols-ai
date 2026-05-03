@@ -22,7 +22,7 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'Materia — Supplement Reference',
+  title: 'Stack Lab — Supplement Reference',
   description:
     'Plain-language research on the supplements people actually take — graded, sourced, and scheduled.',
 };

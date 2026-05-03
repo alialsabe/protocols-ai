@@ -3,7 +3,7 @@ import type { ProtocolReport } from '@/lib/protocol-types';
 export function OverviewSection({ report }: { report: ProtocolReport }) {
   const summary =
     report.science?.summary ||
-    `${report.name ?? 'This compound'} is indexed in the Materia catalog. Peer-reviewed mechanism and citation data is pending for this entry.`;
+    `${report.name ?? 'This compound'} is indexed in the Stack Lab catalog. Peer-reviewed mechanism and citation data is pending for this entry.`;
 
   // Full "effects & uses" list — pull titles + detail from findings.
   const uses = (report.science?.findings ?? [])

@@ -79,7 +79,7 @@ export function Nav() {
               flexShrink: 0,
             }}
           />
-          <span>Materia</span>
+          <span>Stack Lab</span>
           <span
             className="footnote nav-ref"
             style={{ marginLeft: 8, fontSize: 10, letterSpacing: '0.8px', textTransform: 'uppercase' }}

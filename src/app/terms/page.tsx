@@ -1,8 +1,8 @@
 import Link from 'next/link';
 
 export const metadata = {
-  title: 'Terms of Service — Materia',
-  description: 'The agreement between you and Materia for using this site.',
+  title: 'Terms of Service — Stack Lab',
+  description: 'The agreement between you and Stack Lab for using this site.',
 };
 
 export default function TermsPage() {
@@ -26,19 +26,19 @@ export default function TermsPage() {
 
       <Section title="Acceptance of terms">
         <p>
-          By accessing or using Materia (the &quot;Service&quot;), you agree to be bound by these Terms of Service. If you do not agree, do not use the Service.
+          By accessing or using Stack Lab (the &quot;Service&quot;), you agree to be bound by these Terms of Service. If you do not agree, do not use the Service.
         </p>
       </Section>
 
       <Section title="Eligibility">
         <p>
-          You must be at least 18 years old to use Materia. By using the Service you represent and warrant that you are 18 or older and have the legal capacity to enter into this agreement.
+          You must be at least 18 years old to use Stack Lab. By using the Service you represent and warrant that you are 18 or older and have the legal capacity to enter into this agreement.
         </p>
       </Section>
 
       <Section title="Educational purpose only">
         <p>
-          Materia provides general information about supplements, drug-supplement interactions, and lab markers for educational purposes. The Service does not provide medical advice, diagnosis, or treatment. See our{' '}
+          Stack Lab provides general information about supplements, drug-supplement interactions, and lab markers for educational purposes. The Service does not provide medical advice, diagnosis, or treatment. See our{' '}
           <Link href="/disclaimer" className="underline" style={{ color: 'var(--accent-ink)' }}>
             medical disclaimer
           </Link>{' '}
@@ -67,13 +67,13 @@ export default function TermsPage() {
 
       <Section title="Affiliate disclosure">
         <p>
-          Some links on Materia are affiliate links. When you click an affiliate link and make a purchase, we may earn a commission at no additional cost to you. Affiliate relationships do not influence which compounds appear in our reference, how compounds are graded, which dosage recommendations are surfaced, or the content of any audit or bloodwork analysis. We disclose this in keeping with Federal Trade Commission guidelines on endorsements and testimonials.
+          Some links on Stack Lab are affiliate links. When you click an affiliate link and make a purchase, we may earn a commission at no additional cost to you. Affiliate relationships do not influence which compounds appear in our reference, how compounds are graded, which dosage recommendations are surfaced, or the content of any audit or bloodwork analysis. We disclose this in keeping with Federal Trade Commission guidelines on endorsements and testimonials.
         </p>
       </Section>
 
       <Section title="Intellectual property">
         <p>
-          Materia, its content, designs, and original code are owned by us or our licensors. You may use the Service for personal, non-commercial purposes. The supplement reference content is compiled from publicly available scientific sources; underlying citations belong to their original publishers.
+          Stack Lab, its content, designs, and original code are owned by us or our licensors. You may use the Service for personal, non-commercial purposes. The supplement reference content is compiled from publicly available scientific sources; underlying citations belong to their original publishers.
         </p>
       </Section>
 
@@ -97,19 +97,19 @@ export default function TermsPage() {
 
       <Section title="Limitation of liability">
         <p>
-          TO THE MAXIMUM EXTENT PERMITTED BY LAW, MATERIA AND ITS OPERATORS WILL NOT BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES, OR ANY LOSS OF PROFITS, REVENUES, DATA, OR HEALTH OUTCOMES, ARISING FROM YOUR USE OF THE SERVICE.
+          TO THE MAXIMUM EXTENT PERMITTED BY LAW, STACK LAB AND ITS OPERATORS WILL NOT BE LIABLE FOR ANY INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE DAMAGES, OR ANY LOSS OF PROFITS, REVENUES, DATA, OR HEALTH OUTCOMES, ARISING FROM YOUR USE OF THE SERVICE.
         </p>
       </Section>
 
       <Section title="Indemnification">
         <p>
-          You agree to indemnify and hold harmless Materia and its operators from any claim or demand made by a third party arising out of your use of the Service or your violation of these Terms.
+          You agree to indemnify and hold harmless Stack Lab and its operators from any claim or demand made by a third party arising out of your use of the Service or your violation of these Terms.
         </p>
       </Section>
 
       <Section title="Governing law">
         <p>
-          These Terms are governed by the laws of the jurisdiction where Materia is operated, without regard to conflict of law principles. Disputes will be resolved in the courts of that jurisdiction.
+          These Terms are governed by the laws of the jurisdiction where Stack Lab is operated, without regard to conflict of law principles. Disputes will be resolved in the courts of that jurisdiction.
         </p>
       </Section>
 

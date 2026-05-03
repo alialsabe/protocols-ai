@@ -5,10 +5,10 @@ const shouldReset = process.argv.includes('--reset');
 async function run() {
   if (shouldReset) {
     await resetAndSeedDatabase();
-    console.log('✅ Reset and reseeded database with Materia dataset.');
+    console.log('✅ Reset and reseeded database with Stack Lab dataset.');
   } else {
     await seedDatabaseIfEmpty();
-    console.log('✅ Bootstrapped database with Materia dataset if needed.');
+    console.log('✅ Bootstrapped database with Stack Lab dataset if needed.');
   }
 
   await closeDatabaseConnections();

@@ -114,7 +114,7 @@ Rules:
         'content-type': 'application/json',
         authorization: `Bearer ${apiKey}`,
         'http-referer': 'https://protocols.ai',
-        'x-title': 'Materia',
+        'x-title': 'Stack Lab',
       },
       body: JSON.stringify({
         model,

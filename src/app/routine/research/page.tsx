@@ -1,5 +1,5 @@
 export const metadata = {
-  title: 'Research — Materia',
+  title: 'Research — Stack Lab',
   description: 'Design N=1 self-experiments and track results against bloodwork.',
 };
 

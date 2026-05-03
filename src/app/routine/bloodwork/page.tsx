@@ -3,7 +3,7 @@ import { createClient } from '../../../../utils/supabase/server';
 import { BloodworkUpload } from '@/components/stack/BloodworkUpload';
 
 export const metadata = {
-  title: 'Bloodwork — Materia',
+  title: 'Bloodwork — Stack Lab',
   description: 'Upload a lab PDF and get supplement actions for any deficiencies.',
 };
 

@@ -11,7 +11,7 @@ async function run() {
   }
 
   await seedDatabaseIfEmpty();
-  console.log('✅ Bootstrapped database with Materia dataset if needed.');
+  console.log('✅ Bootstrapped database with Stack Lab dataset if needed.');
   await closeDatabaseConnections();
 }
 

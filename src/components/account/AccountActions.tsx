@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 
-const DISCLAIMER_KEY = 'materia.disclaimer.v1';
+const DISCLAIMER_KEY = 'stacklab.disclaimer.v1';
 
 /**
  * Client-side account actions that need browser APIs (localStorage, sign

@@ -1,7 +1,7 @@
 import { StackBuilder } from '@/components/stack/StackBuilder';
 
 export const metadata = {
-  title: 'Stack — Materia',
+  title: 'Stack — Stack Lab',
   description: 'Build and schedule your daily supplement routine.',
 };
 

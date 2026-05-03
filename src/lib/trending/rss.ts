@@ -54,7 +54,7 @@ export async function fetchRssMentions(
   let xml = '';
   try {
     const res = await fetch(feedUrl, {
-      headers: { 'User-Agent': 'materia-trending/1.0' },
+      headers: { 'User-Agent': 'stacklab-trending/1.0' },
     });
     if (!res.ok) {
       console.warn(`[trending/rss] ${sourceId} ${res.status}`);

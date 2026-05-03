@@ -31,7 +31,7 @@ export function Footer() {
         }}
       >
         <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          <span className="footnote">Materia</span>
+          <span className="footnote">Stack Lab</span>
           <p
             style={{
               margin: 0,
@@ -98,9 +98,9 @@ export function Footer() {
         }}
       >
         <p style={{ margin: 0, maxWidth: 720 }}>
-          <strong style={{ fontWeight: 600 }}>Affiliate disclosure:</strong> Some links on Materia are affiliate links. We may earn a commission at no additional cost to you when you purchase through them. Affiliate relationships never influence which compounds we surface, how they are graded, or any audit or bloodwork analysis.
+          <strong style={{ fontWeight: 600 }}>Affiliate disclosure:</strong> Some links on Stack Lab are affiliate links. We may earn a commission at no additional cost to you when you purchase through them. Affiliate relationships never influence which compounds we surface, how they are graded, or any audit or bloodwork analysis.
         </p>
-        <span style={{ whiteSpace: 'nowrap' }}>© {new Date().getFullYear()} Materia</span>
+        <span style={{ whiteSpace: 'nowrap' }}>© {new Date().getFullYear()} Stack Lab</span>
       </div>
     </footer>
   );

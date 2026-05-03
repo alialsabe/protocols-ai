@@ -1,9 +1,9 @@
 import Link from 'next/link';
 
 export const metadata = {
-  title: 'Medical Disclaimer — Materia',
+  title: 'Medical Disclaimer — Stack Lab',
   description:
-    'Materia is for education only. It does not provide medical advice, diagnosis, or treatment.',
+    'Stack Lab is for education only. It does not provide medical advice, diagnosis, or treatment.',
 };
 
 export default function DisclaimerPage() {
@@ -27,7 +27,7 @@ export default function DisclaimerPage() {
 
       <Section title="No medical advice">
         <p>
-          Materia is an educational reference for supplement research. The information presented on this site, including supplement profiles, dosing notes, scheduling output, audit findings, and bloodwork analysis, is provided for general informational and educational purposes only. It is not a substitute for professional medical advice, diagnosis, or treatment.
+          Stack Lab is an educational reference for supplement research. The information presented on this site, including supplement profiles, dosing notes, scheduling output, audit findings, and bloodwork analysis, is provided for general informational and educational purposes only. It is not a substitute for professional medical advice, diagnosis, or treatment.
         </p>
         <p className="mt-3">
           Always seek the advice of your physician or other qualified health provider with any questions you may have regarding a medical condition, lab results, prescription medication, or supplement regimen. Never disregard professional medical advice or delay in seeking it because of something you have read on this site.
@@ -51,7 +51,7 @@ export default function DisclaimerPage() {
 
       <Section title="No doctor-patient relationship">
         <p>
-          Use of this site does not create a doctor-patient relationship between you and Materia or any contributors to the content on this site. We are not your healthcare provider.
+          Use of this site does not create a doctor-patient relationship between you and Stack Lab or any contributors to the content on this site. We are not your healthcare provider.
         </p>
       </Section>
 
@@ -73,7 +73,7 @@ export default function DisclaimerPage() {
 
       <Section title="Limitation of liability">
         <p>
-          Materia, its operators, and its contributors are not liable for any damages arising from reliance on the information provided on this site. Your use of the site is at your own risk.
+          Stack Lab, its operators, and its contributors are not liable for any damages arising from reliance on the information provided on this site. Your use of the site is at your own risk.
         </p>
       </Section>
 

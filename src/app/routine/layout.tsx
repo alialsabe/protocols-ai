@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import { SidebarNav } from '@/components/routine/SidebarNav';
 
 export const metadata = {
-  title: 'My Routine — Materia',
+  title: 'My Routine — Stack Lab',
   description: 'Build, schedule, and personalise your daily supplement routine.',
 };
 

@@ -1,4 +1,4 @@
-# Materia Design System — v2 (Instrument Panel)
+# Stack Lab Design System — v2 (Instrument Panel)
 
 **Aesthetic thesis.** Not a SaaS marketing site. Not a wellness app. This is a **scientific instrument** for supplements. Linear meets molecular biology lab meets Bloomberg terminal. Every decision pushes toward: *serious, high-signal, data-dense, calm*.
 
@@ -209,7 +209,7 @@ Used for the intake strip and for tab-style filters. No underlines, no rounded p
 Never the string `"No items found."`. Empty states are a feature. Anatomy:
 
 - 1 line: **what's happening** in `h3` (e.g. "No studies indexed yet for this compound.")
-- 1 line: **why, in honest plain English** in body (e.g. "Materia only surfaces peer-reviewed work. This one is too new to cite.")
+- 1 line: **why, in honest plain English** in body (e.g. "Stack Lab only surfaces peer-reviewed work. This one is too new to cite.")
 - 1 primary action: what to do next (e.g. "Set a research alert" or "Suggest a study").
 - No illustrations. No emoji. A single muted `T.fgFaint` mono line at the top: `EMPTY STATE · 01`.
 
@@ -374,7 +374,7 @@ All screens use the 1200px content column unless noted.
 - Brand lockup centered at top.
 - `label` eyebrow: `SIGN IN`. `h2`: `Continue your protocol.`
 - Email input (mono 15px), primary button, or Google / Apple OAuth buttons.
-- Bottom: mono 11px `By signing in, you accept that Materia is a research tool, not medical advice.`
+- Bottom: mono 11px `By signing in, you accept that Stack Lab is a research tool, not medical advice.`
 - No illustrations. No "welcome back!". No hero image.
 
 **Onboarding (3 steps after first sign in).**
@@ -468,7 +468,7 @@ Any of these is a ship-blocker.
 6. **No drop shadows on content cards.** Inset highlight only.
 7. **No default font stacks** (Inter, Roboto, Arial, system). Outfit + Geist Mono only.
 8. **No centered everything.** Headlines are left-aligned. Hero content is left-aligned within the centered column.
-9. **No "Welcome to Materia"** or any greeting copy. Utility language only.
+9. **No "Welcome to Stack Lab"** or any greeting copy. Utility language only.
 10. **No bouncing / spring / overshoot animations.** `cubic-bezier(0.2, 0.8, 0.2, 1)` or `linear` only.
 11. **No symmetric testimonial-pricing-cta rhythm.** Home does not end with a "Ready to get started?" CTA section.
 12. **No card-with-icon affiliate CTAs.** Affiliate buttons are horizontal mono strips inline with the supplement row.

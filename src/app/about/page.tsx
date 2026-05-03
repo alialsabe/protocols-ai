@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'About — Materia',
+  title: 'About — Stack Lab',
   description: 'A plain-language reference for evidence-graded supplement research.',
 };
 
@@ -29,7 +29,7 @@ export default function AboutPage() {
         </h1>
         <div className="prose">
           <p>
-            Materia indexes peer-reviewed research on commonly-taken
+            Stack Lab indexes peer-reviewed research on commonly-taken
             supplements. Every claim links to the underlying study and carries
             an evidence grade. There are no affiliate links, no product
             rankings, and no sponsored content.
