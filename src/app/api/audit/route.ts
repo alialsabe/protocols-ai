@@ -11,9 +11,27 @@ import {
 } from '@/lib/schema-postgres';
 import { runAudit, type AuditBiometrics, type AuditSupplement } from '@/lib/audit-engine';
 import { generateSchedule } from '@/lib/scheduler-engine';
+import { checkRateLimit, clientKey, rateLimitResponse } from '@/lib/rate-limit';
 import { createClient } from '../../../../utils/supabase/server';
 
+// Audit doesn't call any paid API but it does run several DB queries +
+// the scheduler engine. 60/hour per IP is plenty for legitimate use and
+// stops a runaway loop or scraper from hammering the DB.
+const AUDIT_LIMIT_PER_HOUR = 60;
+
 export async function POST(request: Request) {
+  const cookieStore = await cookies();
+  const supabase = createClient(cookieStore);
+  const { data: userData } = await supabase.auth.getUser();
+  const userId = userData.user?.id ?? null;
+
+  const limit = checkRateLimit(
+    `audit:${clientKey(request, userId)}`,
+    AUDIT_LIMIT_PER_HOUR,
+    60 * 60 * 1000,
+  );
+  if (!limit.allowed) return rateLimitResponse(limit);
+
   const payload = await request.json().catch(() => ({}));
   const supplementIds = Array.isArray(payload?.supplementIds)
     ? payload.supplementIds.map(String).map((s: string) => s.trim()).filter(Boolean)
@@ -72,7 +90,6 @@ export async function POST(request: Request) {
     schedulerWarnings: scheduleResult.status === 'fulfilled' ? scheduleResult.value.warnings : [],
   });
 
-  const userId = await getUserId();
   if (userId) {
     await db.insert(auditSessions).values({
       id: `audit-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`,
@@ -83,17 +100,6 @@ export async function POST(request: Request) {
   }
 
   return NextResponse.json({ findings });
-}
-
-async function getUserId() {
-  try {
-    const cookieStore = await cookies();
-    const supabase = createClient(cookieStore);
-    const { data: userData } = await supabase.auth.getUser();
-    return userData.user?.id ?? null;
-  } catch {
-    return null;
-  }
 }
 
 function normalizeMedication(value: unknown): string {

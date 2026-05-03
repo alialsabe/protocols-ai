@@ -7,6 +7,7 @@ import { FloatingAdvisor } from '@/components/v2/advisor/FloatingAdvisor';
 import { Nav } from '@/components/Nav';
 import { Footer } from '@/components/Footer';
 import { PillBackground } from '@/components/PillBackground';
+import { MedicalDisclaimerGate } from '@/components/MedicalDisclaimerGate';
 
 const inter = Inter({
   variable: '--font-inter',
@@ -44,6 +45,7 @@ export default function RootLayout({
               <main style={{ flex: 1 }}>{children}</main>
               <Footer />
               <FloatingAdvisor />
+              <MedicalDisclaimerGate />
             </SupplementCatalogProvider>
           </AnalyticsProvider>
         </div>

@@ -9,6 +9,7 @@ import {
   type ExtractedMarker,
 } from '@/lib/bloodwork-rules';
 import type { AuditSeverity } from '@/lib/audit-engine';
+import { checkRateLimit, clientKey, rateLimitResponse } from '@/lib/rate-limit';
 import { createClient } from '../../../../utils/supabase/server';
 
 // PDFs can be page-heavy; let the route stream up to ~15s of work.
@@ -17,6 +18,11 @@ export const maxDuration = 60;
 
 const MAX_PDF_BYTES = 10 * 1024 * 1024;
 
+// Each upload calls OpenRouter's mistral-ocr (~$2/1k pages). 10/hour per
+// authenticated user is generous for legitimate use and caps the worst
+// case (a leaked token, a script bug, an attacker) at a few cents/hour.
+const BLOODWORK_LIMIT_PER_HOUR = 10;
+
 export async function POST(request: Request) {
   const cookieStore = await cookies();
   const supabase = createClient(cookieStore);
@@ -24,6 +30,13 @@ export async function POST(request: Request) {
   if (!userData.user) {
     return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
   }
+
+  const limit = checkRateLimit(
+    `bloodwork:${clientKey(request, userData.user.id)}`,
+    BLOODWORK_LIMIT_PER_HOUR,
+    60 * 60 * 1000,
+  );
+  if (!limit.allowed) return rateLimitResponse(limit);
 
   let formData: FormData;
   try {
