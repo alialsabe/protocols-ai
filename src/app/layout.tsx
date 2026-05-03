@@ -1,12 +1,11 @@
-﻿import type { Metadata } from 'next';
-import { Inter, JetBrains_Mono } from 'next/font/google';
+import type { Metadata } from 'next';
+import { Inter, JetBrains_Mono, Fraunces } from 'next/font/google';
 import './globals.css';
 import { AnalyticsProvider } from '@/components/AnalyticsProvider';
 import { SupplementCatalogProvider } from '@/components/v2/advisor/SupplementCatalogProvider';
 import { FloatingAdvisor } from '@/components/v2/advisor/FloatingAdvisor';
 import { Nav } from '@/components/Nav';
 import { Footer } from '@/components/Footer';
-import { PillBackground } from '@/components/PillBackground';
 import { MedicalDisclaimerGate } from '@/components/MedicalDisclaimerGate';
 
 const inter = Inter({
@@ -21,10 +20,17 @@ const jetbrainsMono = JetBrains_Mono({
   weight: ['400', '500', '600'],
 });
 
+const fraunces = Fraunces({
+  variable: '--font-fraunces',
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700'],
+  style: ['normal', 'italic'],
+});
+
 export const metadata: Metadata = {
-  title: 'Stack Lab — Supplement Reference',
+  title: 'Stack Lab — Your daily briefing for supplements',
   description:
-    'Plain-language research on the supplements people actually take — graded, sourced, and scheduled.',
+    'A daily briefing on your supplement stack: what works, what is duplicative, what to drop. Plain-language reads, not a tracker.',
 };
 
 export default function RootLayout({
@@ -33,12 +39,10 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${inter.variable} ${jetbrainsMono.variable} h-full`}
+      className={`${inter.variable} ${jetbrainsMono.variable} ${fraunces.variable} h-full`}
     >
       <body className="min-h-full flex flex-col">
-        <PillBackground />
-        {/* z-index: 1 so all content sits above the z-index: 0 background */}
-        <div style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+        <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
           <AnalyticsProvider>
             <SupplementCatalogProvider>
               <Nav />

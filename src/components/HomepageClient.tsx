@@ -2,7 +2,7 @@
 
 import { useMemo, useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 export interface CompoundRow {
   slug: string;
   name: string;
@@ -36,16 +36,18 @@ const CAT_LABEL: Record<string, string> = {
   protein: 'Protein',
 };
 
+// Earthy editorial palette (was: greens). These are subtle category dots
+// in the style of newspaper section flags.
 const CAT_COLOR: Record<string, string> = {
-  herb_botanical: '#4a754f',
-  essential_vitamin: '#a68130',
-  essential_mineral: '#9a7e4e',
-  amino_acid: '#b4612f',
+  herb_botanical: '#6B7F5C',
+  essential_vitamin: '#C9A84C',
+  essential_mineral: '#9A7E4E',
+  amino_acid: '#B4612F',
   specialty_dietary_substance: '#714274',
-  trace_mineral: '#8c8d60',
+  trace_mineral: '#8C8D60',
   nootropics: '#446573',
-  longevity: '#4a754f',
-  protein: '#9a413d',
+  longevity: '#4A754F',
+  protein: '#A02B2B',
 };
 
 /** Derive a letter grade from study count */
@@ -53,6 +55,51 @@ function gradeFromCount(n: number): { tier: 'a' | 'b' | 'c'; label: string } {
   if (n >= 5) return { tier: 'a', label: 'A' };
   if (n >= 2) return { tier: 'b', label: 'B' };
   return { tier: 'c', label: 'C' };
+}
+
+// ── G Briefing — the daily editorial read ───────────────────
+
+function GBriefing({ totalCompounds, totalStudies }: { totalCompounds: number; totalStudies: number }) {
+  const nf = new Intl.NumberFormat('en-US');
+
+  return (
+    <>
+      <div className="g-briefing-h">
+        <span className="label">The Briefing</span>
+        <span className="meta">2 min read</span>
+      </div>
+      <div className="g-briefing">
+        <h1 className="head">
+          Most supplement stacks contain <em>three pills doing the same job.</em>
+        </h1>
+        <p className="deck">
+          Stack Lab reads your stack and tells you what is duplicative, what conflicts with your medications, and what to drop. A daily briefing about your body, written like content you actually want to read, not a tracker you have to maintain.
+        </p>
+        <Link href="/routine" className="pull" style={{ textDecoration: 'none' }}>
+          <span className="save">
+            Audit yours: <b>find $20-$60/mo in waste</b>
+          </span>
+          <span className="cta">Build my stack →</span>
+        </Link>
+      </div>
+
+      {/* Stats row — the trust footer for the briefing */}
+      <div className="g-stats">
+        <div className="g-stat">
+          <div className="l">Compounds</div>
+          <div className="v">{nf.format(totalCompounds)}</div>
+        </div>
+        <div className="g-stat">
+          <div className="l">Studies indexed</div>
+          <div className="v">{nf.format(totalStudies)}</div>
+        </div>
+        <div className="g-stat">
+          <div className="l">Updated</div>
+          <div className="v" style={{ fontSize: 18 }}>Daily</div>
+        </div>
+      </div>
+    </>
+  );
 }
 
 // ── Search box ──────────────────────────────────────────────
@@ -239,8 +286,16 @@ interface Props {
 export function HomepageClient({ compounds, totalCompounds, totalStudies }: Props) {
   const [activeCat, setActiveCat] = useState<string | null>(null);
   const [sort, setSort] = useState<'popular' | 'az' | 'evidence'>('popular');
+  const params = useSearchParams();
+  // ?view=library scrolls past the briefing on load (used by mobile tab bar)
+  const libraryView = params.get('view') === 'library';
+  const libraryRef = useRef<HTMLDivElement>(null);
 
-  const nf = new Intl.NumberFormat('en-US');
+  useEffect(() => {
+    if (libraryView && libraryRef.current) {
+      libraryRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, [libraryView]);
 
   const counts = useMemo(() => {
     const c: Record<string, number> = {};
@@ -259,111 +314,82 @@ export function HomepageClient({ compounds, totalCompounds, totalStudies }: Prop
 
   return (
     <div className="page">
-      {/* Masthead */}
-      <div
-        style={{
-          padding: '48px 0 28px',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'end',
-          gap: 32,
-          flexWrap: 'wrap',
-        }}
-      >
-        <div>
-          <span className="footnote" style={{ letterSpacing: '1.4px', textTransform: 'uppercase' }}>
-            A reference work, updated continuously
-          </span>
-          <h1
-            style={{
-              margin: '8px 0 0',
-              fontSize: 22,
-              lineHeight: 1.35,
-              letterSpacing: '-0.3px',
-              fontWeight: 500,
-              color: 'var(--ink)',
-              maxWidth: '56ch',
-            }}
-          >
-            Plain-language research on the supplements people actually take —
-            graded, sourced, and scheduled.
-          </h1>
-        </div>
-        <span className="footnote" style={{ whiteSpace: 'nowrap' }}>
-          {nf.format(totalCompounds)} compounds · {nf.format(totalStudies)} studies indexed
-        </span>
-      </div>
+      {/* G Briefing — the hero */}
+      <GBriefing totalCompounds={totalCompounds} totalStudies={totalStudies} />
 
-      {/* Search — the real hero */}
-      <SearchBox compounds={compounds} />
-
-      {/* Category explorer */}
-      <div
-        className="section-rule"
-        style={{ paddingTop: 40 }}
-      >
-        <div className="label">
-          <span className="num">01</span>
-          <span>Explore by category</span>
-        </div>
-        <span />
-        <span className="right">
-          {filtered.length} of {compounds.length}
-        </span>
-      </div>
-      <CategoryFilters
-        active={activeCat}
-        setActive={setActiveCat}
-        counts={counts}
-        total={compounds.length}
-      />
-
-      {/* Sort + count bar */}
-      <div
-        className="sort-row"
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'baseline',
-          marginTop: 32,
-          marginBottom: 4,
-        }}
-      >
-        <span className="footnote">
-          {activeCat ? (
-            <>
-              Showing <strong style={{ color: 'var(--ink-2)' }}>{activeCat}</strong>
-            </>
-          ) : (
-            'All compounds'
-          )}
-        </span>
-        <div className="toggle">
-          {(['popular', 'az', 'evidence'] as const).map((k) => (
-            <button key={k} data-active={sort === k ? 'true' : undefined} onClick={() => setSort(k)}>
-              {k === 'popular' ? 'Popular' : k === 'az' ? 'A–Z' : 'Evidence'}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Compound list */}
-      <div style={{ marginTop: 8 }}>
-        {filtered.map((s, i) => (
-          <CompoundRowItem key={s.slug} s={s} index={i} />
-        ))}
-        {filtered.length === 0 && (
-          <div
-            style={{
-              padding: '60px 0',
-              textAlign: 'center',
-              color: 'var(--ink-4)',
-              borderTop: '1px solid var(--rule)',
-            }}
-          >
-            No compounds in this category yet.
+      {/* Library section */}
+      <div ref={libraryRef}>
+        <div className="section-rule" style={{ paddingTop: 36 }}>
+          <div className="label">
+            <span className="num">01</span>
+            <span>The Library</span>
           </div>
-        )}
+          <span />
+          <span className="right">
+            {filtered.length} of {compounds.length}
+          </span>
+        </div>
+
+        {/* Search */}
+        <SearchBox compounds={compounds} />
+
+        {/* Category filters */}
+        <div style={{ marginTop: 28 }}>
+          <CategoryFilters
+            active={activeCat}
+            setActive={setActiveCat}
+            counts={counts}
+            total={compounds.length}
+          />
+        </div>
+
+        {/* Sort + count bar */}
+        <div
+          className="sort-row"
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'baseline',
+            marginTop: 28,
+            marginBottom: 4,
+          }}
+        >
+          <span className="footnote">
+            {activeCat ? (
+              <>
+                Showing <strong style={{ color: 'var(--ink-2)' }}>{activeCat}</strong>
+              </>
+            ) : (
+              'All compounds'
+            )}
+          </span>
+          <div className="toggle">
+            {(['popular', 'az', 'evidence'] as const).map((k) => (
+              <button key={k} data-active={sort === k ? 'true' : undefined} onClick={() => setSort(k)}>
+                {k === 'popular' ? 'Popular' : k === 'az' ? 'A–Z' : 'Evidence'}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Compound list */}
+        <div style={{ marginTop: 8 }}>
+          {filtered.map((s, i) => (
+            <CompoundRowItem key={s.slug} s={s} index={i} />
+          ))}
+          {filtered.length === 0 && (
+            <div
+              style={{
+                padding: '60px 0',
+                textAlign: 'center',
+                color: 'var(--ink-4)',
+                borderTop: '1px solid var(--rule)',
+              }}
+            >
+              No compounds in this category yet.
+            </div>
+          )}
+        </div>
       </div>
 
       <div style={{ height: 60 }} />

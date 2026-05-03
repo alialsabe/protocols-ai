@@ -1,66 +1,72 @@
 @import "tailwindcss";
 
 /* ─────────────────────────────────────────────────────────────────────────
-   Protocols.ai — Design System v3 (Paper · Ink · Reference)
-   Calm, authoritative, reading-first. Light mode. Sans + mono.
+   Stack Lab — Design System G (The Briefing)
+   Editorial · Cream paper · Oxblood ink · Fraunces serif headlines
    ───────────────────────────────────────────────────────────────────────── */
 
 :root {
-  /* Paper — white to light green */
-  --paper:   #ffffff;
-  --paper-2: #f0f7f0;
-  --paper-3: #d8eed8;
+  /* Paper — cream tones (was: green-white) */
+  --paper:   #F4F1E8;   /* warm cream, primary background */
+  --paper-2: #EFE9D7;   /* deeper cream wash, cards */
+  --paper-3: #E5DEC8;   /* deepest cream, raised */
+  --paper-cream-light: #FFFCF4;  /* lightest, for elevated cards */
 
-  /* Ink — black to dark green */
-  --ink:   #0a0f0a;
-  --ink-2: #1a2e1a;
-  --ink-3: #2f5c2f;
-  --ink-4: #5a8a5a;
-  --ink-5: #8db88d;
+  /* Ink — warm blacks and browns (was: green-blacks) */
+  --ink:   #1A1612;
+  --ink-2: #2D2620;
+  --ink-3: #5C5044;
+  --ink-4: #8A7E6E;
+  --ink-5: #B5AA98;
 
-  /* Rules */
-  --rule:      #b0d4b0;
-  --rule-soft: #cce5cc;
+  /* Rules — cream-toned dividers */
+  --rule:      #D9D0BE;
+  --rule-soft: #E8DFCB;
 
-  /* Accent — gold */
-  --accent:      #c9a84c;
-  --accent-tint: #fdf6e3;
-  --accent-ink:  #8b6914;
+  /* Accent — oxblood red (was: gold) */
+  --accent:      #A02B2B;   /* primary accent, brand red */
+  --accent-tint: #F8E6E6;   /* faint pink wash */
+  --accent-ink:  #6B1F1F;   /* deep oxblood, hover state */
+  --accent-paper: #FFE9C4;  /* cream-on-red text */
 
-  /* Category palette — green family */
-  --cat-stress-bg:      #dff2e0; --cat-stress-fg:      #1e5c30;
-  --cat-minerals-bg:    #e8f5e0; --cat-minerals-fg:    #2d5c1a;
-  --cat-performance-bg: #d4edda; --cat-performance-fg: #155228;
-  --cat-cardio-bg:      #e0f0e0; --cat-cardio-fg:      #1f4d1f;
-  --cat-vitamins-bg:    #edf7d4; --cat-vitamins-fg:    #3d5c0a;
-  --cat-focus-bg:       #d4ede8; --cat-focus-fg:       #0d4a3a;
-  --cat-metabolic-bg:   #e8f5e8; --cat-metabolic-fg:   #1e4d1e;
-  --cat-longevity-bg:   #d8f0e0; --cat-longevity-fg:   #0f4a28;
+  /* Category palette — earthy editorial section colors (was: greens) */
+  --cat-stress-bg:      #E8DCD0; --cat-stress-fg:      #6B4423;
+  --cat-minerals-bg:    #DCD8C4; --cat-minerals-fg:    #5C5024;
+  --cat-performance-bg: #E0D0C0; --cat-performance-fg: #6B3F20;
+  --cat-cardio-bg:      #E8D5D5; --cat-cardio-fg:      #7A2828;
+  --cat-vitamins-bg:    #E8E0C8; --cat-vitamins-fg:    #6B5420;
+  --cat-focus-bg:       #DCD8D0; --cat-focus-fg:       #4A4438;
+  --cat-metabolic-bg:   #DDD8C4; --cat-metabolic-fg:   #5A4F2C;
+  --cat-longevity-bg:   #D8DCD0; --cat-longevity-fg:   #3F4A2F;
 
   /* Evidence grade colors */
-  --grade-a: #155228;  /* dark green — strong evidence */
-  --grade-b: #c9a84c;  /* gold — moderate evidence */
-  --grade-c: #b33030;  /* red — weak / conflicted */
+  --grade-a: #2D5C1A;  /* forest green — strong evidence */
+  --grade-b: #C9A84C;  /* gold — moderate evidence */
+  --grade-c: #A02B2B;  /* oxblood — weak / conflicted */
 
   /* Typography */
-  --sans: "Inter", ui-sans-serif, system-ui, sans-serif;
-  --mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --serif: "Fraunces", ui-serif, Georgia, serif;
+  --sans:  "Inter", ui-sans-serif, system-ui, sans-serif;
+  --mono:  "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
 
   --ease:    cubic-bezier(0.2, 0.7, 0.2, 1);
   --measure: 68ch;
 
+  /* Mobile bottom-tab-bar offset (so content isn't hidden) */
+  --tabbar-h: 80px;
+
   /* ── Legacy aliases (for components that still reference old dark tokens) */
-  --bg:          var(--paper);
-  --surface:     var(--paper-2);
+  --bg:           var(--paper);
+  --surface:      var(--paper-2);
   --surface-raise: var(--paper-3);
-  --hair:        var(--rule-soft);
-  --hair-strong: var(--rule);
-  --fg:          var(--ink);
-  --fg-muted:    var(--ink-3);
-  --fg-dim:      var(--ink-4);
-  --fg-faint:    var(--ink-5);
-  --accent-dim:  var(--accent-tint);
-  --accent-glow: rgba(201,168,76,0.18);
+  --hair:         var(--rule-soft);
+  --hair-strong:  var(--rule);
+  --fg:           var(--ink);
+  --fg-muted:     var(--ink-3);
+  --fg-dim:       var(--ink-4);
+  --fg-faint:     var(--ink-5);
+  --accent-dim:   var(--accent-tint);
+  --accent-glow:  rgba(160, 43, 43, 0.18);
   --severity-high: var(--grade-c);
   --severity-mid:  var(--grade-b);
   --severity-low:  var(--grade-a);
@@ -69,8 +75,9 @@
 @theme inline {
   --color-background: var(--paper);
   --color-foreground: var(--ink);
-  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
-  --font-mono: var(--font-jetbrains-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
+  --font-sans:  var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-fraunces), ui-serif, Georgia, serif;
+  --font-mono:  var(--font-jetbrains-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 
 * { box-sizing: border-box; }
@@ -92,6 +99,11 @@ a { color: inherit; text-decoration: none; }
 button { font-family: inherit; }
 input::placeholder { color: var(--ink-5); }
 
+.serif {
+  font-family: var(--font-fraunces), var(--serif);
+  font-feature-settings: "ss01";
+}
+
 .mono {
   font-family: var(--font-jetbrains-mono), var(--mono);
   font-feature-settings: "zero", "ss01";
@@ -105,6 +117,271 @@ input::placeholder { color: var(--ink-5); }
   max-width: 1200px;
   margin: 0 auto;
   padding: 0 40px;
+}
+
+/* ─── G Masthead — newspaper-style brand bar ──────────────── */
+.g-masthead {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 18px 0 14px;
+  border-bottom: 2px solid var(--ink);
+}
+.g-masthead .brand {
+  font-family: var(--font-fraunces), var(--serif);
+  font-size: 24px;
+  font-weight: 600;
+  letter-spacing: -0.4px;
+  color: var(--ink);
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  line-height: 1;
+}
+.g-masthead .brand .dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  background: var(--accent);
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.g-masthead .vol {
+  font-family: var(--font-jetbrains-mono), var(--mono);
+  font-size: 10px;
+  letter-spacing: 1.2px;
+  color: var(--ink-3);
+  text-align: right;
+  line-height: 1.4;
+}
+.g-masthead .vol .v1 {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+/* ─── G Briefing card — the daily editorial read ──────────── */
+.g-briefing-h {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 22px 0 8px;
+}
+.g-briefing-h .label {
+  font-family: var(--font-jetbrains-mono), var(--mono);
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--accent);
+  font-weight: 700;
+}
+.g-briefing-h .meta {
+  font-family: var(--font-jetbrains-mono), var(--mono);
+  font-size: 10px;
+  letter-spacing: 1.2px;
+  color: var(--ink-4);
+  text-transform: uppercase;
+}
+.g-briefing {
+  padding: 4px 0 24px;
+  border-bottom: 1px solid var(--rule);
+}
+.g-briefing .head {
+  font-family: var(--font-fraunces), var(--serif);
+  font-size: clamp(28px, 4.4vw, 44px);
+  font-weight: 600;
+  line-height: 1.08;
+  letter-spacing: -0.6px;
+  color: var(--ink);
+  margin: 0 0 10px;
+  text-wrap: balance;
+}
+.g-briefing .head em {
+  font-style: italic;
+  font-weight: 500;
+}
+.g-briefing .deck {
+  font-family: var(--font-fraunces), var(--serif);
+  font-size: 17px;
+  font-style: italic;
+  font-weight: 400;
+  line-height: 1.55;
+  color: var(--ink-2);
+  margin: 0 0 18px;
+  max-width: 60ch;
+}
+.g-briefing .pull {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 14px;
+  background: var(--ink);
+  border-radius: 4px;
+}
+.g-briefing .pull .save {
+  font-family: var(--font-jetbrains-mono), var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.4px;
+  color: var(--paper);
+}
+.g-briefing .pull .save b {
+  color: var(--accent-paper);
+  font-weight: 600;
+}
+.g-briefing .pull .cta {
+  font-family: var(--font-inter), var(--sans);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--paper);
+  padding: 6px 12px;
+  background: var(--accent);
+  border-radius: 3px;
+  letter-spacing: 0.3px;
+  text-decoration: none;
+  border: 0;
+  cursor: pointer;
+  transition: background 150ms var(--ease);
+}
+.g-briefing .pull .cta:hover { background: var(--accent-ink); }
+
+/* ─── G Stats row — verdict / adherence / streak ──────────── */
+.g-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  border-bottom: 1px solid var(--rule);
+}
+.g-stat {
+  padding: 14px 18px;
+  border-right: 1px solid var(--rule);
+}
+.g-stat:last-child { border-right: 0; }
+.g-stat .l {
+  font-family: var(--font-jetbrains-mono), var(--mono);
+  font-size: 9px;
+  color: var(--ink-4);
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+.g-stat .v {
+  font-family: var(--font-fraunces), var(--serif);
+  font-size: 26px;
+  font-weight: 600;
+  letter-spacing: -0.5px;
+  line-height: 1;
+  margin-top: 4px;
+  color: var(--ink);
+}
+.g-stat .v.red { color: var(--accent); }
+
+/* ─── G Protocol list — today's pills ─────────────────────── */
+.g-protocol-h {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 18px 0 8px;
+}
+.g-protocol-h .l {
+  font-family: var(--font-jetbrains-mono), var(--mono);
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--accent);
+  font-weight: 700;
+}
+.g-protocol-h .r {
+  font-family: var(--font-jetbrains-mono), var(--mono);
+  font-size: 11px;
+  color: var(--ink-2);
+  font-variant-numeric: tabular-nums;
+}
+.g-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 11px 0;
+  border-top: 1px dotted var(--rule);
+}
+.g-item .check {
+  width: 18px;
+  height: 18px;
+  border: 1.4px solid var(--ink);
+  border-radius: 2px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  cursor: pointer;
+  transition: all 120ms var(--ease);
+}
+.g-item .check.done {
+  background: var(--ink);
+  color: var(--paper);
+  font-size: 11px;
+  font-weight: 700;
+}
+.g-item .check.done::before { content: "✓"; }
+.g-item .name {
+  font-family: var(--font-fraunces), var(--serif);
+  font-size: 18px;
+  font-weight: 500;
+  letter-spacing: -0.1px;
+  flex: 1;
+  color: var(--ink);
+}
+.g-item .name.done {
+  color: var(--ink-4);
+  font-style: italic;
+}
+.g-item .dose {
+  font-family: var(--font-jetbrains-mono), var(--mono);
+  font-size: 11px;
+  color: var(--ink-3);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ─── G Mobile bottom tab bar ─────────────────────────────── */
+.g-tabbar {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  height: var(--tabbar-h);
+  background: var(--paper);
+  border-top: 1px solid var(--ink);
+  display: none;  /* hidden on desktop */
+  justify-content: space-around;
+  padding: 9px 8px calc(env(safe-area-inset-bottom, 0px) + 18px);
+  z-index: 30;
+}
+@media (max-width: 820px) {
+  .g-tabbar { display: flex; }
+  /* Add bottom padding so content isn't hidden behind tabbar */
+  body { padding-bottom: var(--tabbar-h); }
+}
+.g-tab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  color: var(--ink-4);
+  font-size: 9.5px;
+  font-family: var(--font-inter), var(--sans);
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-decoration: none;
+  flex: 1;
+  text-transform: uppercase;
+}
+.g-tab[data-active="true"] { color: var(--accent); }
+.g-tab .tab-icon {
+  width: 18px;
+  height: 18px;
+  border: 1.4px solid currentColor;
+  border-radius: 2px;
+  position: relative;
+}
+.g-tab[data-active="true"] .tab-icon {
+  background: var(--accent);
+  border-color: var(--accent);
 }
 
 /* ─── Section rule — chapter-marker style ─────────────────── */
@@ -206,7 +483,7 @@ input::placeholder { color: var(--ink-5); }
   min-width: 0;
   background: transparent;
   border: none; outline: none;
-  font-family: var(--font-inter), var(--sans);
+  font-family: var(--font-fraunces), var(--serif);
   font-size: clamp(24px, 3.2vw, 40px);
   font-weight: 500;
   letter-spacing: -0.8px;
@@ -227,11 +504,11 @@ input::placeholder { color: var(--ink-5); }
 /* Typeahead */
 .suggest {
   border: 1px solid var(--rule);
-  background: var(--paper);
+  background: var(--paper-cream-light);
   position: absolute;
   left: 0; right: 0; top: 100%;
   z-index: 30;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+  box-shadow: 0 8px 24px rgba(26, 22, 18, 0.10);
 }
 .suggest-row {
   display: grid;
@@ -270,6 +547,7 @@ input::placeholder { color: var(--ink-5); }
   align-self: start; padding-top: 8px;
 }
 .compound-name {
+  font-family: var(--font-fraunces), var(--serif);
   font-size: 28px; font-weight: 600;
   letter-spacing: -0.6px; line-height: 1.15;
   margin: 0 0 8px;
@@ -287,11 +565,11 @@ input::placeholder { color: var(--ink-5); }
   position: absolute;
   inset: -6px -12px;
   border-radius: 8px;
-  background: rgba(45, 92, 26, 0.07);
-  border: 1px solid rgba(45, 92, 26, 0.10);
+  background: rgba(160, 43, 43, 0.05);
+  border: 1px solid rgba(160, 43, 43, 0.10);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
-  box-shadow: 0 4px 14px rgba(15, 74, 40, 0.06);
+  box-shadow: 0 4px 14px rgba(26, 22, 18, 0.05);
   opacity: 0;
   transform: scale(1);
   transform-origin: center;
@@ -329,7 +607,7 @@ input::placeholder { color: var(--ink-5); }
   min-width: 28px; text-align: center;
 }
 .grade[data-tier="a"]       { background: var(--grade-a); }
-.grade[data-tier="b"]       { background: var(--grade-b); }
+.grade[data-tier="b"]       { background: var(--grade-b); color: var(--ink); }
 .grade[data-tier="c"]       { background: var(--grade-c); }
 .grade[data-tier="neutral"] { background: var(--ink-3); }
 .grade--lg { padding: 4px 10px; font-size: 12px; }
@@ -410,8 +688,11 @@ input::placeholder { color: var(--ink-5); }
 .prose strong { color: var(--ink); font-weight: 600; }
 
 .lede {
-  font-size: 20px; line-height: 1.55; color: var(--ink);
-  font-weight: 400; letter-spacing: -0.2px; max-width: var(--measure); text-wrap: pretty;
+  font-family: var(--font-fraunces), var(--serif);
+  font-size: 22px; line-height: 1.5; color: var(--ink);
+  font-weight: 400; letter-spacing: -0.3px;
+  font-style: italic;
+  max-width: var(--measure); text-wrap: pretty;
 }
 
 /* ─── KV pair ─────────────────────────────────────────────── */
@@ -466,7 +747,7 @@ input::placeholder { color: var(--ink-5); }
   }
   .compound-row .compound-stat:nth-child(3),
   .compound-row .compound-stat:nth-child(4) { display: none; }
-  .compound-name { font-size: 20px; letter-spacing: -0.4px; }
+  .compound-name { font-size: 22px; letter-spacing: -0.4px; }
 
   /* Search bar — shrink input, hide ⌘K hint, tighten gap */
   .search-bar { gap: 10px; padding: 4px 0; }
@@ -516,6 +797,14 @@ input::placeholder { color: var(--ink-5); }
     position: static !important;
     top: auto !important;
   }
+
+  /* G briefing — tighten on mobile */
+  .g-briefing .head { font-size: clamp(26px, 7.5vw, 34px); }
+  .g-briefing .deck { font-size: 16px; }
+  .g-briefing .pull { width: 100%; box-sizing: border-box; }
+  .g-stats { grid-template-columns: repeat(3, 1fr); }
+  .g-stat { padding: 10px 12px; }
+  .g-stat .v { font-size: 22px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
