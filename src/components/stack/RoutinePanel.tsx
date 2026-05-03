@@ -1,72 +1,24 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import type { ScheduleBlock, SchedulerWarning } from '@/lib/protocol-types';
 
 interface Props {
-  /** Supplement display names or slugs — scheduler resolves both via alias lookup. */
-  names: string[];
-}
-
-interface SchedulerResponse {
-  schedule: {
-    blocks: ScheduleBlock[];
-    warnings: SchedulerWarning[];
-    generatedAt: string;
-  };
+  blocks: ScheduleBlock[];
+  warnings: SchedulerWarning[];
+  loading: boolean;
+  error: string | null;
 }
 
 /**
- * "Your Routine Today" — the killer feature.
+ * "Your Routine Today" — vertical block list with conflict resolver.
  *
- * Takes the user's stack (names), calls the deterministic scheduler engine,
- * and renders a conflict-resolved daily timeline + a synergy/spacing banner.
- *
- * This is the wedge Examine.com and Strong-by-Zero can't replicate: they list
- * supplements, we compose them.
+ * Takes the scheduler output (lifted to a parent so it can be shared with
+ * the TimelineView ribbon above), and renders each timed block with its
+ * supplements, context, and any cautions. Synergy + spacing warnings
+ * surface in a banner above the list.
  */
-export function RoutinePanel({ names }: Props) {
-  const [blocks, setBlocks] = useState<ScheduleBlock[]>([]);
-  const [warnings, setWarnings] = useState<SchedulerWarning[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (names.length === 0) {
-      setBlocks([]);
-      setWarnings([]);
-      return;
-    }
-
-    let cancelled = false;
-    async function run() {
-      setLoading(true);
-      setError(null);
-      try {
-        const res = await fetch('/api/scheduler', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ supplements: names }),
-        });
-        if (!res.ok) {
-          if (!cancelled) setError('Schedule temporarily unavailable.');
-          return;
-        }
-        const data: SchedulerResponse = await res.json();
-        if (cancelled) return;
-        setBlocks(data.schedule.blocks ?? []);
-        setWarnings(data.schedule.warnings ?? []);
-      } catch {
-        if (!cancelled) setError('Schedule temporarily unavailable.');
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    }
-    run();
-    return () => { cancelled = true; };
-  }, [names]);
-
-  if (names.length === 0) return null;
+export function RoutinePanel({ blocks, warnings, loading, error }: Props) {
+  if (blocks.length === 0 && !loading && !error) return null;
 
   const synergies = warnings.filter((w) => w.type === 'conflict' && w.severity === 'info');
   const spacingWarnings = warnings.filter(
@@ -147,8 +99,9 @@ export function RoutinePanel({ names }: Props) {
         </div>
       )}
 
-      {/* Timeline */}
+      {/* Block list */}
       <ol
+        id="routine-blocks"
         className="flex flex-col overflow-hidden rounded-[16px]"
         style={{
           background: 'var(--surface)',
@@ -158,8 +111,9 @@ export function RoutinePanel({ names }: Props) {
         {blocks.map((block, idx) => (
           <li
             key={idx}
-            className="flex items-start gap-5 px-6 py-5"
-            style={{ borderTop: idx === 0 ? 'none' : '1px solid var(--hair)' }}
+            id={`routine-block-${idx}`}
+            className="flex items-start gap-5 px-6 py-5 transition-colors target:bg-[var(--accent-tint)]"
+            style={{ borderTop: idx === 0 ? 'none' : '1px solid var(--hair)', scrollMarginTop: '120px' }}
           >
             <div className="flex w-[78px] flex-shrink-0 flex-col">
               <span

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import Link from 'next/link';
-import { RoutinePanel } from './RoutinePanel';
+import { RoutineView } from './RoutineView';
 
 interface StackItem {
   id: string;
@@ -542,8 +542,8 @@ export function StackBuilder() {
         )}
       </div>
 
-      {/* Your Routine — scheduler-generated timeline + conflict resolver */}
-      <RoutinePanel names={itemNames} />
+      {/* Your Routine — Timeline ribbon + scheduler-generated block list */}
+      <RoutineView names={itemNames} />
 
       {/* Soft gate for unauthenticated users */}
       {isLoggedIn === false && (
