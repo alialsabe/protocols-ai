@@ -13,6 +13,10 @@ export const dynamic = 'force-dynamic';
 const loadCompounds = unstable_cache(
   async (): Promise<CompoundRow[]> => {
     try {
+      // Fetch supplements and dosage rows separately, then join in memory.
+      // The previous LEFT JOIN duplicated supplements that have multiple
+      // supplement_dosage rows (e.g. spermidine-synthetic, kelp-extract have
+      // 4 each), inflating compounds.length and every category count.
       const rows = await db
         .select({
           id: supplementsTable.id,
@@ -21,12 +25,22 @@ const loadCompounds = unstable_cache(
           category: supplementsTable.category,
           aliases: supplementsTable.aliases,
           popularityScore: supplementsTable.popularityScore,
-          maintenance: supplementDosage.maintenance,
         })
         .from(supplementsTable)
-        .leftJoin(supplementDosage, sql`${supplementDosage.supplementId} = ${supplementsTable.id}`)
         .where(sql`${supplementsTable.status} = 'published'`)
         .orderBy(sql`${supplementsTable.popularityScore} desc`);
+
+      const dosageRows = await db
+        .select({
+          supplementId: supplementDosage.supplementId,
+          maintenance: supplementDosage.maintenance,
+        })
+        .from(supplementDosage);
+
+      const dosageMap = new Map<string, string>();
+      for (const d of dosageRows) {
+        if (!dosageMap.has(d.supplementId)) dosageMap.set(d.supplementId, d.maintenance);
+      }
 
       // Study count per supplement — keyed by supplement.id
       const studyCounts = await db
@@ -44,7 +58,7 @@ const loadCompounds = unstable_cache(
         name: r.name,
         category: r.category,
         aliases: r.aliases,
-        maintenance: r.maintenance ?? null,
+        maintenance: dosageMap.get(r.id) ?? null,
         studyCount: countMap.get(r.id) ?? 0,
       }));
     } catch (err) {
