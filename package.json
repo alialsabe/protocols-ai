@@ -34,7 +34,6 @@
     "drizzle-orm": "^0.45.2",
     "lucide-react": "^0.577.0",
     "next": "16.2.1",
-    "pdf-poppler": "^0.2.3",
     "postgres": "^3.4.8",
     "posthog-js": "^1.367.0",
     "postprocessing": "^6.39.1",

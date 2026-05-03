@@ -1,12 +1,6 @@
 import { z } from 'zod';
-import { promises as fs } from 'node:fs';
-import path from 'node:path';
-import os from 'node:os';
-import { randomBytes } from 'node:crypto';
 import type { ExtractedMarker } from './bloodwork-rules';
 
-// Strict schema. The model is told to omit anything it's unsure about;
-// we silently drop malformed entries here as a second line of defense.
 const markerSchema = z.object({
   name: z.string().min(1),
   value: z.number().finite(),
@@ -32,54 +26,17 @@ export async function extractMarkersFromPDF(pdfBuffer: Buffer): Promise<Extracte
     throw new Error('OPENROUTER_API_KEY is not configured.');
   }
 
-  const pngs = await renderPdfToPngs(pdfBuffer);
-  if (pngs.length === 0) {
-    return [];
-  }
-
-  try {
-    const raw = await callVisionModel(pngs, apiKey);
-    return parseAndValidate(raw);
-  } finally {
-    await Promise.allSettled(pngs.map((p) => fs.unlink(p)));
-  }
+  const dataUrl = `data:application/pdf;base64,${pdfBuffer.toString('base64')}`;
+  const raw = await callVisionModel(dataUrl, apiKey);
+  return parseAndValidate(raw);
 }
 
-// Convert a PDF buffer into one PNG per page using pdf-poppler. This needs
-// the poppler binaries on PATH at runtime (already a Vercel concern, not a
-// build concern). Tests mock this away via vi.mock.
-async function renderPdfToPngs(pdfBuffer: Buffer): Promise<string[]> {
-  const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), 'bloodwork-'));
-  const pdfPath = path.join(tmpDir, `${randomBytes(6).toString('hex')}.pdf`);
-  await fs.writeFile(pdfPath, pdfBuffer);
-
-  // Dynamic import keeps pdf-poppler off the cold-start path of routes that
-  // never touch bloodwork.
-  const poppler = await import('pdf-poppler');
-  await poppler.convert(pdfPath, {
-    format: 'png',
-    out_dir: tmpDir,
-    out_prefix: 'page',
-    page: null,
-  });
-
-  await fs.unlink(pdfPath).catch(() => undefined);
-
-  const entries = await fs.readdir(tmpDir);
-  return entries
-    .filter((name) => name.endsWith('.png'))
-    .sort()
-    .map((name) => path.join(tmpDir, name));
-}
-
-async function callVisionModel(pngPaths: string[], apiKey: string): Promise<string> {
-  const images = await Promise.all(
-    pngPaths.map(async (p) => {
-      const bytes = await fs.readFile(p);
-      return `data:image/png;base64,${bytes.toString('base64')}`;
-    }),
-  );
-
+// Sends the PDF directly to OpenRouter using their `file` content type.
+// OpenRouter's file-parser plugin handles the PDF (text or OCR) before
+// delegating to the model — so this works on Vercel serverless without
+// any native binaries. mistral-ocr is needed because lab reports are
+// often scans or images embedded in PDFs.
+async function callVisionModel(pdfDataUrl: string, apiKey: string): Promise<string> {
   const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
     method: 'POST',
     headers: {
@@ -94,9 +51,21 @@ async function callVisionModel(pngPaths: string[], apiKey: string): Promise<stri
         {
           role: 'user',
           content: [
-            { type: 'text', text: 'Extract every marker from these lab pages. JSON only.' },
-            ...images.map((url) => ({ type: 'image_url', image_url: { url } })),
+            { type: 'text', text: 'Extract every marker from this lab report. JSON only.' },
+            {
+              type: 'file',
+              file: {
+                filename: 'bloodwork.pdf',
+                file_data: pdfDataUrl,
+              },
+            },
           ],
+        },
+      ],
+      plugins: [
+        {
+          id: 'file-parser',
+          pdf: { engine: 'mistral-ocr' },
         },
       ],
     }),
@@ -111,9 +80,6 @@ async function callVisionModel(pngPaths: string[], apiKey: string): Promise<stri
   return json.choices?.[0]?.message?.content ?? '';
 }
 
-// Defense in depth: the model can return a near-miss object, mixed JSON +
-// prose, or wrap markers in extra keys. We try strict parse first, then
-// salvage individual entries before giving up.
 export function parseAndValidate(raw: string): ExtractedMarker[] {
   const parsed = safeParseJson(raw);
   if (!parsed) return [];
