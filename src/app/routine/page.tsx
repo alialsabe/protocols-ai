@@ -1,4 +1,5 @@
 import { cookies } from 'next/headers';
+import { unstable_cache } from 'next/cache';
 import { db } from '@/lib/drizzle';
 import {
   savedStacks,
@@ -19,6 +20,35 @@ export const metadata = {
   title: 'My Routine — Materia',
   description: 'Build, schedule, and personalise your daily supplement routine.',
 };
+
+// Cold starts on Vercel + 4 parallel DB queries + auth check were timing
+// out the default function budget. Public reference data doesn't change
+// per-user so it can ride a 5-minute server cache, leaving only the auth
+// fetch + per-user profile lookup on the critical path.
+export const maxDuration = 30;
+
+const loadReferenceData = unstable_cache(
+  async () => {
+    const [suppsResult, dosageResult, conflictsResult] = await Promise.allSettled([
+      db.select({
+        id: supplements.id,
+        slug: supplements.slug,
+        name: supplements.name,
+        category: supplements.category,
+      }).from(supplements),
+      db.select({
+        supplementId: supplementDosage.supplementId,
+        perKgFactor: supplementDosage.perKgFactor,
+        unit: supplementDosage.unit,
+        maintenance: supplementDosage.maintenance,
+      }).from(supplementDosage),
+      db.select().from(supplementConflicts),
+    ]);
+    return { suppsResult, dosageResult, conflictsResult };
+  },
+  ['routine-reference-data'],
+  { revalidate: 300, tags: ['routine-reference-data'] },
+);
 
 // /routine is the canonical "my stuff" page. Anonymous users get the editor +
 // scheduler from localStorage; logged-in users additionally get personalised
@@ -48,24 +78,16 @@ export default async function RoutinePage() {
   const isAuthenticated = Boolean(userData.user);
   const userId = userData.user?.id ?? null;
 
-  const [profileResult, suppsResult, dosageResult, conflictsResult] = await Promise.allSettled([
-    userId
-      ? db.select().from(userProfiles).where(eq(userProfiles.userId, userId)).limit(1)
-      : Promise.resolve([]),
-    db.select({
-      id: supplements.id,
-      slug: supplements.slug,
-      name: supplements.name,
-      category: supplements.category,
-    }).from(supplements),
-    db.select({
-      supplementId: supplementDosage.supplementId,
-      perKgFactor: supplementDosage.perKgFactor,
-      unit: supplementDosage.unit,
-      maintenance: supplementDosage.maintenance,
-    }).from(supplementDosage),
-    db.select().from(supplementConflicts),
+  const [profileResult, referenceData] = await Promise.all([
+    Promise.allSettled([
+      userId
+        ? db.select().from(userProfiles).where(eq(userProfiles.userId, userId)).limit(1)
+        : Promise.resolve([]),
+    ]).then(([r]) => r),
+    loadReferenceData(),
   ]);
+
+  const { suppsResult, dosageResult, conflictsResult } = referenceData;
 
   // SavedStacks fetch happens inside StackBuilder via /api/stack — kept
   // separate so the editor is fully client-driven and can fall back to
