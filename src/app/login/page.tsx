@@ -53,7 +53,7 @@ function LoginForm() {
           className="mb-8 block text-center font-mono text-[11px] font-bold uppercase tracking-[1.4px] transition-colors hover:text-white"
           style={{ color: 'var(--fg-dim)' }}
         >
-          ← MATERIA
+          ⚜ STACK LAB
         </Link>
 
         <div
