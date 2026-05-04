@@ -17,8 +17,6 @@ interface SupplementOption {
   popularityScore: number;
 }
 
-// Single source of truth for the user's routine — same key the AddToRoutineButton
-// on each /research/[slug] page writes, and the Nav badge reads. We store slugs.
 const ROUTINE_KEY = 'protocolsai.routine.v2';
 
 function readLocalRoutine(): string[] {
@@ -32,6 +30,22 @@ function writeLocalRoutine(slugs: string[]) {
   localStorage.setItem(ROUTINE_KEY, JSON.stringify(slugs));
   window.dispatchEvent(new CustomEvent('routine:update'));
 }
+
+// Derive a deterministic "rarity" tier from the supplement name so the inventory
+// has visual variety without needing study-count enrichment yet. Once we wire
+// real grade data, swap this for `gradeFromCount(item.studyCount)`.
+function rarityFromName(name: string): 'common' | 'rare' | 'legendary' {
+  const len = name.length;
+  if (len > 18) return 'legendary';
+  if (len > 11) return 'rare';
+  return 'common';
+}
+
+const RARITY_LABEL: Record<string, string> = {
+  common: '★',
+  rare: '★★★',
+  legendary: '★★★★',
+};
 
 export function StackBuilder() {
   const [stackId, setStackId] = useState<string | null>(null);
@@ -47,15 +61,13 @@ export function StackBuilder() {
   const [shareUrl, setShareUrl] = useState<string | null>(null);
   const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
   const [loading, setLoading] = useState(true);
+  const [view, setView] = useState<'grid' | 'list'>('grid');
 
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const autosaveRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const hydratedRef = useRef(false); // suppress autosave during hydration
+  const hydratedRef = useRef(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Hydrate from localStorage (canonical) + reconcile with server stack when
-  // the user is logged in. localStorage is the single source of truth; the
-  // server is a backup that kicks in only on a fresh login / new device.
   useEffect(() => {
     async function init() {
       try {
@@ -81,7 +93,6 @@ export function StackBuilder() {
         const bySlug = new Map(list.map((s) => [s.slug, s]));
         const byId   = new Map(list.map((s) => [s.id, s]));
 
-        // localStorage = the user's intent, regardless of auth.
         const localSlugs = readLocalRoutine();
         const localItems: StackItem[] = localSlugs
           .map((slug) => bySlug.get(slug))
@@ -107,11 +118,9 @@ export function StackBuilder() {
               .map((s) => ({ id: s.id, name: s.name, slug: s.slug }));
 
             if (localItems.length === 0 && serverItems.length > 0) {
-              // Fresh login / new device — restore from server, mirror to local.
               merged = serverItems;
               writeLocalRoutine(serverItems.map((i) => i.slug));
             } else if (serverItems.length > 0) {
-              // Both sides have data — union by id, local first (preserves order).
               const seen = new Set(localItems.map((i) => i.id));
               const fromServer = serverItems.filter((s) => !seen.has(s.id));
               merged = [...localItems, ...fromServer];
@@ -127,9 +136,7 @@ export function StackBuilder() {
         setStackName(resolvedName);
         setItems(merged);
       } catch {
-        // Fall back to localStorage-only on network failure.
         const localSlugs = readLocalRoutine();
-        // If we don't have the supplements list, we can't resolve names.
         setItems(
           localSlugs.map((slug) => ({ id: slug, name: slug, slug })),
         );
@@ -145,8 +152,6 @@ export function StackBuilder() {
     };
   }, []);
 
-  // React to routine changes from elsewhere (the AddToRoutineButton on a
-  // /research/[slug] page, or another tab). Re-hydrate `items` from local.
   useEffect(() => {
     if (allSupplements.length === 0) return;
     const bySlug = new Map(allSupplements.map((s) => [s.slug, s]));
@@ -157,7 +162,6 @@ export function StackBuilder() {
         .filter((s): s is SupplementOption => Boolean(s))
         .map((s) => ({ id: s.id, name: s.name, slug: s.slug }));
       setItems((prev) => {
-        // No-op if the lists are identical (avoid render churn).
         if (prev.length === next.length && prev.every((p, i) => p.id === next[i].id)) {
           return prev;
         }
@@ -168,7 +172,6 @@ export function StackBuilder() {
     return () => window.removeEventListener('routine:update', syncFromLocal);
   }, [allSupplements]);
 
-  // Supplement search
   const search = useCallback(
     async (q: string) => {
       if (!q.trim()) {
@@ -197,7 +200,6 @@ export function StackBuilder() {
     debounceRef.current = setTimeout(() => search(val), 200);
   }
 
-  // Single mutator — keeps state, localStorage, and (if authed) the server in sync.
   const commitItems = useCallback((next: StackItem[]) => {
     setItems(next);
     writeLocalRoutine(next.map((i) => i.slug));
@@ -223,14 +225,11 @@ export function StackBuilder() {
     commitItems(items.filter((i) => i.id !== id));
   }
 
-  // Autosave to the server for logged-in users — debounced so adding several
-  // supplements in a row only POSTs once.
   useEffect(() => {
-    if (!hydratedRef.current) return;       // skip during initial hydration
-    if (isLoggedIn !== true)    return;     // anonymous = local only
+    if (!hydratedRef.current) return;
+    if (isLoggedIn !== true)    return;
     if (autosaveRef.current) clearTimeout(autosaveRef.current);
     autosaveRef.current = setTimeout(() => {
-      // Fire and forget — explicit Save still exists for force-sync.
       fetch('/api/stack', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -245,7 +244,7 @@ export function StackBuilder() {
           if (data?.id) setStackId(data.id);
           setSaveStatus('saved');
         })
-        .catch(() => { /* keep local-only — explicit Save can retry */ });
+        .catch(() => { /* keep local-only */ });
     }, 700);
     return () => {
       if (autosaveRef.current) clearTimeout(autosaveRef.current);
@@ -282,8 +281,6 @@ export function StackBuilder() {
   }
 
   async function handleShare() {
-    // setStackId is async — never trust the closure value of stackId after a
-    // save in the same tick. Use the id returned by handleSave() directly.
     let id = stackId;
     if (!id) {
       id = await handleSave();
@@ -307,11 +304,8 @@ export function StackBuilder() {
     }
   }
 
-  // Memoize names array so RoutinePanel's effect doesn't re-run on unrelated re-renders.
-  // (useEffect dep on a fresh array each render = infinite fetch loop)
   const itemNames = useMemo(() => items.map((i) => i.name), [items]);
 
-  // Close dropdown on outside click
   useEffect(() => {
     function handleClick(e: MouseEvent) {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
@@ -326,9 +320,14 @@ export function StackBuilder() {
     return (
       <div
         className="mx-auto max-w-[1200px] px-5 py-12 md:px-10 lg:px-16"
-        style={{ color: 'var(--fg-muted)' }}
+        style={{ color: 'var(--text-3)' }}
       >
-        <span className="font-mono text-[11px] uppercase tracking-[1.4px]">Loading...</span>
+        <span
+          className="font-mono text-[11px] uppercase tracking-[1.4px]"
+          style={{ color: 'var(--gold)' }}
+        >
+          ⚜ Loading stack...
+        </span>
       </div>
     );
   }
@@ -336,244 +335,522 @@ export function StackBuilder() {
   return (
     <div className="mx-auto max-w-[1200px] px-5 py-8 md:px-10 lg:px-16">
 
-      {/* Header row: stack name + actions */}
-      <div
-        className="flex flex-col gap-4 pb-6 md:flex-row md:items-center md:justify-between"
-        style={{ borderBottom: '1px solid var(--hair)' }}
-      >
-        <div className="flex flex-1 flex-col gap-1">
-          <span
-            className="font-mono text-[11px] font-bold uppercase tracking-[1.4px]"
-            style={{ color: 'var(--fg-dim)' }}
-          >
-            Routine Name
-          </span>
-          <input
-            type="text"
-            value={stackName}
-            onChange={(e) => { setStackName(e.target.value); setSaveStatus('idle'); }}
-            className="bg-transparent text-[20px] font-extrabold tracking-[-0.4px] outline-none"
-            style={{ color: 'var(--fg)' }}
-            placeholder="Name your routine"
-            aria-label="Stack name"
-          />
+      {/* L+ Stack header — gold rule + Cinzel title + meta line */}
+      <div style={{ borderBottom: '1px solid var(--gold)', paddingBottom: 16, marginBottom: 24 }}>
+        <div
+          style={{
+            fontFamily: 'var(--font-cinzel), serif',
+            fontSize: 11,
+            color: 'var(--gold)',
+            letterSpacing: '2px',
+            textTransform: 'uppercase',
+            fontWeight: 600,
+            marginBottom: 8,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
+          }}
+        >
+          <span style={{ display: 'inline-block', width: 24, height: 1, background: 'var(--gold)' }} />
+          ⚜ My Stack
         </div>
-
-        <div className="flex items-center gap-3">
-          {saveStatus === 'saved' && (
-            <span
-              className="font-mono text-[11px] font-bold uppercase tracking-[1.4px]"
-              style={{ color: 'var(--accent)' }}
-            >
-              Saved
-            </span>
-          )}
-          {saveStatus === 'error' && (
-            <span
-              className="font-mono text-[11px] font-bold uppercase tracking-[1.4px]"
-              style={{ color: '#ef4444' }}
-            >
-              Save failed
-            </span>
-          )}
-
-          <button
-            onClick={handleSave}
-            disabled={saving || !isLoggedIn}
-            className="inline-flex min-h-[44px] items-center px-5 font-mono text-[11px] font-bold uppercase tracking-[1.4px] transition-colors disabled:opacity-40"
+        <input
+          type="text"
+          value={stackName}
+          onChange={(e) => { setStackName(e.target.value); setSaveStatus('idle'); }}
+          style={{
+            background: 'transparent',
+            border: 'none',
+            outline: 'none',
+            fontFamily: 'var(--font-cinzel), serif',
+            fontSize: 28,
+            fontWeight: 600,
+            letterSpacing: '-0.3px',
+            color: 'var(--text)',
+            width: '100%',
+            padding: '4px 0',
+          }}
+          placeholder="Name your stack..."
+          aria-label="Stack name"
+        />
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            gap: 16,
+            flexWrap: 'wrap',
+            marginTop: 12,
+          }}
+        >
+          <div
             style={{
-              background: 'var(--surface)',
-              border: '1px solid var(--hair)',
-              color: 'var(--fg)',
+              display: 'flex',
+              gap: 14,
+              fontFamily: 'var(--font-jetbrains-mono), monospace',
+              fontSize: 11,
+              color: 'var(--text-3)',
+              letterSpacing: '1px',
             }}
-            aria-label="Save stack"
           >
-            {saving ? 'Saving...' : 'Save'}
-          </button>
-
-          <button
-            onClick={handleShare}
-            disabled={sharing || !isLoggedIn || items.length === 0}
-            className="inline-flex min-h-[44px] items-center px-5 font-mono text-[11px] font-bold uppercase tracking-[1.4px] transition-colors disabled:opacity-40"
-            style={{
-              background: 'var(--accent)',
-              color: '#000',
-            }}
-            aria-label="Share stack"
-          >
-            {sharing ? 'Sharing...' : 'Share'}
-          </button>
+            <span><b style={{ color: 'var(--gold)' }}>{items.length}</b> EQUIPPED</span>
+            <span><b style={{ color: 'var(--gold)' }}>{isLoggedIn ? 'CLOUD' : 'LOCAL'}</b> SAVE</span>
+            {saveStatus === 'saved' && <span style={{ color: 'var(--good)' }}>● SAVED</span>}
+            {saveStatus === 'error' && <span style={{ color: 'var(--bad)' }}>● ERROR</span>}
+          </div>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button
+              onClick={handleSave}
+              disabled={saving || !isLoggedIn}
+              className="btn btn--ghost"
+              style={{ opacity: !isLoggedIn ? 0.4 : 1 }}
+              aria-label="Save stack"
+            >
+              {saving ? 'Saving...' : 'Save'}
+            </button>
+            <button
+              onClick={handleShare}
+              disabled={sharing || !isLoggedIn || items.length === 0}
+              className="btn"
+              style={{ opacity: (!isLoggedIn || items.length === 0) ? 0.4 : 1 }}
+              aria-label="Share stack"
+            >
+              {sharing ? 'Sharing...' : 'Share ▸'}
+            </button>
+          </div>
         </div>
       </div>
 
       {/* Share URL row */}
       {shareUrl && (
         <div
-          className="flex items-center gap-3 py-4"
-          style={{ borderBottom: '1px solid var(--hair)' }}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 12,
+            padding: '12px 16px',
+            background: 'var(--bg-2)',
+            border: '1px solid var(--gold)',
+            borderRadius: 6,
+            marginBottom: 20,
+          }}
         >
           <span
-            className="font-mono text-[11px] font-bold uppercase tracking-[1.4px]"
-            style={{ color: 'var(--fg-dim)' }}
+            style={{
+              fontFamily: 'var(--font-cinzel), serif',
+              fontSize: 10,
+              color: 'var(--gold)',
+              letterSpacing: '1.5px',
+              textTransform: 'uppercase',
+              fontWeight: 600,
+              flexShrink: 0,
+            }}
           >
             Share URL
           </span>
           <input
             readOnly
             value={shareUrl}
-            className="flex-1 bg-transparent font-mono text-[12px] outline-none"
-            style={{ color: 'var(--accent)' }}
+            style={{
+              flex: 1,
+              background: 'transparent',
+              border: 'none',
+              outline: 'none',
+              fontFamily: 'var(--font-jetbrains-mono), monospace',
+              fontSize: 12,
+              color: 'var(--text-2)',
+            }}
             onClick={(e) => (e.target as HTMLInputElement).select()}
             aria-label="Share URL"
           />
           <button
             onClick={() => navigator.clipboard.writeText(shareUrl)}
-            className="inline-flex min-h-[44px] items-center px-4 font-mono text-[11px] font-bold uppercase tracking-[1.4px]"
-            style={{
-              background: 'var(--surface)',
-              border: '1px solid var(--hair)',
-              color: 'var(--fg-muted)',
-            }}
+            className="btn btn--ghost"
+            style={{ padding: '6px 12px', fontSize: 10 }}
           >
             Copy
           </button>
         </div>
       )}
 
-      {/* Search bar */}
-      <div className="relative py-6" style={{ borderBottom: '1px solid var(--hair)' }} ref={dropdownRef}>
-        <span
-          className="mb-2 block font-mono text-[11px] font-bold uppercase tracking-[1.4px]"
-          style={{ color: 'var(--fg-dim)' }}
-        >
-          Add Compound
-        </span>
-        <input
-          type="text"
-          value={query}
-          onChange={handleQueryChange}
-          onFocus={() => suggestions.length > 0 && setShowDropdown(true)}
-          placeholder="Search supplements..."
-          className="w-full bg-transparent py-3 text-[15px] outline-none"
+      {/* Add compound search */}
+      <div style={{ marginBottom: 24 }} ref={dropdownRef}>
+        <div
           style={{
-            color: 'var(--fg)',
-            borderBottom: '1px solid var(--hair)',
+            fontFamily: 'var(--font-cinzel), serif',
+            fontSize: 11,
+            color: 'var(--gold)',
+            letterSpacing: '2px',
+            textTransform: 'uppercase',
+            fontWeight: 600,
+            marginBottom: 10,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 8,
           }}
-          aria-label="Search supplements"
-          aria-autocomplete="list"
-          aria-expanded={showDropdown}
-        />
-
-        {showDropdown && suggestions.length > 0 && (
-          <ul
-            className="absolute left-0 right-0 z-20 mt-1 overflow-hidden"
+        >
+          <span style={{ display: 'inline-block', width: 24, height: 1, background: 'var(--gold)' }} />
+          Add to Stack
+        </div>
+        <div style={{ position: 'relative' }}>
+          <input
+            type="text"
+            value={query}
+            onChange={handleQueryChange}
+            onFocus={() => suggestions.length > 0 && setShowDropdown(true)}
+            placeholder="Search supplements..."
             style={{
-              background: 'var(--surface)',
-              border: '1px solid var(--hair)',
+              width: '100%',
+              padding: '12px 14px',
+              background: 'var(--bg-2)',
+              border: '1px solid var(--rule)',
+              borderRadius: 6,
+              fontSize: 14,
+              color: 'var(--text)',
+              outline: 'none',
+              fontFamily: 'var(--font-inter), sans-serif',
             }}
-            role="listbox"
-          >
-            {suggestions.slice(0, 10).map((s) => (
-              <li key={s}>
-                <button
-                  type="button"
-                  onMouseDown={(e) => e.preventDefault()}
-                  onClick={() => addSupplement(s)}
-                  className="flex w-full min-h-[44px] items-center px-4 text-[14px] text-left transition-colors hover:bg-white/5"
-                  style={{ color: 'var(--fg)' }}
-                  role="option"
-                  aria-selected={false}
-                >
-                  {s}
-                </button>
-              </li>
-            ))}
-          </ul>
-        )}
+            aria-label="Search supplements"
+            aria-autocomplete="list"
+            aria-expanded={showDropdown}
+          />
+
+          {showDropdown && suggestions.length > 0 && (
+            <ul
+              style={{
+                position: 'absolute',
+                left: 0,
+                right: 0,
+                marginTop: 4,
+                listStyle: 'none',
+                padding: 0,
+                background: 'var(--bg-2)',
+                border: '1px solid var(--gold)',
+                borderRadius: 6,
+                overflow: 'hidden',
+                zIndex: 20,
+                boxShadow: '0 8px 24px rgba(0,0,0,0.5)',
+              }}
+              role="listbox"
+            >
+              {suggestions.slice(0, 10).map((s) => (
+                <li key={s}>
+                  <button
+                    type="button"
+                    onMouseDown={(e) => e.preventDefault()}
+                    onClick={() => addSupplement(s)}
+                    style={{
+                      width: '100%',
+                      padding: '11px 14px',
+                      background: 'transparent',
+                      border: 'none',
+                      borderTop: '1px solid var(--rule)',
+                      color: 'var(--text)',
+                      fontSize: 13,
+                      textAlign: 'left',
+                      cursor: 'pointer',
+                      fontFamily: 'var(--font-cinzel), serif',
+                      letterSpacing: '0.2px',
+                    }}
+                    role="option"
+                    aria-selected={false}
+                  >
+                    {s}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
       </div>
 
-      {/* Stack list */}
-      <div className="py-6">
-        {items.length === 0 ? (
-          <p
-            className="font-mono text-[13px] tracking-[0.5px]"
-            style={{ color: 'var(--fg-muted)' }}
+      {/* L+ inventory */}
+      <div className="l-section-h">
+        <div className="l">⚜ Equipped Items</div>
+        <div className="r">
+          <span style={{ marginRight: 12 }}>{items.length} TOTAL</span>
+          <span
+            onClick={() => setView('grid')}
+            style={{
+              cursor: 'pointer',
+              color: view === 'grid' ? 'var(--gold)' : 'var(--text-4)',
+              padding: '0 4px',
+            }}
+          >GRID</span>
+          <span style={{ color: 'var(--text-5)' }}>·</span>
+          <span
+            onClick={() => setView('list')}
+            style={{
+              cursor: 'pointer',
+              color: view === 'list' ? 'var(--gold)' : 'var(--text-4)',
+              padding: '0 4px',
+            }}
+          >LIST</span>
+        </div>
+      </div>
+
+      {items.length === 0 ? (
+        <div
+          style={{
+            padding: '40px 24px',
+            textAlign: 'center',
+            background: 'linear-gradient(160deg, #1A2030 0%, #141923 100%)',
+            border: '1.5px dashed var(--rule)',
+            borderRadius: 6,
+            color: 'var(--text-3)',
+          }}
+        >
+          <div
+            style={{
+              fontFamily: 'var(--font-cinzel), serif',
+              fontSize: 14,
+              color: 'var(--gold)',
+              letterSpacing: '1.5px',
+              textTransform: 'uppercase',
+              fontWeight: 600,
+              marginBottom: 8,
+            }}
           >
-            Search above to add your first supplement.
+            Your inventory is empty
+          </div>
+          <p style={{ margin: 0, fontSize: 13, lineHeight: 1.5 }}>
+            Search above to add your first supplement, or browse the{' '}
+            <Link href="/?view=library" style={{ color: 'var(--gold)', borderBottom: '1px solid var(--gold)' }}>library</Link>.
           </p>
-        ) : (
-          <ol className="flex flex-col">
-            {items.map((item, idx) => (
-              <li
+        </div>
+      ) : view === 'grid' ? (
+        // GRID view — 2 column on mobile, 3-4 on desktop
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))',
+            gap: 8,
+          }}
+        >
+          {items.map((item) => {
+            const rarity = rarityFromName(item.name);
+            return (
+              <div
                 key={item.id}
-                className="flex items-center gap-4 py-4"
-                style={{ borderBottom: '1px solid var(--hair)' }}
+                className="l-card"
+                data-rarity={rarity}
+                style={{ cursor: 'default' }}
+              >
+                <span className="l-dot" data-state="equipped" />
+                <div>
+                  <div className="l-card-name">{item.name}</div>
+                  <div
+                    className="l-card-dose"
+                    style={{
+                      color:
+                        rarity === 'legendary' ? 'var(--gold)' :
+                        rarity === 'rare' ? 'var(--rar-rare)' :
+                        'var(--text-3)',
+                      fontFamily: 'var(--font-cinzel), serif',
+                      letterSpacing: '1px',
+                      fontSize: 9.5,
+                      textTransform: 'uppercase',
+                    }}
+                  >
+                    {RARITY_LABEL[rarity]} {rarity}
+                  </div>
+                </div>
+                <div style={{ display: 'flex', gap: 6, alignItems: 'center', marginTop: 10 }}>
+                  <Link
+                    href={`/research/${item.slug}`}
+                    style={{
+                      flex: 1,
+                      fontFamily: 'var(--font-cinzel), serif',
+                      fontSize: 10,
+                      color: 'var(--gold)',
+                      letterSpacing: '1px',
+                      textTransform: 'uppercase',
+                      fontWeight: 600,
+                      textDecoration: 'none',
+                    }}
+                  >
+                    View ▸
+                  </Link>
+                  <button
+                    onClick={() => removeItem(item.id)}
+                    style={{
+                      background: 'transparent',
+                      border: '1px solid var(--rule)',
+                      color: 'var(--text-4)',
+                      width: 24,
+                      height: 24,
+                      borderRadius: 3,
+                      fontSize: 12,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      transition: 'all 120ms var(--ease)',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.borderColor = 'var(--bad)';
+                      e.currentTarget.style.color = 'var(--bad)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.borderColor = 'var(--rule)';
+                      e.currentTarget.style.color = 'var(--text-4)';
+                    }}
+                    aria-label={`Remove ${item.name}`}
+                  >
+                    ✕
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      ) : (
+        // LIST view — single column rows with rarity stripe
+        <div>
+          {items.map((item) => {
+            const rarity = rarityFromName(item.name);
+            return (
+              <div
+                key={item.id}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 14,
+                  padding: '13px 18px 13px 14px',
+                  borderBottom: '1px solid var(--rule-soft)',
+                  position: 'relative',
+                }}
               >
                 <span
-                  className="w-7 font-mono text-[11px] font-bold uppercase tracking-[1.4px] tabular-nums"
-                  style={{ color: 'var(--fg-dim)' }}
-                >
-                  {String(idx + 1).padStart(2, '0')}
-                </span>
-
-                <span className="flex-1 text-[15px] font-semibold" style={{ color: 'var(--fg)' }}>
-                  {item.name}
-                </span>
-
+                  style={{
+                    position: 'absolute',
+                    left: 0,
+                    top: 0,
+                    bottom: 0,
+                    width: 3,
+                    background:
+                      rarity === 'legendary' ? 'var(--gold)' :
+                      rarity === 'rare' ? 'var(--rar-rare)' :
+                      'var(--rar-common)',
+                  }}
+                />
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div
+                    style={{
+                      fontFamily: 'var(--font-cinzel), serif',
+                      fontSize: 15,
+                      color: 'var(--text)',
+                      fontWeight: 600,
+                      letterSpacing: '0.1px',
+                      lineHeight: 1.2,
+                    }}
+                  >
+                    {item.name}
+                  </div>
+                  <div
+                    style={{
+                      fontFamily: 'var(--font-jetbrains-mono), monospace',
+                      fontSize: 10,
+                      color:
+                        rarity === 'legendary' ? 'var(--gold)' :
+                        rarity === 'rare' ? 'var(--rar-rare)' :
+                        'var(--text-3)',
+                      letterSpacing: '0.4px',
+                      marginTop: 3,
+                    }}
+                  >
+                    {RARITY_LABEL[rarity]} {rarity.toUpperCase()}
+                  </div>
+                </div>
+                <span
+                  style={{
+                    width: 8,
+                    height: 8,
+                    borderRadius: '50%',
+                    background: 'var(--good)',
+                    boxShadow: '0 0 6px var(--good-glow)',
+                  }}
+                />
                 <Link
-                  href={`/research/${allSupplements.find((s) => s.id === item.id)?.slug ?? item.id}`}
-                  className="inline-flex min-h-[44px] items-center font-mono text-[11px] font-bold uppercase tracking-[1.4px] transition-colors hover:text-white"
-                  style={{ color: 'var(--accent)' }}
+                  href={`/research/${item.slug}`}
+                  style={{
+                    fontFamily: 'var(--font-cinzel), serif',
+                    fontSize: 10,
+                    color: 'var(--gold)',
+                    letterSpacing: '1px',
+                    textTransform: 'uppercase',
+                    fontWeight: 600,
+                    textDecoration: 'none',
+                  }}
                 >
-                  View Report
+                  View ▸
                 </Link>
-
                 <button
                   onClick={() => removeItem(item.id)}
-                  className="inline-flex min-h-[44px] w-10 items-center justify-center font-mono text-[14px] transition-colors hover:text-white"
-                  style={{ color: 'var(--fg-dim)' }}
+                  style={{
+                    background: 'transparent',
+                    border: '1px solid var(--rule)',
+                    color: 'var(--text-4)',
+                    width: 24,
+                    height: 24,
+                    borderRadius: 3,
+                    fontSize: 12,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
                   aria-label={`Remove ${item.name}`}
                 >
-                  x
+                  ✕
                 </button>
-              </li>
-            ))}
-          </ol>
-        )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Routine view — 24h timeline + scheduler block list */}
+      <div style={{ marginTop: 32 }}>
+        <RoutineView names={itemNames} />
       </div>
 
-      {/* Your Routine — Timeline ribbon + scheduler-generated block list */}
-      <RoutineView names={itemNames} />
-
       {/* Soft gate for unauthenticated users */}
-      {isLoggedIn === false && (
+      {isLoggedIn === false && items.length > 0 && (
         <div
-          className="flex flex-col items-start gap-3 rounded-none p-5 md:flex-row md:items-center md:justify-between"
           style={{
-            background: 'var(--surface)',
-            border: '1px solid var(--hair)',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 12,
+            padding: 20,
+            marginTop: 24,
+            background: 'linear-gradient(160deg, #2A1818 0%, #1A0E0E 100%)',
+            border: '1px solid var(--crimson)',
+            borderRadius: 6,
           }}
+          className="md:flex-row md:items-center md:justify-between"
         >
-          <div className="flex flex-col gap-1">
+          <div style={{ flex: 1 }}>
             <span
-              className="font-mono text-[11px] font-bold uppercase tracking-[1.4px]"
-              style={{ color: 'var(--accent)' }}
+              style={{
+                fontFamily: 'var(--font-cinzel), serif',
+                fontSize: 11,
+                color: 'var(--gold)',
+                letterSpacing: '1.5px',
+                textTransform: 'uppercase',
+                fontWeight: 600,
+                display: 'block',
+                marginBottom: 4,
+              }}
             >
-              Saved on this device
+              ⚠ Saved on this device only
             </span>
-            <p className="text-[14px]" style={{ color: 'var(--fg-muted)' }}>
-              Sign in to sync across devices, unlock your dashboard, and share this routine.
+            <p style={{ margin: 0, fontSize: 14, color: 'var(--text-2)', lineHeight: 1.45 }}>
+              Sign in to sync your stack across devices, run the audit, and share with others.
             </p>
           </div>
-          <Link
-            href="/signin"
-            className="inline-flex min-h-[44px] items-center px-5 font-mono text-[11px] font-bold uppercase tracking-[1.4px] transition-colors hover:opacity-90"
-            style={{
-              background: 'var(--accent)',
-              color: '#000',
-            }}
-          >
-            Sign In
+          <Link href="/login" className="btn">
+            Sign In ▸
           </Link>
         </div>
       )}
