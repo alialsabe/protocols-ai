@@ -5,20 +5,12 @@ import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/lib/use-auth';
 
-// Volume number = days since launch epoch.
-// Anchor: 2026-04-01. Adjust if you want a different "Vol 001" date.
+// XP / Volume number = days since launch epoch.
 const LAUNCH_EPOCH = new Date('2026-04-01T00:00:00Z').getTime();
 
-function getVolume(): string {
+function getXP(): string {
   const days = Math.max(1, Math.floor((Date.now() - LAUNCH_EPOCH) / 86_400_000) + 1);
   return String(days).padStart(3, '0');
-}
-
-function getDateString(): string {
-  const d = new Date();
-  const days = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
-  const months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
-  return `${days[d.getDay()]} · ${months[d.getMonth()]} ${String(d.getDate()).padStart(2, '0')}`;
 }
 
 export function Nav() {
@@ -26,23 +18,19 @@ export function Nav() {
   const isToday    = pathname === '/';
   const isStack    = pathname === '/routine' || pathname === '/routine/'
                   || pathname === '/stack'   || pathname === '/stack/';
-  const isLibrary  = pathname.startsWith('/research') || pathname.startsWith('/protocol');
+  const isLibrary  = pathname.startsWith('/research') || pathname.startsWith('/protocol')
+                  || (pathname === '/' && typeof window !== 'undefined' && window.location.search.includes('view=library'));
   const isAudit    = pathname.startsWith('/routine/audit');
   const isMe       = pathname.startsWith('/account');
 
   const { user, loading: authLoading } = useAuth();
 
-  const [vol, setVol] = useState('');
-  const [dateStr, setDateStr] = useState('');
+  const [xp, setXP] = useState('');
   const [routineCount, setRoutineCount] = useState(0);
 
   useEffect(() => {
-    const tick = () => {
-      setVol(getVolume());
-      setDateStr(getDateString());
-    };
-    tick();
-    const id = setInterval(tick, 60_000);
+    setXP(getXP());
+    const id = setInterval(() => setXP(getXP()), 60_000);
     return () => clearInterval(id);
   }, []);
 
@@ -64,14 +52,16 @@ export function Nav() {
 
   return (
     <>
-      {/* Top masthead — newspaper style on desktop, brand-only on mobile */}
+      {/* Top bar — L+ RPG aesthetic */}
       <nav
         style={{
           position: 'sticky',
           top: 0,
           zIndex: 20,
-          background: 'var(--paper)',
-          borderBottom: '2px solid var(--ink)',
+          background: 'rgba(14, 18, 24, 0.92)',
+          backdropFilter: 'blur(12px)',
+          WebkitBackdropFilter: 'blur(12px)',
+          borderBottom: '1px solid var(--gold)',
         }}
       >
         <div
@@ -79,77 +69,78 @@ export function Nav() {
           style={{
             maxWidth: 1200,
             margin: '0 auto',
-            padding: '14px 40px',
+            padding: '12px 40px',
             display: 'grid',
             gridTemplateColumns: 'auto 1fr auto',
             alignItems: 'center',
             gap: 32,
           }}
         >
-          {/* Brand — Fraunces serif with red dot */}
+          {/* Brand — Cinzel serif with gold fleur-de-lis */}
           <Link
             href="/"
             style={{
               display: 'inline-flex',
               alignItems: 'center',
-              gap: 9,
-              fontFamily: 'var(--font-fraunces), serif',
-              fontSize: 22,
+              gap: 8,
+              fontFamily: 'var(--font-cinzel), serif',
+              fontSize: 16,
               fontWeight: 600,
-              letterSpacing: '-0.4px',
-              color: 'var(--ink)',
+              letterSpacing: '2.5px',
+              color: 'var(--gold)',
               textDecoration: 'none',
+              textTransform: 'uppercase',
               lineHeight: 1,
             }}
           >
-            <span
-              style={{
-                display: 'inline-block',
-                width: 8,
-                height: 8,
-                background: 'var(--accent)',
-                borderRadius: '50%',
-                flexShrink: 0,
-              }}
-            />
+            <span style={{ fontSize: 18, lineHeight: 1 }}>⚜</span>
             <span>Stack Lab</span>
           </Link>
 
           {/* Desktop nav links — center */}
           <div className="nav-links" style={{ display: 'flex', gap: 28, justifySelf: 'center' }}>
             {([
-              ['Today',    '/',                isToday],
-              ['Stack',    '/routine',         isStack],
-              ['Library',  '/?view=library',   isLibrary],
-              ['Audit',    '/routine/audit',   isAudit],
-              ['About',    '/about',           pathname === '/about'],
+              ['Today',   '/',                isToday && !isLibrary],
+              ['Stack',   '/routine',         isStack],
+              ['Library', '/?view=library',   isLibrary],
+              ['Audit',   '/routine/audit',   isAudit],
+              ['About',   '/about',           pathname === '/about'],
             ] as const).map(([label, href, active]) => (
               <Link
                 key={`${label}-${href}`}
                 href={href}
                 style={{
-                  fontFamily: 'var(--font-inter), sans-serif',
-                  fontSize: 13,
-                  fontWeight: 500,
-                  letterSpacing: '0.2px',
-                  color: active ? 'var(--accent)' : 'var(--ink-3)',
+                  fontFamily: 'var(--font-cinzel), serif',
+                  fontSize: 11,
+                  fontWeight: 600,
+                  letterSpacing: '1.6px',
+                  textTransform: 'uppercase',
+                  color: active ? 'var(--gold)' : 'var(--text-3)',
                   paddingBottom: 4,
-                  borderBottom: active ? '1.5px solid var(--accent)' : '1.5px solid transparent',
+                  borderBottom: active ? '1.5px solid var(--gold)' : '1.5px solid transparent',
                   transition: 'color 150ms var(--ease), border-color 150ms var(--ease)',
                   textDecoration: 'none',
                 }}
               >
                 {label}
                 {label === 'Stack' && routineCount > 0 && (
-                  <span className="footnote" style={{ marginLeft: 6, color: active ? 'var(--accent)' : 'var(--ink-4)', fontSize: 10 }}>
-                    ({routineCount})
+                  <span
+                    className="footnote"
+                    style={{
+                      marginLeft: 6,
+                      color: active ? 'var(--gold)' : 'var(--text-4)',
+                      fontSize: 10,
+                      fontFamily: 'var(--font-jetbrains-mono), monospace',
+                    }}
+                  >
+                    {routineCount}
                   </span>
                 )}
               </Link>
             ))}
           </div>
 
-          {/* Right: VOL + date + auth */}
+          {/* Right: XP counter + auth */}
           <div
             className="nav-right"
             style={{
@@ -159,18 +150,20 @@ export function Nav() {
             }}
           >
             <div
-              className="nav-vol"
+              className="nav-xp"
               style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 5,
                 fontFamily: 'var(--font-jetbrains-mono), monospace',
-                fontSize: 9.5,
-                letterSpacing: '1.2px',
-                color: 'var(--ink-3)',
-                textAlign: 'right',
-                lineHeight: 1.4,
+                fontSize: 11,
+                fontWeight: 600,
+                color: 'var(--gold)',
+                letterSpacing: '1px',
               }}
             >
-              <div style={{ color: 'var(--ink)', fontWeight: 600 }}>VOL {vol}</div>
-              <div>{dateStr}</div>
+              <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--gold)', boxShadow: '0 0 6px var(--gold-glow)' }} />
+              {xp} XP
             </div>
             {!authLoading && (
               user ? (
@@ -178,30 +171,33 @@ export function Nav() {
                   href="/account"
                   className="nav-auth"
                   style={{
-                    fontFamily: 'var(--font-jetbrains-mono), monospace',
+                    fontFamily: 'var(--font-cinzel), serif',
                     fontSize: 10,
-                    fontWeight: 700,
-                    letterSpacing: '1.2px',
+                    fontWeight: 600,
+                    letterSpacing: '1.6px',
                     textTransform: 'uppercase',
-                    color: isMe ? 'var(--accent)' : 'var(--ink-3)',
+                    color: isMe ? 'var(--gold)' : 'var(--text-3)',
                     textDecoration: 'none',
                     transition: 'color 150ms var(--ease)',
                   }}
                 >
-                  Account
+                  Hero
                 </Link>
               ) : (
                 <Link
                   href="/login"
                   className="nav-auth"
                   style={{
-                    fontFamily: 'var(--font-jetbrains-mono), monospace',
+                    fontFamily: 'var(--font-cinzel), serif',
                     fontSize: 10,
-                    fontWeight: 700,
-                    letterSpacing: '1.2px',
+                    fontWeight: 600,
+                    letterSpacing: '1.6px',
                     textTransform: 'uppercase',
-                    color: 'var(--accent)',
+                    color: 'var(--gold)',
                     textDecoration: 'none',
+                    padding: '6px 12px',
+                    border: '1px solid var(--gold)',
+                    borderRadius: 3,
                   }}
                 >
                   Sign In
@@ -211,7 +207,7 @@ export function Nav() {
           </div>
         </div>
 
-        {/* Mobile: hide center nav links + VOL block (replaced by bottom tab bar) */}
+        {/* Mobile: hide center nav links + XP block (replaced by bottom tab bar) */}
         <style>{`
           @media (max-width: 820px) {
             .nav-inner {
@@ -220,17 +216,14 @@ export function Nav() {
               gap: 12px !important;
             }
             .nav-links { display: none !important; }
-            .nav-vol {
-              font-size: 9px !important;
-              text-align: right !important;
-            }
+            .nav-xp { font-size: 10px !important; }
           }
         `}</style>
       </nav>
 
-      {/* Mobile bottom tab bar */}
+      {/* Mobile bottom tab bar — L+ */}
       <nav className="g-tabbar" aria-label="Primary mobile navigation">
-        <Link href="/" data-active={isToday ? 'true' : undefined} className="g-tab">
+        <Link href="/" data-active={isToday && !isLibrary ? 'true' : undefined} className="g-tab">
           <span className="tab-icon" />
           Today
         </Link>
@@ -244,11 +237,11 @@ export function Nav() {
         </Link>
         <Link href="/routine/audit" data-active={isAudit ? 'true' : undefined} className="g-tab">
           <span className="tab-icon" />
-          Audit
+          Scout
         </Link>
         <Link href={user ? '/account' : '/login'} data-active={isMe ? 'true' : undefined} className="g-tab">
           <span className="tab-icon" />
-          Me
+          Hero
         </Link>
       </nav>
     </>

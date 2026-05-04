@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { Inter, JetBrains_Mono, Fraunces } from 'next/font/google';
+import { Inter, JetBrains_Mono, Cinzel } from 'next/font/google';
 import './globals.css';
 import { AnalyticsProvider } from '@/components/AnalyticsProvider';
 import { SupplementCatalogProvider } from '@/components/v2/advisor/SupplementCatalogProvider';
@@ -20,17 +20,16 @@ const jetbrainsMono = JetBrains_Mono({
   weight: ['400', '500', '600'],
 });
 
-const fraunces = Fraunces({
-  variable: '--font-fraunces',
+const cinzel = Cinzel({
+  variable: '--font-cinzel',
   subsets: ['latin'],
-  weight: ['400', '500', '600', '700'],
-  style: ['normal', 'italic'],
+  weight: ['500', '600', '700'],
 });
 
 export const metadata: Metadata = {
-  title: 'Stack Lab — Your daily briefing for supplements',
+  title: 'Stack Lab — Build your stack like a character',
   description:
-    'A daily briefing on your supplement stack: what works, what is duplicative, what to drop. Plain-language reads, not a tracker.',
+    'A daily inventory and audit for your supplement stack: rarity, evidence grade, redundancies, and what to drop. Built for biohackers who think in stats.',
 };
 
 export default function RootLayout({
@@ -39,7 +38,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${inter.variable} ${jetbrainsMono.variable} ${fraunces.variable} h-full`}
+      className={`${inter.variable} ${jetbrainsMono.variable} ${cinzel.variable} h-full`}
     >
       <body className="min-h-full flex flex-col">
         <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
