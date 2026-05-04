@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { Inter, JetBrains_Mono, Cinzel } from 'next/font/google';
+import { Inter, JetBrains_Mono, Cinzel, IBM_Plex_Mono } from 'next/font/google';
 import './globals.css';
 import { AnalyticsProvider } from '@/components/AnalyticsProvider';
 import { SupplementCatalogProvider } from '@/components/v2/advisor/SupplementCatalogProvider';
@@ -26,10 +26,16 @@ const cinzel = Cinzel({
   weight: ['500', '600', '700'],
 });
 
+const ibmPlexMono = IBM_Plex_Mono({
+  variable: '--font-ibm-plex-mono',
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700'],
+});
+
 export const metadata: Metadata = {
-  title: 'Stack Lab — Build your stack like a character',
+  title: 'Stack Lab, Scan your supplement stack, see what to drop',
   description:
-    'A daily inventory and audit for your supplement stack: rarity, evidence grade, redundancies, and what to drop. Built for biohackers who think in stats.',
+    'Point your phone at a supplement bottle. We parse the label, build your stack, and tell you what to drop, swap, or keep. Average user saves $87 a month.',
 };
 
 export default function RootLayout({
@@ -38,7 +44,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${inter.variable} ${jetbrainsMono.variable} ${cinzel.variable} h-full`}
+      className={`${inter.variable} ${jetbrainsMono.variable} ${cinzel.variable} ${ibmPlexMono.variable} h-full`}
     >
       <body className="min-h-full flex flex-col">
         <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
