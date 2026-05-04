@@ -3,6 +3,8 @@
 import { useMemo, useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { useAuth } from '@/lib/use-auth';
+
 export interface CompoundRow {
   slug: string;
   name: string;
@@ -36,69 +38,115 @@ const CAT_LABEL: Record<string, string> = {
   protein: 'Protein',
 };
 
-// Earthy editorial palette (was: greens). These are subtle category dots
-// in the style of newspaper section flags.
 const CAT_COLOR: Record<string, string> = {
-  herb_botanical: '#6B7F5C',
-  essential_vitamin: '#C9A84C',
-  essential_mineral: '#9A7E4E',
-  amino_acid: '#B4612F',
-  specialty_dietary_substance: '#714274',
-  trace_mineral: '#8C8D60',
-  nootropics: '#446573',
-  longevity: '#4A754F',
-  protein: '#A02B2B',
+  herb_botanical: '#88FFAA',
+  essential_vitamin: '#FFD960',
+  essential_mineral: '#9D6FE8',
+  amino_acid: '#FF8B6B',
+  specialty_dietary_substance: '#B898FF',
+  trace_mineral: '#C5C896',
+  nootropics: '#88BBDD',
+  longevity: '#88FFAA',
+  protein: '#FF6B6B',
 };
 
-/** Derive a letter grade from study count */
-function gradeFromCount(n: number): { tier: 'a' | 'b' | 'c'; label: string } {
-  if (n >= 5) return { tier: 'a', label: 'A' };
-  if (n >= 2) return { tier: 'b', label: 'B' };
-  return { tier: 'c', label: 'C' };
+/** Derive a letter grade + rarity tier from study count */
+function gradeFromCount(n: number): { tier: 'a' | 'b' | 'c'; label: string; rarity: 'common' | 'rare' | 'legendary' } {
+  if (n >= 8) return { tier: 'a', label: 'A', rarity: 'legendary' };
+  if (n >= 5) return { tier: 'a', label: 'A', rarity: 'rare' };
+  if (n >= 2) return { tier: 'b', label: 'B', rarity: 'common' };
+  return { tier: 'c', label: 'C', rarity: 'common' };
 }
 
-// ── G Briefing — the daily editorial read ───────────────────
+const RARITY_LABEL: Record<string, string> = {
+  common: '★',
+  rare: '★★★',
+  legendary: '★★★★',
+};
 
-function GBriefing({ totalCompounds, totalStudies }: { totalCompounds: number; totalStudies: number }) {
+// ── L+ Today welcome card (anonymous users) ─────────────────
+
+function TodayWelcome({ totalCompounds, totalStudies }: { totalCompounds: number; totalStudies: number }) {
   const nf = new Intl.NumberFormat('en-US');
 
   return (
-    <>
-      <div className="g-briefing-h">
-        <span className="label">The Briefing</span>
-        <span className="meta">2 min read</span>
-      </div>
-      <div className="g-briefing">
-        <h1 className="head">
-          Most supplement stacks contain <em>three pills doing the same job.</em>
-        </h1>
-        <p className="deck">
-          Stack Lab reads your stack and tells you what is duplicative, what conflicts with your medications, and what to drop. A daily briefing about your body, written like content you actually want to read, not a tracker you have to maintain.
-        </p>
-        <Link href="/routine" className="pull" style={{ textDecoration: 'none' }}>
-          <span className="save">
-            Audit yours: <b>find $20-$60/mo in waste</b>
-          </span>
-          <span className="cta">Build my stack →</span>
-        </Link>
+    <div
+      style={{
+        margin: '24px 0 16px',
+        padding: 24,
+        background: 'linear-gradient(160deg, #1A2030 0%, #141923 100%)',
+        border: '1.5px solid var(--gold)',
+        borderRadius: 8,
+        position: 'relative',
+        boxShadow: '0 12px 40px rgba(212, 175, 55, 0.10)',
+      }}
+    >
+      <div
+        style={{
+          position: 'absolute',
+          top: -10,
+          left: 20,
+          background: 'var(--bg)',
+          color: 'var(--gold)',
+          fontFamily: 'var(--font-cinzel), serif',
+          fontSize: 10,
+          fontWeight: 600,
+          letterSpacing: '2px',
+          padding: '3px 12px',
+          borderRadius: 3,
+          textTransform: 'uppercase',
+        }}
+      >
+        ✦ Welcome, traveler
       </div>
 
-      {/* Stats row — the trust footer for the briefing */}
-      <div className="g-stats">
-        <div className="g-stat">
-          <div className="l">Compounds</div>
-          <div className="v">{nf.format(totalCompounds)}</div>
-        </div>
-        <div className="g-stat">
-          <div className="l">Studies indexed</div>
-          <div className="v">{nf.format(totalStudies)}</div>
-        </div>
-        <div className="g-stat">
-          <div className="l">Updated</div>
-          <div className="v" style={{ fontSize: 18 }}>Daily</div>
-        </div>
+      <h1
+        style={{
+          fontFamily: 'var(--font-cinzel), serif',
+          fontSize: 'clamp(24px, 4.4vw, 36px)',
+          fontWeight: 600,
+          letterSpacing: '-0.4px',
+          lineHeight: 1.15,
+          color: 'var(--text)',
+          margin: '8px 0 12px',
+          textWrap: 'balance',
+        }}
+      >
+        Build your supplement stack like a <span style={{ color: 'var(--gold)' }}>character.</span>
+      </h1>
+      <p
+        style={{
+          fontFamily: 'var(--font-inter), sans-serif',
+          fontSize: 15,
+          lineHeight: 1.55,
+          color: 'var(--text-2)',
+          margin: '0 0 20px',
+          maxWidth: '60ch',
+        }}
+      >
+        Each supplement has a rarity, evidence grade, and synergy score. The audit (Scout) reads your stack and flags redundancies — so you stop paying for pills that do the same job.
+      </p>
+
+      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
+        <Link href="/routine" className="btn">
+          Build my stack ▸
+        </Link>
+        <Link href="/?view=library" className="btn btn--ghost">
+          Browse the library
+        </Link>
+        <span
+          className="footnote"
+          style={{
+            marginLeft: 12,
+            color: 'var(--text-3)',
+            fontSize: 11,
+            letterSpacing: '0.5px',
+          }}
+        >
+          {nf.format(totalCompounds)} compounds · {nf.format(totalStudies)} studies indexed
+        </span>
       </div>
-    </>
+    </div>
   );
 }
 
@@ -151,7 +199,7 @@ function SearchBox({ compounds }: SearchProps) {
   return (
     <div style={{ position: 'relative' }}>
       <div className="search-bar">
-        <span className="search-prompt">Look up</span>
+        <span className="search-prompt">⌕ Look up</span>
         <input
           ref={ref}
           value={v}
@@ -235,7 +283,7 @@ function CategoryFilters({ active, setActive, counts, total }: FiltersProps) {
   );
 }
 
-// ── Compound row ────────────────────────────────────────────
+// ── Compound row (L+ aesthetic) ─────────────────────────────
 
 function CompoundRowItem({ s, index }: { s: CompoundRow; index: number }) {
   const g = gradeFromCount(s.studyCount);
@@ -247,13 +295,23 @@ function CompoundRowItem({ s, index }: { s: CompoundRow; index: number }) {
     <Link href={`/research/${s.slug}`} className="compound-row">
       <span className="rank">{String(index + 1).padStart(2, '0')}</span>
       <div>
-        <span className="compound-name-wrap">
-          <span className="compound-name-glass" aria-hidden="true" />
-          <h3 className="compound-name">{s.name}</h3>
-        </span>
+        <h3 className="compound-name">{s.name}</h3>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
-          <span className="tag tag--sm" data-cat={s.category}>{s.category}</span>
-          {aliases[0] && <span className="compound-sub">{aliases[0]}</span>}
+          <span
+            className="footnote"
+            style={{
+              color:
+                g.rarity === 'legendary' ? 'var(--gold)' :
+                g.rarity === 'rare' ? 'var(--rar-rare)' :
+                'var(--text-4)',
+              fontFamily: 'var(--font-cinzel), serif',
+              letterSpacing: '1px',
+              fontSize: 10,
+            }}
+          >
+            {RARITY_LABEL[g.rarity]} {g.rarity.toUpperCase()}
+          </span>
+          {aliases[0] && <span className="compound-sub">· {aliases[0]}</span>}
         </div>
       </div>
       {s.maintenance && (
@@ -266,11 +324,11 @@ function CompoundRowItem({ s, index }: { s: CompoundRow; index: number }) {
         <span className="k">Evidence</span>
         <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
           <span className="grade" data-tier={g.tier}>{g.label}</span>
-          <span style={{ color: 'var(--ink-4)' }}>·</span>
-          <span>{s.studyCount} studies</span>
+          <span style={{ color: 'var(--text-4)' }}>·</span>
+          <span>{s.studyCount}</span>
         </span>
       </div>
-      <div className="compound-stat" style={{ color: 'var(--ink-4)' }}>→</div>
+      <div className="compound-stat" style={{ color: 'var(--gold)' }}>▸</div>
     </Link>
   );
 }
@@ -287,9 +345,9 @@ export function HomepageClient({ compounds, totalCompounds, totalStudies }: Prop
   const [activeCat, setActiveCat] = useState<string | null>(null);
   const [sort, setSort] = useState<'popular' | 'az' | 'evidence'>('popular');
   const params = useSearchParams();
-  // ?view=library scrolls past the briefing on load (used by mobile tab bar)
   const libraryView = params.get('view') === 'library';
   const libraryRef = useRef<HTMLDivElement>(null);
+  const { user } = useAuth();
 
   useEffect(() => {
     if (libraryView && libraryRef.current) {
@@ -308,21 +366,63 @@ export function HomepageClient({ compounds, totalCompounds, totalStudies }: Prop
     if (activeCat) list = list.filter((s) => s.category === activeCat);
     if (sort === 'az') list.sort((a, b) => a.name.localeCompare(b.name));
     if (sort === 'evidence') list.sort((a, b) => b.studyCount - a.studyCount);
-    // 'popular' is already default order from DB
     return list;
   }, [compounds, activeCat, sort]);
 
   return (
     <div className="page">
-      {/* G Briefing — the hero */}
-      <GBriefing totalCompounds={totalCompounds} totalStudies={totalStudies} />
+      {/* L+ Today welcome — only for anon users on / (not when scrolling to library) */}
+      {!user && !libraryView && (
+        <TodayWelcome totalCompounds={totalCompounds} totalStudies={totalStudies} />
+      )}
+
+      {/* For auth users, show a small "back to your stack" affordance */}
+      {user && !libraryView && (
+        <div
+          style={{
+            margin: '24px 0 16px',
+            padding: '16px 20px',
+            background: 'linear-gradient(160deg, #1A2030 0%, #141923 100%)',
+            border: '1px solid var(--rule)',
+            borderRadius: 6,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: 16,
+            flexWrap: 'wrap',
+          }}
+        >
+          <div>
+            <div
+              style={{
+                fontFamily: 'var(--font-cinzel), serif',
+                fontSize: 11,
+                color: 'var(--gold)',
+                letterSpacing: '2px',
+                textTransform: 'uppercase',
+                fontWeight: 600,
+                marginBottom: 4,
+              }}
+            >
+              ⚜ Your stack
+            </div>
+            <div style={{ fontSize: 14, color: 'var(--text-2)', lineHeight: 1.4 }}>
+              Continue building your character.
+            </div>
+          </div>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <Link href="/routine" className="btn">Open Stack ▸</Link>
+            <Link href="/routine/audit" className="btn btn--ghost">Run Audit</Link>
+          </div>
+        </div>
+      )}
 
       {/* Library section */}
       <div ref={libraryRef}>
-        <div className="section-rule" style={{ paddingTop: 36 }}>
+        <div className="section-rule" style={{ paddingTop: 28 }}>
           <div className="label">
             <span className="num">01</span>
-            <span>The Library</span>
+            <span>The Library · all compounds</span>
           </div>
           <span />
           <span className="right">
@@ -357,7 +457,7 @@ export function HomepageClient({ compounds, totalCompounds, totalStudies }: Prop
           <span className="footnote">
             {activeCat ? (
               <>
-                Showing <strong style={{ color: 'var(--ink-2)' }}>{activeCat}</strong>
+                Showing <strong style={{ color: 'var(--gold)' }}>{activeCat}</strong>
               </>
             ) : (
               'All compounds'
@@ -382,7 +482,7 @@ export function HomepageClient({ compounds, totalCompounds, totalStudies }: Prop
               style={{
                 padding: '60px 0',
                 textAlign: 'center',
-                color: 'var(--ink-4)',
+                color: 'var(--text-3)',
                 borderTop: '1px solid var(--rule)',
               }}
             >
