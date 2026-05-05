@@ -150,6 +150,27 @@ function TodayWelcome({ totalCompounds, totalStudies }: { totalCompounds: number
   );
 }
 
+// ── Sub-product CTAs (Save + Optimize) ──────────────────────
+
+function SubProductCtas() {
+  return (
+    <div className="sub-cta-grid">
+      <Link href="/save" className="sub-cta-card">
+        <div className="sub-cta-eyebrow">Save</div>
+        <div className="sub-cta-title">Save money on your stack</div>
+        <div className="sub-cta-sub">Find duplicates, swap forms, drop noise. Keep what works.</div>
+        <span className="sub-cta-btn">Analyze for savings →</span>
+      </Link>
+      <Link href="/optimize" className="sub-cta-card">
+        <div className="sub-cta-eyebrow">Optimize</div>
+        <div className="sub-cta-title">Optimize for your goal</div>
+        <div className="sub-cta-sub">Sleep, energy, longevity, cognition, or muscle. We tune the stack.</div>
+        <span className="sub-cta-btn">Pick a goal →</span>
+      </Link>
+    </div>
+  );
+}
+
 // ── Search box ──────────────────────────────────────────────
 
 interface SearchProps {
@@ -375,6 +396,9 @@ export function HomepageClient({ compounds, totalCompounds, totalStudies }: Prop
       {!user && !libraryView && (
         <TodayWelcome totalCompounds={totalCompounds} totalStudies={totalStudies} />
       )}
+
+      {/* Sub-product CTAs — Save / Optimize. Placed between brand briefing and Library. */}
+      {!libraryView && <SubProductCtas />}
 
       {/* For auth users, show a small "back to your stack" affordance */}
       {user && !libraryView && (

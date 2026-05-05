@@ -1,4 +1,22 @@
 @import "tailwindcss";
+@import "./optimizer.css";
+
+/* ─────────────────────────────────────────────────────────────────────────
+   Stack Lab — Optimizer (camera-first homepage) tokens
+   Thermal-paper aesthetic. Used by /save, /optimize, and shared shell.
+   Inner pages (research, account, etc.) still use the dark L+ tokens below.
+   ───────────────────────────────────────────────────────────────────────── */
+:root {
+  --sl-paper:     #FBFAF7;
+  --sl-paper-2:   #F4F2EC;
+  --sl-ink:       #0E0E0E;
+  --sl-ink-2:     #2B2B2B;
+  --sl-ink-3:     #6B6B6B;
+  --sl-ink-4:     #B5B2AA;
+  --sl-rule-soft: #DBD8D0;
+  --sl-green:     #0A5C32;
+  --sl-mono: var(--font-ibm-plex-mono), 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+}
 
 /* ─────────────────────────────────────────────────────────────────────────
    Stack Lab — Design System L+ (RPG Inventory)
@@ -739,5 +757,86 @@ input::placeholder, textarea::placeholder { color: var(--text-4); }
     animation-duration: 0.001ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.001ms !important;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   Sub-product CTA cards on homepage (Save / Optimize)
+   ───────────────────────────────────────────────────────────────────────── */
+.sub-cta-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin: 24px 0 16px;
+}
+.sub-cta-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 22px 22px 20px;
+  background: linear-gradient(160deg, var(--bg-card) 0%, var(--bg-card-end) 100%);
+  border: 1px solid var(--rule, var(--gold));
+  border-radius: 8px;
+  text-decoration: none;
+  color: var(--text);
+  transition: transform 0.12s ease, border-color 0.12s ease, box-shadow 0.12s ease;
+  min-height: 180px;
+}
+.sub-cta-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--gold);
+  box-shadow: 0 12px 32px rgba(212, 175, 55, 0.10);
+}
+.sub-cta-eyebrow {
+  font-family: var(--font-cinzel), serif;
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--gold);
+  font-weight: 600;
+}
+.sub-cta-title {
+  font-family: var(--font-cinzel), serif;
+  font-size: 19px;
+  line-height: 1.2;
+  font-weight: 600;
+  color: var(--text);
+  letter-spacing: -0.1px;
+  text-wrap: balance;
+}
+.sub-cta-sub {
+  font-family: var(--font-inter), sans-serif;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--text-2);
+  flex: 1;
+  margin-bottom: 6px;
+}
+.sub-cta-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  align-self: flex-start;
+  padding: 9px 16px;
+  background: var(--gold);
+  color: var(--bg);
+  font-family: var(--font-inter), sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  border-radius: 4px;
+  text-transform: uppercase;
+}
+.sub-cta-card:hover .sub-cta-btn {
+  background: #E5C44D;
+}
+
+@media (max-width: 640px) {
+  .sub-cta-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  .sub-cta-card {
+    min-height: auto;
   }
 }

@@ -18,6 +18,8 @@ export function Nav() {
   const isToday    = pathname === '/';
   const isStack    = pathname === '/routine' || pathname === '/routine/'
                   || pathname === '/stack'   || pathname === '/stack/';
+  const isSave     = pathname === '/save' || pathname === '/save/';
+  const isOptimize = pathname === '/optimize' || pathname === '/optimize/';
   const isLibrary  = pathname.startsWith('/research') || pathname.startsWith('/protocol')
                   || (pathname === '/' && typeof window !== 'undefined' && window.location.search.includes('view=library'));
   const isAudit    = pathname.startsWith('/routine/audit');
@@ -100,11 +102,13 @@ export function Nav() {
           {/* Desktop nav links — center */}
           <div className="nav-links" style={{ display: 'flex', gap: 28, justifySelf: 'center' }}>
             {([
-              ['Today',   '/',                isToday && !isLibrary],
-              ['Stack',   '/routine',         isStack],
-              ['Library', '/?view=library',   isLibrary],
-              ['Audit',   '/routine/audit',   isAudit],
-              ['About',   '/about',           pathname === '/about'],
+              ['Today',    '/',                isToday && !isLibrary],
+              ['Stack',    '/routine',         isStack],
+              ['Save',     '/save',            isSave],
+              ['Optimize', '/optimize',        isOptimize],
+              ['Library',  '/?view=library',   isLibrary],
+              ['Audit',    '/routine/audit',   isAudit],
+              ['About',    '/about',           pathname === '/about'],
             ] as const).map(([label, href, active]) => (
               <Link
                 key={`${label}-${href}`}
@@ -227,21 +231,21 @@ export function Nav() {
           <span className="tab-icon" />
           Today
         </Link>
-        <Link href="/routine" data-active={isStack ? 'true' : undefined} className="g-tab">
+        <Link href="/save" data-active={isSave ? 'true' : undefined} className="g-tab">
           <span className="tab-icon" />
-          Stack
+          Save
+        </Link>
+        <Link href="/optimize" data-active={isOptimize ? 'true' : undefined} className="g-tab">
+          <span className="tab-icon" />
+          Optimize
         </Link>
         <Link href="/?view=library" data-active={isLibrary ? 'true' : undefined} className="g-tab">
           <span className="tab-icon" />
           Library
         </Link>
-        <Link href="/routine/audit" data-active={isAudit ? 'true' : undefined} className="g-tab">
-          <span className="tab-icon" />
-          Scout
-        </Link>
         <Link href={user ? '/account' : '/login'} data-active={isMe ? 'true' : undefined} className="g-tab">
           <span className="tab-icon" />
-          Hero
+          Me
         </Link>
       </nav>
     </>
