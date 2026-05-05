@@ -1,21 +1,4 @@
 @import "tailwindcss";
-@import "./optimizer.css";
-
-/* ─────────────────────────────────────────────────────────────────────────
-   Stack Lab — Optimizer (camera-first homepage) tokens
-   Thermal-paper aesthetic. Used by the homepage + new shell (Nav/Footer).
-   Inner pages (research, account, etc.) still use the dark L+ tokens below.
-   ───────────────────────────────────────────────────────────────────────── */
-:root {
-  --sl-paper:     #FBFAF7;
-  --sl-ink:       #0E0E0E;
-  --sl-ink-2:     #2B2B2B;
-  --sl-ink-3:     #6B6B6B;
-  --sl-ink-4:     #B5B2AA;
-  --sl-rule-soft: #DBD8D0;
-  --sl-green:     #0A5C32;
-  --sl-mono: var(--font-ibm-plex-mono), 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
-}
 
 /* ─────────────────────────────────────────────────────────────────────────
    Stack Lab — Design System L+ (RPG Inventory)
