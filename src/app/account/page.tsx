@@ -24,16 +24,34 @@ export default async function AccountPage() {
   const created = user.created_at ? new Date(user.created_at) : null;
 
   return (
-    <article className="mx-auto max-w-[720px] px-5 py-12 md:px-10 md:py-16">
-      <span
-        className="font-mono text-[11px] font-bold uppercase tracking-[1.4px]"
-        style={{ color: 'var(--accent)' }}
+    <article style={{ maxWidth: 720, margin: '0 auto', padding: '64px 24px 80px' }}>
+      <div
+        style={{
+          fontFamily: 'var(--font-cinzel), serif',
+          fontSize: 11,
+          color: 'var(--gold)',
+          letterSpacing: '2px',
+          textTransform: 'uppercase',
+          fontWeight: 600,
+          marginBottom: 8,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 8,
+        }}
       >
-        Account
-      </span>
+        <span style={{ display: 'inline-block', width: 24, height: 1, background: 'var(--gold)' }} />
+        ⚜ Hero
+      </div>
       <h1
-        className="mt-2 text-[32px] font-extrabold tracking-[-0.5px] md:text-[40px]"
-        style={{ color: 'var(--fg)' }}
+        style={{
+          margin: 0,
+          fontFamily: 'var(--font-cinzel), serif',
+          fontSize: 'clamp(28px, 4.4vw, 40px)',
+          fontWeight: 600,
+          letterSpacing: '-0.4px',
+          lineHeight: 1.1,
+          color: 'var(--text)',
+        }}
       >
         Your Stack Lab account
       </h1>
@@ -48,11 +66,11 @@ export default async function AccountPage() {
       </Card>
 
       <Card title="Your data">
-        <p className="text-[14px] leading-[22px]" style={{ color: 'var(--fg-muted)' }}>
+        <p style={{ margin: 0, fontSize: 15, lineHeight: 1.6, color: 'var(--text-2)' }}>
           Stack Lab stores your stack, medications, biometrics, and structured bloodwork markers
           (raw PDFs are never persisted). You own this data.
         </p>
-        <ul className="mt-4 flex flex-col gap-3">
+        <ul style={{ marginTop: 16, padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 10 }}>
           <ActionItem
             label="Manage your stack"
             description="Edit your supplements, medications, and routine."
@@ -82,22 +100,18 @@ export default async function AccountPage() {
       </Card>
 
       <Card title="Legal">
-        <ul className="flex flex-col gap-3">
+        <ul style={{ padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 10 }}>
           <ActionItem label="Medical disclaimer" description="" href="/disclaimer" kind="link" />
           <ActionItem label="Terms of service" description="" href="/terms" kind="link" />
           <ActionItem label="Privacy policy" description="" href="/privacy" kind="link" />
         </ul>
       </Card>
 
-      <p
-        className="mt-10 text-[12px]"
-        style={{ color: 'var(--fg-dim)' }}
-      >
+      <p style={{ marginTop: 40, fontSize: 13, color: 'var(--text-3)' }}>
         Need help with something not listed here?{' '}
         <Link
           href="mailto:hello@stacklab.science"
-          className="underline"
-          style={{ color: 'var(--accent-ink)' }}
+          style={{ color: 'var(--gold)', borderBottom: '1px solid var(--gold)' }}
         >
           hello@stacklab.science
         </Link>
@@ -109,15 +123,31 @@ export default async function AccountPage() {
 function Card({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section
-      className="mt-8 rounded-[16px] p-6 md:p-8"
-      style={{ background: 'var(--surface)', border: '1px solid var(--hair)' }}
+      style={{
+        marginTop: 28,
+        padding: '20px 24px 22px',
+        background: 'linear-gradient(160deg, var(--bg-card) 0%, var(--bg-card-end) 100%)',
+        border: '1px solid var(--rule)',
+        borderRadius: 6,
+      }}
     >
-      <h2
-        className="mb-5 text-[16px] font-bold uppercase tracking-[0.5px]"
-        style={{ color: 'var(--fg)' }}
+      <div
+        style={{
+          fontFamily: 'var(--font-cinzel), serif',
+          fontSize: 10,
+          color: 'var(--gold)',
+          letterSpacing: '2px',
+          textTransform: 'uppercase',
+          fontWeight: 600,
+          marginBottom: 14,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 8,
+        }}
       >
+        <span style={{ display: 'inline-block', width: 18, height: 1, background: 'var(--gold)' }} />
         {title}
-      </h2>
+      </div>
       {children}
     </section>
   );
@@ -126,18 +156,33 @@ function Card({ title, children }: { title: string; children: React.ReactNode })
 function Row({ label, value, mono }: { label: string; value: string; mono?: boolean }) {
   return (
     <div
-      className="flex flex-col gap-1 border-b py-3 last:border-b-0 md:flex-row md:items-center md:justify-between md:gap-6"
-      style={{ borderColor: 'var(--hair)' }}
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 4,
+        padding: '12px 0',
+        borderBottom: '1px solid var(--rule-soft)',
+      }}
     >
       <span
-        className="font-mono text-[11px] font-bold uppercase tracking-[1.2px]"
-        style={{ color: 'var(--fg-muted)' }}
+        style={{
+          fontFamily: 'var(--font-jetbrains-mono), var(--mono)',
+          fontSize: 10,
+          fontWeight: 600,
+          textTransform: 'uppercase',
+          letterSpacing: '1.2px',
+          color: 'var(--text-3)',
+        }}
       >
         {label}
       </span>
       <span
-        className={`text-[14px] ${mono ? 'font-mono text-[12px]' : ''} break-all`}
-        style={{ color: 'var(--fg)' }}
+        style={{
+          fontSize: mono ? 12 : 14,
+          fontFamily: mono ? 'var(--font-jetbrains-mono), var(--mono)' : undefined,
+          color: 'var(--text)',
+          wordBreak: 'break-all',
+        }}
       >
         {value}
       </span>
@@ -155,29 +200,44 @@ interface ActionItemProps {
 }
 
 function ActionItem({ label, description, href, external, destructive }: ActionItemProps) {
-  const labelColor = destructive ? '#dc2626' : 'var(--fg)';
+  const labelColor = destructive ? 'var(--bad)' : 'var(--text)';
+  const arrowColor = destructive ? 'var(--bad)' : 'var(--gold)';
   return (
     <li>
       <Link
         href={href}
         target={external ? '_blank' : undefined}
         rel={external ? 'noopener noreferrer' : undefined}
-        className="flex items-start justify-between gap-4 rounded-[10px] px-4 py-3 transition-colors hover:bg-[var(--paper)]"
-        style={{ border: '1px solid var(--hair)' }}
+        style={{
+          display: 'flex',
+          alignItems: 'flex-start',
+          justifyContent: 'space-between',
+          gap: 16,
+          padding: '12px 14px',
+          border: '1px solid var(--rule)',
+          borderRadius: 4,
+          background: 'var(--bg-2)',
+          transition: 'border-color 150ms var(--ease), background 150ms var(--ease)',
+        }}
       >
-        <span className="flex flex-col">
-          <span className="text-[14px] font-bold" style={{ color: labelColor }}>
-            {label}
-          </span>
+        <span style={{ display: 'flex', flexDirection: 'column' }}>
+          <span style={{ fontSize: 14, fontWeight: 600, color: labelColor }}>{label}</span>
           {description && (
-            <span className="mt-1 text-[12px]" style={{ color: 'var(--fg-muted)' }}>
+            <span style={{ marginTop: 4, fontSize: 12, color: 'var(--text-3)', lineHeight: 1.5 }}>
               {description}
             </span>
           )}
         </span>
         <span
-          className="font-mono text-[10px] font-bold uppercase tracking-[1.2px]"
-          style={{ color: destructive ? '#dc2626' : 'var(--fg-muted)' }}
+          style={{
+            fontFamily: 'var(--font-jetbrains-mono), var(--mono)',
+            fontSize: 10,
+            fontWeight: 600,
+            textTransform: 'uppercase',
+            letterSpacing: '1.2px',
+            color: arrowColor,
+            whiteSpace: 'nowrap',
+          }}
         >
           {external ? 'Email →' : 'Open →'}
         </span>

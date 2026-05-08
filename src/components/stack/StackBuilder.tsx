@@ -3,11 +3,14 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import Link from 'next/link';
 import { RoutineView } from './RoutineView';
+import { StackItemSheet } from './StackItemSheet';
+import { gradeFromCount, RARITY_LABEL } from '@/lib/supplement-grade';
 
 interface StackItem {
   id: string;
   name: string;
   slug: string;
+  studyCount: number;
 }
 
 interface SupplementOption {
@@ -15,6 +18,7 @@ interface SupplementOption {
   name: string;
   slug: string;
   popularityScore: number;
+  studyCount: number;
 }
 
 const ROUTINE_KEY = 'protocolsai.routine.v2';
@@ -31,22 +35,6 @@ function writeLocalRoutine(slugs: string[]) {
   window.dispatchEvent(new CustomEvent('routine:update'));
 }
 
-// Derive a deterministic "rarity" tier from the supplement name so the inventory
-// has visual variety without needing study-count enrichment yet. Once we wire
-// real grade data, swap this for `gradeFromCount(item.studyCount)`.
-function rarityFromName(name: string): 'common' | 'rare' | 'legendary' {
-  const len = name.length;
-  if (len > 18) return 'legendary';
-  if (len > 11) return 'rare';
-  return 'common';
-}
-
-const RARITY_LABEL: Record<string, string> = {
-  common: '★',
-  rare: '★★★',
-  legendary: '★★★★',
-};
-
 export function StackBuilder() {
   const [stackId, setStackId] = useState<string | null>(null);
   const [stackName, setStackName] = useState('My Stack');
@@ -62,6 +50,7 @@ export function StackBuilder() {
   const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
   const [loading, setLoading] = useState(true);
   const [view, setView] = useState<'grid' | 'list'>('grid');
+  const [openItemId, setOpenItemId] = useState<string | null>(null);
 
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const autosaveRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -80,11 +69,12 @@ export function StackBuilder() {
         if (suppRes.ok) {
           const data = await suppRes.json();
           list = (data.supplements ?? []).map(
-            (s: { id?: string; name?: string; slug?: string; popularityScore?: number }) => ({
+            (s: { id?: string; name?: string; slug?: string; popularityScore?: number; studyCount?: number }) => ({
               id: s.id ?? '',
               name: s.name ?? '',
               slug: s.slug ?? '',
               popularityScore: s.popularityScore ?? 0,
+              studyCount: s.studyCount ?? 0,
             })
           );
           setAllSupplements(list);
@@ -97,7 +87,7 @@ export function StackBuilder() {
         const localItems: StackItem[] = localSlugs
           .map((slug) => bySlug.get(slug))
           .filter((s): s is SupplementOption => Boolean(s))
-          .map((s) => ({ id: s.id, name: s.name, slug: s.slug }));
+          .map((s) => ({ id: s.id, name: s.name, slug: s.slug, studyCount: s.studyCount }));
 
         let merged: StackItem[] = localItems;
         let resolvedStackId: string | null = null;
@@ -112,10 +102,24 @@ export function StackBuilder() {
             resolvedName    = data.stack.name ?? 'My Stack';
 
             const serverIds: string[] = data.stack.supplementIds ?? [];
+            // Prefer server-provided supplement metadata (includes studyCount).
+            const serverMeta: Array<{ id: string; name: string; slug: string; studyCount: number }> =
+              Array.isArray(data.stack.supplements) ? data.stack.supplements : [];
+            const metaById = new Map(serverMeta.map((s) => [s.id, s]));
+
             const serverItems: StackItem[] = serverIds
-              .map((id: string) => byId.get(id))
-              .filter((s): s is SupplementOption => Boolean(s))
-              .map((s) => ({ id: s.id, name: s.name, slug: s.slug }));
+              .map((id: string) => {
+                const meta = metaById.get(id);
+                if (meta) {
+                  return { id: meta.id, name: meta.name, slug: meta.slug, studyCount: meta.studyCount };
+                }
+                const fromList = byId.get(id);
+                if (fromList) {
+                  return { id: fromList.id, name: fromList.name, slug: fromList.slug, studyCount: fromList.studyCount };
+                }
+                return null;
+              })
+              .filter((s): s is StackItem => Boolean(s));
 
             if (localItems.length === 0 && serverItems.length > 0) {
               merged = serverItems;
@@ -138,7 +142,7 @@ export function StackBuilder() {
       } catch {
         const localSlugs = readLocalRoutine();
         setItems(
-          localSlugs.map((slug) => ({ id: slug, name: slug, slug })),
+          localSlugs.map((slug) => ({ id: slug, name: slug, slug, studyCount: 0 })),
         );
         setIsLoggedIn(false);
       } finally {
@@ -160,7 +164,7 @@ export function StackBuilder() {
       const next: StackItem[] = slugs
         .map((slug) => bySlug.get(slug))
         .filter((s): s is SupplementOption => Boolean(s))
-        .map((s) => ({ id: s.id, name: s.name, slug: s.slug }));
+        .map((s) => ({ id: s.id, name: s.name, slug: s.slug, studyCount: s.studyCount }));
       setItems((prev) => {
         if (prev.length === next.length && prev.every((p, i) => p.id === next[i].id)) {
           return prev;
@@ -215,7 +219,7 @@ export function StackBuilder() {
       setShowDropdown(false);
       return;
     }
-    commitItems([...items, { id: match.id, name: match.name, slug: match.slug }]);
+    commitItems([...items, { id: match.id, name: match.name, slug: match.slug, studyCount: match.studyCount }]);
     setQuery('');
     setSuggestions([]);
     setShowDropdown(false);
@@ -305,6 +309,10 @@ export function StackBuilder() {
   }
 
   const itemNames = useMemo(() => items.map((i) => i.name), [items]);
+  const openItem = useMemo(
+    () => items.find((i) => i.id === openItemId) ?? null,
+    [items, openItemId],
+  );
 
   useEffect(() => {
     function handleClick(e: MouseEvent) {
@@ -628,13 +636,24 @@ export function StackBuilder() {
           }}
         >
           {items.map((item) => {
-            const rarity = rarityFromName(item.name);
+            const grade = gradeFromCount(item.studyCount);
+            const rarity = grade.rarity;
             return (
               <div
                 key={item.id}
                 className="l-card"
                 data-rarity={rarity}
-                style={{ cursor: 'default' }}
+                role="button"
+                tabIndex={0}
+                onClick={() => setOpenItemId(item.id)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    setOpenItemId(item.id);
+                  }
+                }}
+                style={{ cursor: 'pointer' }}
+                aria-label={`Open detail for ${item.name}`}
               >
                 <span className="l-dot" data-state="equipped" />
                 <div>
@@ -652,12 +671,13 @@ export function StackBuilder() {
                       textTransform: 'uppercase',
                     }}
                   >
-                    {RARITY_LABEL[rarity]} {rarity}
+                    {RARITY_LABEL[rarity]} {rarity} · {grade.label}
                   </div>
                 </div>
                 <div style={{ display: 'flex', gap: 6, alignItems: 'center', marginTop: 10 }}>
                   <Link
                     href={`/research/${item.slug}`}
+                    onClick={(e) => e.stopPropagation()}
                     style={{
                       flex: 1,
                       fontFamily: 'var(--font-cinzel), serif',
@@ -672,7 +692,7 @@ export function StackBuilder() {
                     View ▸
                   </Link>
                   <button
-                    onClick={() => removeItem(item.id)}
+                    onClick={(e) => { e.stopPropagation(); removeItem(item.id); }}
                     style={{
                       background: 'transparent',
                       border: '1px solid var(--rule)',
@@ -708,10 +728,21 @@ export function StackBuilder() {
         // LIST view — single column rows with rarity stripe
         <div>
           {items.map((item) => {
-            const rarity = rarityFromName(item.name);
+            const grade = gradeFromCount(item.studyCount);
+            const rarity = grade.rarity;
             return (
               <div
                 key={item.id}
+                role="button"
+                tabIndex={0}
+                onClick={() => setOpenItemId(item.id)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    setOpenItemId(item.id);
+                  }
+                }}
+                aria-label={`Open detail for ${item.name}`}
                 style={{
                   display: 'flex',
                   alignItems: 'center',
@@ -719,6 +750,7 @@ export function StackBuilder() {
                   padding: '13px 18px 13px 14px',
                   borderBottom: '1px solid var(--rule-soft)',
                   position: 'relative',
+                  cursor: 'pointer',
                 }}
               >
                 <span
@@ -759,7 +791,7 @@ export function StackBuilder() {
                       marginTop: 3,
                     }}
                   >
-                    {RARITY_LABEL[rarity]} {rarity.toUpperCase()}
+                    {RARITY_LABEL[rarity]} {rarity.toUpperCase()} · {grade.label}
                   </div>
                 </div>
                 <span
@@ -773,6 +805,7 @@ export function StackBuilder() {
                 />
                 <Link
                   href={`/research/${item.slug}`}
+                  onClick={(e) => e.stopPropagation()}
                   style={{
                     fontFamily: 'var(--font-cinzel), serif',
                     fontSize: 10,
@@ -786,7 +819,7 @@ export function StackBuilder() {
                   View ▸
                 </Link>
                 <button
-                  onClick={() => removeItem(item.id)}
+                  onClick={(e) => { e.stopPropagation(); removeItem(item.id); }}
                   style={{
                     background: 'transparent',
                     border: '1px solid var(--rule)',
@@ -854,6 +887,13 @@ export function StackBuilder() {
           </Link>
         </div>
       )}
+
+      {/* Bottom sheet — full stat block on tap */}
+      <StackItemSheet
+        item={openItem}
+        onClose={() => setOpenItemId(null)}
+        onUnequip={(id) => removeItem(id)}
+      />
     </div>
   );
 }

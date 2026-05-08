@@ -1,13 +1,15 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { db } from '@/lib/drizzle';
-import { savedStacks, supplements } from '@/lib/schema-postgres';
-import { eq } from 'drizzle-orm';
+import { savedStacks, supplements, clinicalStudies } from '@/lib/schema-postgres';
+import { eq, inArray, sql } from 'drizzle-orm';
 import { createClient } from '../../../../utils/supabase/server';
 
 /**
  * GET /api/stack
- * Returns the authenticated user's current stack, with resolved supplement names.
+ * Returns the authenticated user's current stack, with resolved supplement
+ * names and per-supplement metadata (slug + study count) needed to compute
+ * rarity client-side.
  */
 export async function GET() {
   const cookieStore = await cookies();
@@ -36,12 +38,40 @@ export async function GET() {
     supplementIds = [];
   }
 
-  const supplementNames: string[] = [];
-  for (const sid of supplementIds) {
-    const sRows = await db.select().from(supplements).where(eq(supplements.id, sid)).limit(1);
-    if (sRows[0]?.name) supplementNames.push(sRows[0].name);
-    else supplementNames.push(sid);
+  // Resolve supplement metadata + study counts in two queries (no N+1).
+  let supplementMeta: Array<{ id: string; name: string; slug: string; studyCount: number }> = [];
+  if (supplementIds.length > 0) {
+    const suppRows = await db
+      .select({
+        id: supplements.id,
+        name: supplements.name,
+        slug: supplements.slug,
+      })
+      .from(supplements)
+      .where(inArray(supplements.id, supplementIds));
+
+    const studyCounts = await db
+      .select({
+        supplementId: clinicalStudies.supplementId,
+        cnt: sql<number>`count(*)::int`,
+      })
+      .from(clinicalStudies)
+      .where(inArray(clinicalStudies.supplementId, supplementIds))
+      .groupBy(clinicalStudies.supplementId);
+
+    const countMap = new Map(studyCounts.map((r) => [r.supplementId, Number(r.cnt) || 0]));
+    supplementMeta = suppRows.map((s) => ({
+      id: s.id,
+      name: s.name,
+      slug: s.slug,
+      studyCount: countMap.get(s.id) ?? 0,
+    }));
   }
+
+  const metaById = new Map(supplementMeta.map((s) => [s.id, s]));
+  const supplementNames: string[] = supplementIds.map(
+    (sid) => metaById.get(sid)?.name ?? sid,
+  );
 
   return NextResponse.json({
     authenticated: true,
@@ -50,6 +80,7 @@ export async function GET() {
       name: stack.name,
       supplementIds,
       supplementNames,
+      supplements: supplementMeta,
     },
   });
 }

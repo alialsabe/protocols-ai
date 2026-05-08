@@ -8,20 +8,46 @@ export const metadata = {
 
 export default function DisclaimerPage() {
   return (
-    <article className="mx-auto max-w-[720px] px-5 py-16 md:px-10 md:py-20">
-      <span
-        className="font-mono text-[11px] font-bold uppercase tracking-[1.4px]"
-        style={{ color: 'var(--accent)' }}
+    <article style={{ maxWidth: 720, margin: '0 auto', padding: '64px 24px 80px' }}>
+      <div
+        style={{
+          fontFamily: 'var(--font-cinzel), serif',
+          fontSize: 11,
+          color: 'var(--gold)',
+          letterSpacing: '2px',
+          textTransform: 'uppercase',
+          fontWeight: 600,
+          marginBottom: 8,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 8,
+        }}
       >
-        Legal
-      </span>
+        <span style={{ display: 'inline-block', width: 24, height: 1, background: 'var(--gold)' }} />
+        ⚜ Medical disclaimer
+      </div>
       <h1
-        className="mt-2 text-[36px] font-extrabold tracking-[-0.5px] md:text-[44px]"
-        style={{ color: 'var(--fg)' }}
+        style={{
+          margin: 0,
+          fontFamily: 'var(--font-cinzel), serif',
+          fontSize: 'clamp(28px, 4.4vw, 40px)',
+          fontWeight: 600,
+          letterSpacing: '-0.4px',
+          lineHeight: 1.1,
+          color: 'var(--text)',
+        }}
       >
         Medical disclaimer
       </h1>
-      <p className="mt-2 text-[13px]" style={{ color: 'var(--fg-dim)' }}>
+      <p
+        style={{
+          marginTop: 12,
+          fontFamily: 'var(--font-jetbrains-mono), var(--mono)',
+          fontSize: 11,
+          color: 'var(--text-3)',
+          letterSpacing: '0.4px',
+        }}
+      >
         Last updated: {new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
       </p>
 
@@ -29,7 +55,7 @@ export default function DisclaimerPage() {
         <p>
           Stack Lab is an educational reference for supplement research. The information presented on this site, including supplement profiles, dosing notes, scheduling output, audit findings, and bloodwork analysis, is provided for general informational and educational purposes only. It is not a substitute for professional medical advice, diagnosis, or treatment.
         </p>
-        <p className="mt-3">
+        <p>
           Always seek the advice of your physician or other qualified health provider with any questions you may have regarding a medical condition, lab results, prescription medication, or supplement regimen. Never disregard professional medical advice or delay in seeking it because of something you have read on this site.
         </p>
       </Section>
@@ -38,7 +64,7 @@ export default function DisclaimerPage() {
         <p>
           Our bloodwork feature uses optical character recognition and rule-based matching to flag patterns in lab marker values you upload. It cannot replace clinical interpretation of your results. Reference ranges vary between labs and individuals; thresholds we use are conservative defaults, not personalised diagnostic cutoffs.
         </p>
-        <p className="mt-3">
+        <p>
           We do not store the raw PDFs you upload. We do persist the structured marker values extracted from them so you can review your history. You can request deletion at any time.
         </p>
       </Section>
@@ -58,9 +84,7 @@ export default function DisclaimerPage() {
       <Section title="Affiliate links and editorial independence">
         <p>
           Some links on this site are affiliate links, meaning we may earn a commission at no additional cost to you when you purchase through them. Affiliate relationships never determine which compounds appear in our reference, how they are graded, or which products we surface. See our{' '}
-          <Link href="/terms" className="underline" style={{ color: 'var(--accent-ink)' }}>
-            terms of service
-          </Link>{' '}
+          <Link href="/terms">terms of service</Link>{' '}
           for the full affiliate disclosure.
         </p>
       </Section>
@@ -77,13 +101,13 @@ export default function DisclaimerPage() {
         </p>
       </Section>
 
-      <p className="mt-12 text-[13px]" style={{ color: 'var(--fg-muted)' }}>
+      <p style={{ marginTop: 48, fontSize: 13, color: 'var(--text-3)' }}>
         Questions? See our{' '}
-        <Link href="/terms" className="underline" style={{ color: 'var(--accent-ink)' }}>
+        <Link href="/terms" style={{ color: 'var(--gold)', borderBottom: '1px solid var(--gold)' }}>
           terms
         </Link>{' '}
         and{' '}
-        <Link href="/privacy" className="underline" style={{ color: 'var(--accent-ink)' }}>
+        <Link href="/privacy" style={{ color: 'var(--gold)', borderBottom: '1px solid var(--gold)' }}>
           privacy policy
         </Link>
         .
@@ -94,19 +118,25 @@ export default function DisclaimerPage() {
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <section className="mt-10">
+    <section style={{ marginTop: 36 }}>
       <h2
-        className="text-[20px] font-bold tracking-[-0.3px]"
-        style={{ color: 'var(--fg)' }}
+        style={{
+          margin: '0 0 14px',
+          fontFamily: 'var(--font-cinzel), serif',
+          fontSize: 10,
+          color: 'var(--gold)',
+          letterSpacing: '2px',
+          textTransform: 'uppercase',
+          fontWeight: 600,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 8,
+        }}
       >
+        <span style={{ display: 'inline-block', width: 18, height: 1, background: 'var(--gold)' }} />
         {title}
       </h2>
-      <div
-        className="mt-3 text-[14px] leading-[24px]"
-        style={{ color: 'var(--fg-muted)' }}
-      >
-        {children}
-      </div>
+      <div className="prose">{children}</div>
     </section>
   );
 }

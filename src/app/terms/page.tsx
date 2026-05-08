@@ -7,20 +7,46 @@ export const metadata = {
 
 export default function TermsPage() {
   return (
-    <article className="mx-auto max-w-[720px] px-5 py-16 md:px-10 md:py-20">
-      <span
-        className="font-mono text-[11px] font-bold uppercase tracking-[1.4px]"
-        style={{ color: 'var(--accent)' }}
+    <article style={{ maxWidth: 720, margin: '0 auto', padding: '64px 24px 80px' }}>
+      <div
+        style={{
+          fontFamily: 'var(--font-cinzel), serif',
+          fontSize: 11,
+          color: 'var(--gold)',
+          letterSpacing: '2px',
+          textTransform: 'uppercase',
+          fontWeight: 600,
+          marginBottom: 8,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 8,
+        }}
       >
-        Legal
-      </span>
+        <span style={{ display: 'inline-block', width: 24, height: 1, background: 'var(--gold)' }} />
+        ⚜ Terms of service
+      </div>
       <h1
-        className="mt-2 text-[36px] font-extrabold tracking-[-0.5px] md:text-[44px]"
-        style={{ color: 'var(--fg)' }}
+        style={{
+          margin: 0,
+          fontFamily: 'var(--font-cinzel), serif',
+          fontSize: 'clamp(28px, 4.4vw, 40px)',
+          fontWeight: 600,
+          letterSpacing: '-0.4px',
+          lineHeight: 1.1,
+          color: 'var(--text)',
+        }}
       >
         Terms of service
       </h1>
-      <p className="mt-2 text-[13px]" style={{ color: 'var(--fg-dim)' }}>
+      <p
+        style={{
+          marginTop: 12,
+          fontFamily: 'var(--font-jetbrains-mono), var(--mono)',
+          fontSize: 11,
+          color: 'var(--text-3)',
+          letterSpacing: '0.4px',
+        }}
+      >
         Last updated: {new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
       </p>
 
@@ -39,9 +65,7 @@ export default function TermsPage() {
       <Section title="Educational purpose only">
         <p>
           Stack Lab provides general information about supplements, drug-supplement interactions, and lab markers for educational purposes. The Service does not provide medical advice, diagnosis, or treatment. See our{' '}
-          <Link href="/disclaimer" className="underline" style={{ color: 'var(--accent-ink)' }}>
-            medical disclaimer
-          </Link>{' '}
+          <Link href="/disclaimer">medical disclaimer</Link>{' '}
           for full detail. You agree to consult a qualified healthcare provider before acting on any information from the Service.
         </p>
       </Section>
@@ -53,10 +77,8 @@ export default function TermsPage() {
       </Section>
 
       <Section title="Acceptable use">
-        <p>
-          You agree not to:
-        </p>
-        <ul className="ml-5 mt-3 list-disc space-y-2">
+        <p>You agree not to:</p>
+        <ul style={{ margin: '0 0 16px', paddingLeft: 20, color: 'var(--text-2)', lineHeight: 1.65 }}>
           <li>Use the Service to provide medical advice to others.</li>
           <li>Scrape, copy, or republish substantial portions of our content without written permission.</li>
           <li>Submit false bloodwork, misuse the audit feature to evade prescribing controls, or attempt to extract our underlying data sources.</li>
@@ -122,9 +144,7 @@ export default function TermsPage() {
       <Section title="Contact">
         <p>
           For questions about these Terms, contact us through the email address listed on{' '}
-          <Link href="/about" className="underline" style={{ color: 'var(--accent-ink)' }}>
-            our about page
-          </Link>
+          <Link href="/about">our about page</Link>
           .
         </p>
       </Section>
@@ -134,13 +154,25 @@ export default function TermsPage() {
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <section className="mt-10">
-      <h2 className="text-[20px] font-bold tracking-[-0.3px]" style={{ color: 'var(--fg)' }}>
+    <section style={{ marginTop: 36 }}>
+      <h2
+        style={{
+          margin: '0 0 14px',
+          fontFamily: 'var(--font-cinzel), serif',
+          fontSize: 10,
+          color: 'var(--gold)',
+          letterSpacing: '2px',
+          textTransform: 'uppercase',
+          fontWeight: 600,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 8,
+        }}
+      >
+        <span style={{ display: 'inline-block', width: 18, height: 1, background: 'var(--gold)' }} />
         {title}
       </h2>
-      <div className="mt-3 text-[14px] leading-[24px]" style={{ color: 'var(--fg-muted)' }}>
-        {children}
-      </div>
+      <div className="prose">{children}</div>
     </section>
   );
 }
