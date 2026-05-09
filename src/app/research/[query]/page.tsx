@@ -28,39 +28,21 @@ export default async function ResearchQueryPage({
 
   const report = await lookupSupplement(q);
 
-  /* ── Not found ───────────────────────────────────────────── */
+  /* ── Not found ─────────────���────────────────────────────── */
   if (!report) {
     return (
       <div className="page" style={{ paddingTop: 48 }}>
-        <span
-          style={{
-            fontFamily: 'var(--font-cinzel), serif',
-            fontSize: 11,
-            color: 'var(--gold)',
-            letterSpacing: '2px',
-            textTransform: 'uppercase',
-            fontWeight: 600,
-          }}
-        >
-          ⚜ Item not found
+        <span className="footnote" style={{ letterSpacing: '1.4px', textTransform: 'uppercase', color: 'var(--accent)' }}>
+          NOT FOUND
         </span>
-        <h1
-          style={{
-            margin: '8px 0 16px',
-            fontFamily: 'var(--font-cinzel), serif',
-            fontSize: 40,
-            fontWeight: 600,
-            letterSpacing: '-0.5px',
-            color: 'var(--text)',
-          }}
-        >
+        <h1 style={{ margin: '8px 0 16px', fontSize: 40, fontWeight: 600, letterSpacing: '-1px', color: 'var(--ink)' }}>
           {q}
         </h1>
-        <p style={{ fontSize: 15, color: 'var(--text-3)', maxWidth: '54ch', lineHeight: 1.6 }}>
-          No card exists for this compound in the vault. Try a different spelling or browse the library.
+        <p style={{ fontSize: 15, color: 'var(--ink-3)', maxWidth: '54ch', lineHeight: 1.6 }}>
+          No data found for this compound. Try a different spelling or search for a related supplement.
         </p>
         <div style={{ marginTop: 24 }}>
-          <Link href="/" className="btn">▸ Back to library</Link>
+          <Link href="/" className="btn">← Back to browse</Link>
         </div>
       </div>
     );
@@ -88,21 +70,10 @@ export default async function ResearchQueryPage({
   return (
     <div className="page">
       {/* Breadcrumb */}
-      <div
-        style={{
-          padding: '24px 0 12px',
-          display: 'flex',
-          alignItems: 'center',
-          gap: 10,
-          fontFamily: 'var(--font-jetbrains-mono), monospace',
-          fontSize: 10,
-          letterSpacing: '1.5px',
-          textTransform: 'uppercase',
-        }}
-      >
-        <Link href="/?view=library" style={{ color: 'var(--gold)' }}>◂ Library</Link>
-        <span style={{ color: 'var(--text-5)' }}>/</span>
-        <span style={{ color: 'var(--text-3)' }}>{category}</span>
+      <div style={{ padding: '28px 0 14px', display: 'flex', alignItems: 'center', gap: 10 }}>
+        <Link href="/" className="footnote" style={{ color: 'var(--ink-4)' }}>Browse</Link>
+        <span className="footnote" style={{ color: 'var(--ink-5)' }}>/</span>
+        <span className="footnote" style={{ color: 'var(--ink-3)' }}>{category}</span>
       </div>
 
       {/* Abstract + key stats — two-column */}
@@ -112,54 +83,33 @@ export default async function ResearchQueryPage({
           display: 'grid',
           gridTemplateColumns: 'minmax(0,1.4fr) minmax(280px,1fr)',
           gap: 48,
-          padding: '12px 0 40px',
-          borderBottom: '1px solid var(--gold)',
+          padding: '12px 0 48px',
+          borderBottom: '1px solid var(--rule)',
         }}
       >
         {/* ── Left: title + reading-level overview ── */}
         <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14, flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16, flexWrap: 'wrap' }}>
             <span className="tag" data-cat={category}>{category}</span>
-            <span
-              style={{
-                fontFamily: 'var(--font-cinzel), serif',
-                fontSize: 10,
-                color: 'var(--gold)',
-                letterSpacing: '2px',
-                textTransform: 'uppercase',
-                fontWeight: 600,
-              }}
-            >
-              ⚜ Compound
-            </span>
           </div>
 
           <h1
             style={{
               margin: 0,
-              fontFamily: 'var(--font-cinzel), serif',
-              fontSize: 'clamp(34px, 4.5vw, 52px)',
-              lineHeight: 1.05,
-              letterSpacing: '-0.6px',
-              fontWeight: 600,
-              color: 'var(--text)',
+              fontSize: 'clamp(36px, 4.5vw, 56px)',
+              lineHeight: 1.04,
+              letterSpacing: '-1.4px',
+              fontWeight: 500,
+              color: 'var(--ink)',
             }}
           >
             {name}
           </h1>
 
           {aliases.length > 0 && (
-            <p
-              style={{
-                marginTop: 10,
-                fontSize: 13,
-                color: 'var(--text-4)',
-                fontFamily: 'var(--font-jetbrains-mono), monospace',
-                letterSpacing: '0.3px',
-              }}
-            >
-              ALSO KNOWN AS:{' '}
-              <span style={{ color: 'var(--text-2)' }}>{aliases.join(' · ')}</span>
+            <p className="footnote" style={{ marginTop: 10, fontSize: 13, color: 'var(--ink-4)' }}>
+              Also known as:{' '}
+              <span style={{ color: 'var(--ink-3)' }}>{aliases.join(' · ')}</span>
             </p>
           )}
 
@@ -195,67 +145,38 @@ export default async function ResearchQueryPage({
         >
           <div
             style={{
-              background: 'linear-gradient(160deg, var(--bg-card) 0%, var(--bg-card-end) 100%)',
-              border: '1.5px solid var(--gold)',
+              background: 'var(--paper-2)',
+              border: '1px solid var(--rule)',
               padding: '24px 28px',
-              borderRadius: 6,
+              borderRadius: 4,
             }}
           >
-            <span
-              style={{
-                fontFamily: 'var(--font-cinzel), serif',
-                fontSize: 11,
-                color: 'var(--gold)',
-                letterSpacing: '2px',
-                textTransform: 'uppercase',
-                fontWeight: 600,
-                display: 'flex',
-                alignItems: 'center',
-                gap: 8,
-              }}
-            >
-              <span style={{ display: 'inline-block', width: 16, height: 1, background: 'var(--gold)' }} />
-              ✦ Card Stats
+            <span className="footnote" style={{ letterSpacing: '1.4px', textTransform: 'uppercase' }}>
+              At a glance
             </span>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginTop: 18 }}>
               {/* Dose */}
               <div>
-                <span
-                  style={{
-                    fontFamily: 'var(--font-jetbrains-mono), monospace',
-                    fontSize: 9,
-                    color: 'var(--text-3)',
-                    letterSpacing: '1.4px',
-                    textTransform: 'uppercase',
-                    fontWeight: 600,
-                  }}
-                >
-                  DOSE
+                <span className="footnote" style={{ letterSpacing: '1.2px', textTransform: 'uppercase' }}>
+                  Typical dose
                 </span>
                 <div
+                  className="footnote"
                   style={{
-                    fontFamily: 'var(--font-cinzel), serif',
                     fontSize: 22,
-                    fontWeight: 600,
-                    color: 'var(--gold)',
+                    fontWeight: 500,
+                    color: 'var(--ink)',
                     marginTop: 4,
-                    letterSpacing: '-0.3px',
+                    letterSpacing: '-0.2px',
+                    fontFamily: 'var(--font-jetbrains-mono, var(--mono))',
                   }}
                 >
                   {dose}
                 </div>
                 {doseLoading && (
-                  <div
-                    style={{
-                      marginTop: 4,
-                      fontSize: 10,
-                      fontFamily: 'var(--font-jetbrains-mono), monospace',
-                      color: 'var(--text-4)',
-                      letterSpacing: '0.5px',
-                    }}
-                  >
-                    LOADING: {doseLoading}
+                  <div className="footnote" style={{ marginTop: 4, fontSize: 11 }}>
+                    Loading: {doseLoading}
                   </div>
                 )}
               </div>

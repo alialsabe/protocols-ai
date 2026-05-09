@@ -9,37 +9,25 @@ export default function AboutPage() {
   return (
     <div className="page">
       <div style={{ padding: '64px 0 40px', maxWidth: 720 }}>
-        <div
-          style={{
-            fontFamily: 'var(--font-cinzel), serif',
-            fontSize: 11,
-            color: 'var(--gold)',
-            letterSpacing: '2px',
-            textTransform: 'uppercase',
-            fontWeight: 600,
-            marginBottom: 8,
-            display: 'flex',
-            alignItems: 'center',
-            gap: 8,
-          }}
+        <span
+          className="footnote"
+          style={{ letterSpacing: '1.4px', textTransform: 'uppercase' }}
         >
-          <span style={{ display: 'inline-block', width: 24, height: 1, background: 'var(--gold)' }} />
-          ⚜ About the Lab
-        </div>
+          About
+        </span>
         <h1
           style={{
-            margin: 0,
-            fontFamily: 'var(--font-cinzel), serif',
-            fontSize: 'clamp(28px, 4.4vw, 40px)',
-            fontWeight: 600,
-            letterSpacing: '-0.4px',
+            margin: '12px 0 20px',
+            fontSize: 'clamp(32px, 4vw, 48px)',
             lineHeight: 1.1,
-            color: 'var(--text)',
+            letterSpacing: '-1.2px',
+            fontWeight: 500,
+            color: 'var(--ink)',
           }}
         >
           A reference work, not a retailer.
         </h1>
-        <div className="prose" style={{ marginTop: 24 }}>
+        <div className="prose">
           <p>
             Stack Lab indexes peer-reviewed research on commonly-taken
             supplements. Every claim links to the underlying study and carries

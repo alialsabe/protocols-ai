@@ -7,46 +7,20 @@ export const metadata = {
 
 export default function PrivacyPage() {
   return (
-    <article style={{ maxWidth: 720, margin: '0 auto', padding: '64px 24px 80px' }}>
-      <div
-        style={{
-          fontFamily: 'var(--font-cinzel), serif',
-          fontSize: 11,
-          color: 'var(--gold)',
-          letterSpacing: '2px',
-          textTransform: 'uppercase',
-          fontWeight: 600,
-          marginBottom: 8,
-          display: 'flex',
-          alignItems: 'center',
-          gap: 8,
-        }}
+    <article className="mx-auto max-w-[720px] px-5 py-16 md:px-10 md:py-20">
+      <span
+        className="font-mono text-[11px] font-bold uppercase tracking-[1.4px]"
+        style={{ color: 'var(--accent)' }}
       >
-        <span style={{ display: 'inline-block', width: 24, height: 1, background: 'var(--gold)' }} />
-        ⚜ Privacy policy
-      </div>
+        Legal
+      </span>
       <h1
-        style={{
-          margin: 0,
-          fontFamily: 'var(--font-cinzel), serif',
-          fontSize: 'clamp(28px, 4.4vw, 40px)',
-          fontWeight: 600,
-          letterSpacing: '-0.4px',
-          lineHeight: 1.1,
-          color: 'var(--text)',
-        }}
+        className="mt-2 text-[36px] font-extrabold tracking-[-0.5px] md:text-[44px]"
+        style={{ color: 'var(--fg)' }}
       >
         Privacy policy
       </h1>
-      <p
-        style={{
-          marginTop: 12,
-          fontFamily: 'var(--font-jetbrains-mono), var(--mono)',
-          fontSize: 11,
-          color: 'var(--text-3)',
-          letterSpacing: '0.4px',
-        }}
-      >
+      <p className="mt-2 text-[13px]" style={{ color: 'var(--fg-dim)' }}>
         Last updated: {new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
       </p>
 
@@ -57,7 +31,7 @@ export default function PrivacyPage() {
       </Section>
 
       <Section title="What we collect">
-        <ul style={{ margin: 0, paddingLeft: 20, color: 'var(--text-2)', lineHeight: 1.65 }}>
+        <ul className="ml-5 list-disc space-y-2">
           <li>
             <strong>Account information.</strong> When you sign up, your email address is stored by our authentication provider (Supabase). We do not see or store your password — Supabase handles credentials with industry-standard hashing.
           </li>
@@ -80,7 +54,7 @@ export default function PrivacyPage() {
       </Section>
 
       <Section title="What we do not collect">
-        <ul style={{ margin: 0, paddingLeft: 20, color: 'var(--text-2)', lineHeight: 1.65 }}>
+        <ul className="ml-5 list-disc space-y-2">
           <li>Raw PDF files of your bloodwork. They are deleted from temporary storage after extraction.</li>
           <li>Payment information. We do not currently process payments. If we add paid tiers, payment will be handled by a regulated processor (e.g. Stripe), not us.</li>
           <li>Social Security Numbers, government ID numbers, or other regulated identifiers.</li>
@@ -89,13 +63,13 @@ export default function PrivacyPage() {
       </Section>
 
       <Section title="Third parties we use">
-        <ul style={{ margin: '0 0 12px', paddingLeft: 20, color: 'var(--text-2)', lineHeight: 1.65 }}>
+        <ul className="ml-5 list-disc space-y-2">
           <li><strong>Supabase</strong> — authentication and database hosting.</li>
           <li><strong>Vercel</strong> — application hosting and CDN.</li>
           <li><strong>OpenRouter</strong> — large language model proxy used for bloodwork PDF text extraction. Your PDF is sent to OpenRouter for OCR and is not retained by them per their data retention policy.</li>
           <li><strong>PostHog</strong> — product analytics. Configured to collect identified events only when you are signed in; pageviews are anonymous otherwise.</li>
         </ul>
-        <p>
+        <p className="mt-3">
           Each third party has its own privacy policy. We do not share your data with parties beyond what is required to operate the service.
         </p>
       </Section>
@@ -107,14 +81,14 @@ export default function PrivacyPage() {
       </Section>
 
       <Section title="Your rights">
-        <ul style={{ margin: '0 0 12px', paddingLeft: 20, color: 'var(--text-2)', lineHeight: 1.65 }}>
+        <ul className="ml-5 list-disc space-y-2">
           <li><strong>Access.</strong> Request a copy of your data.</li>
           <li><strong>Correction.</strong> Edit or correct your data through the app.</li>
           <li><strong>Deletion.</strong> Delete your account and all associated data. Email us to request this until in-app self-serve deletion is available.</li>
           <li><strong>Portability.</strong> Export your stack and bloodwork history as JSON on request.</li>
           <li><strong>Opt out of analytics.</strong> Use Do Not Track or a privacy extension; we honour DNT for PostHog identification.</li>
         </ul>
-        <p>
+        <p className="mt-3">
           California residents (CCPA) and EU/UK residents (GDPR) have additional rights around their personal data. Contact us to exercise them.
         </p>
       </Section>
@@ -140,7 +114,9 @@ export default function PrivacyPage() {
       <Section title="Contact">
         <p>
           For privacy questions or to exercise your rights, contact us through the email address listed on{' '}
-          <Link href="/about">our about page</Link>
+          <Link href="/about" className="underline" style={{ color: 'var(--accent-ink)' }}>
+            our about page
+          </Link>
           .
         </p>
       </Section>
@@ -150,25 +126,13 @@ export default function PrivacyPage() {
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <section style={{ marginTop: 36 }}>
-      <h2
-        style={{
-          margin: '0 0 14px',
-          fontFamily: 'var(--font-cinzel), serif',
-          fontSize: 10,
-          color: 'var(--gold)',
-          letterSpacing: '2px',
-          textTransform: 'uppercase',
-          fontWeight: 600,
-          display: 'flex',
-          alignItems: 'center',
-          gap: 8,
-        }}
-      >
-        <span style={{ display: 'inline-block', width: 18, height: 1, background: 'var(--gold)' }} />
+    <section className="mt-10">
+      <h2 className="text-[20px] font-bold tracking-[-0.3px]" style={{ color: 'var(--fg)' }}>
         {title}
       </h2>
-      <div className="prose">{children}</div>
+      <div className="mt-3 text-[14px] leading-[24px]" style={{ color: 'var(--fg-muted)' }}>
+        {children}
+      </div>
     </section>
   );
 }

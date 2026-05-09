@@ -1,11 +1,12 @@
-import type { Metadata } from 'next';
-import { Inter, JetBrains_Mono, Cinzel, IBM_Plex_Mono } from 'next/font/google';
+﻿import type { Metadata } from 'next';
+import { Inter, JetBrains_Mono } from 'next/font/google';
 import './globals.css';
 import { AnalyticsProvider } from '@/components/AnalyticsProvider';
 import { SupplementCatalogProvider } from '@/components/v2/advisor/SupplementCatalogProvider';
 import { FloatingAdvisor } from '@/components/v2/advisor/FloatingAdvisor';
 import { Nav } from '@/components/Nav';
 import { Footer } from '@/components/Footer';
+import { PillBackground } from '@/components/PillBackground';
 import { MedicalDisclaimerGate } from '@/components/MedicalDisclaimerGate';
 
 const inter = Inter({
@@ -20,22 +21,10 @@ const jetbrainsMono = JetBrains_Mono({
   weight: ['400', '500', '600'],
 });
 
-const cinzel = Cinzel({
-  variable: '--font-cinzel',
-  subsets: ['latin'],
-  weight: ['500', '600', '700'],
-});
-
-const ibmPlexMono = IBM_Plex_Mono({
-  variable: '--font-ibm-plex-mono',
-  subsets: ['latin'],
-  weight: ['400', '500', '600', '700'],
-});
-
 export const metadata: Metadata = {
-  title: 'Stack Lab — Build your stack like a character',
+  title: 'Stack Lab — Supplement Reference',
   description:
-    'A daily inventory and audit for your supplement stack: rarity, evidence grade, redundancies, and what to drop. Built for biohackers who think in stats.',
+    'Plain-language research on the supplements people actually take — graded, sourced, and scheduled.',
 };
 
 export default function RootLayout({
@@ -44,10 +33,12 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${inter.variable} ${jetbrainsMono.variable} ${cinzel.variable} ${ibmPlexMono.variable} h-full`}
+      className={`${inter.variable} ${jetbrainsMono.variable} h-full`}
     >
       <body className="min-h-full flex flex-col">
-        <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+        <PillBackground />
+        {/* z-index: 1 so all content sits above the z-index: 0 background */}
+        <div style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
           <AnalyticsProvider>
             <SupplementCatalogProvider>
               <Nav />

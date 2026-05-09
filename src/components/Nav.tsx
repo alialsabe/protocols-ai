@@ -5,34 +5,27 @@ import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/lib/use-auth';
 
-// XP / Volume number = days since launch epoch.
-const LAUNCH_EPOCH = new Date('2026-04-01T00:00:00Z').getTime();
-
-function getXP(): string {
-  const days = Math.max(1, Math.floor((Date.now() - LAUNCH_EPOCH) / 86_400_000) + 1);
-  return String(days).padStart(3, '0');
-}
-
 export function Nav() {
   const pathname = usePathname();
-  const isToday    = pathname === '/';
-  const isStack    = pathname === '/routine' || pathname === '/routine/'
-                  || pathname === '/stack'   || pathname === '/stack/';
-  const isSave     = pathname === '/save' || pathname === '/save/';
-  const isOptimize = pathname === '/optimize' || pathname === '/optimize/';
-  const isLibrary  = pathname.startsWith('/research') || pathname.startsWith('/protocol')
-                  || (pathname === '/' && typeof window !== 'undefined' && window.location.search.includes('view=library'));
-  const isAudit    = pathname.startsWith('/routine/audit');
-  const isMe       = pathname.startsWith('/account');
+  const isHome      = pathname === '/';
+  const isResearch  = pathname.startsWith('/research');
+  const isRoutine   = pathname === '/routine' || pathname === '/routine/'
+                    || pathname === '/stack'   || pathname === '/stack/';
+  const isAbout     = pathname === '/about';
 
   const { user, loading: authLoading } = useAuth();
 
-  const [xp, setXP] = useState('');
+  const [now, setNow] = useState('');
   const [routineCount, setRoutineCount] = useState(0);
 
   useEffect(() => {
-    setXP(getXP());
-    const id = setInterval(() => setXP(getXP()), 60_000);
+    const tick = () => {
+      const d = new Date();
+      const p = (n: number) => String(n).padStart(2, '0');
+      setNow(`${d.getFullYear()}.${p(d.getMonth() + 1)}.${p(d.getDate())}`);
+    };
+    tick();
+    const id = setInterval(tick, 60_000);
     return () => clearInterval(id);
   }, []);
 
@@ -53,201 +46,148 @@ export function Nav() {
   }, []);
 
   return (
-    <>
-      {/* Top bar — L+ RPG aesthetic */}
-      <nav
+    <nav
+      style={{
+        position: 'sticky',
+        top: 0,
+        zIndex: 20,
+        background: 'var(--paper)',
+        borderBottom: '1px solid var(--rule)',
+      }}
+    >
+      <div
+        className="nav-inner"
         style={{
-          position: 'sticky',
-          top: 0,
-          zIndex: 20,
-          background: 'rgba(14, 18, 24, 0.92)',
-          backdropFilter: 'blur(12px)',
-          WebkitBackdropFilter: 'blur(12px)',
-          borderBottom: '1px solid var(--gold)',
+          maxWidth: 1200,
+          margin: '0 auto',
+          padding: '18px 40px',
+          display: 'grid',
+          gridTemplateColumns: 'auto 1fr auto',
+          alignItems: 'center',
+          gap: 48,
         }}
       >
+        {/* Brand */}
+        <Link href="/" style={{ display: 'flex', alignItems: 'baseline', gap: 10, fontWeight: 600, fontSize: 17, letterSpacing: '-0.3px', color: 'var(--ink)', textDecoration: 'none' }}>
+          <span
+            style={{
+              display: 'inline-block',
+              width: 7,
+              height: 7,
+              background: 'var(--accent)',
+              transform: 'translateY(-1px)',
+              flexShrink: 0,
+            }}
+          />
+          <span>Stack Lab</span>
+          <span
+            className="footnote nav-ref"
+            style={{ marginLeft: 8, fontSize: 10, letterSpacing: '0.8px', textTransform: 'uppercase' }}
+          >
+            Reference · 2026
+          </span>
+        </Link>
+
+        {/* Nav links */}
+        <div className="nav-links" style={{ display: 'flex', gap: 32, justifySelf: 'center' }}>
+          {([
+            ['Browse',     '/',          isHome],
+            ['My Routine', '/routine',   isRoutine],
+            ['About',      '/about',     isAbout],
+          ] as const).map(([label, href, active]) => (
+            <Link
+              key={href}
+              href={href}
+              style={{
+                fontSize: 13,
+                fontWeight: 500,
+                color: active ? 'var(--ink)' : 'var(--ink-3)',
+                paddingBottom: 4,
+                borderBottom: active ? '1px solid var(--ink)' : '1px solid transparent',
+                transition: 'color 150ms var(--ease), border-color 150ms var(--ease)',
+                textDecoration: 'none',
+              }}
+            >
+              {label}
+              {label === 'My Routine' && routineCount > 0 && (
+                <span className="footnote" style={{ marginLeft: 6, color: 'var(--ink-4)', fontSize: 11 }}>
+                  ({routineCount})
+                </span>
+              )}
+            </Link>
+          ))}
+        </div>
+
+        {/* Date + Auth */}
         <div
-          className="nav-inner"
+          className="footnote nav-date"
           style={{
-            maxWidth: 1200,
-            margin: '0 auto',
-            padding: '12px 40px',
-            display: 'grid',
-            gridTemplateColumns: 'auto 1fr auto',
+            display: 'flex',
             alignItems: 'center',
-            gap: 32,
+            gap: 20,
+            letterSpacing: '0.4px',
           }}
         >
-          {/* Brand — Cinzel serif with gold fleur-de-lis */}
-          <Link
-            href="/"
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 8,
-              fontFamily: 'var(--font-cinzel), serif',
-              fontSize: 16,
-              fontWeight: 600,
-              letterSpacing: '2.5px',
-              color: 'var(--gold)',
-              textDecoration: 'none',
-              textTransform: 'uppercase',
-              lineHeight: 1,
-            }}
-          >
-            <span style={{ fontSize: 18, lineHeight: 1 }}>⚜</span>
-            <span>Stack Lab</span>
-          </Link>
-
-          {/* Desktop nav links — center */}
-          <div className="nav-links" style={{ display: 'flex', gap: 28, justifySelf: 'center' }}>
-            {([
-              ['Today',    '/',                isToday && !isLibrary],
-              ['Stack',    '/routine',         isStack],
-              ['Save',     '/save',            isSave],
-              ['Optimize', '/optimize',        isOptimize],
-              ['Library',  '/?view=library',   isLibrary],
-              ['Audit',    '/routine/audit',   isAudit],
-              ['About',    '/about',           pathname === '/about'],
-            ] as const).map(([label, href, active]) => (
+          {now}
+          {!authLoading && (
+            user ? (
               <Link
-                key={`${label}-${href}`}
-                href={href}
+                href="/account"
                 style={{
-                  fontFamily: 'var(--font-cinzel), serif',
-                  fontSize: 11,
-                  fontWeight: 600,
-                  letterSpacing: '1.6px',
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: 10,
+                  fontWeight: 700,
+                  letterSpacing: '1.2px',
                   textTransform: 'uppercase',
-                  color: active ? 'var(--gold)' : 'var(--text-3)',
-                  paddingBottom: 4,
-                  borderBottom: active ? '1.5px solid var(--gold)' : '1.5px solid transparent',
-                  transition: 'color 150ms var(--ease), border-color 150ms var(--ease)',
+                  color: pathname.startsWith('/account') ? 'var(--ink)' : 'var(--ink-4)',
+                  textDecoration: 'none',
+                  transition: 'color 150ms var(--ease)',
+                }}
+                onMouseEnter={e => (e.currentTarget.style.color = 'var(--ink)')}
+                onMouseLeave={e => {
+                  if (!pathname.startsWith('/account')) {
+                    e.currentTarget.style.color = 'var(--ink-4)';
+                  }
+                }}
+              >
+                Account
+              </Link>
+            ) : (
+              <Link
+                href="/login"
+                style={{
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: 10,
+                  fontWeight: 700,
+                  letterSpacing: '1.2px',
+                  textTransform: 'uppercase',
+                  color: 'var(--accent)',
                   textDecoration: 'none',
                 }}
               >
-                {label}
-                {label === 'Stack' && routineCount > 0 && (
-                  <span
-                    className="footnote"
-                    style={{
-                      marginLeft: 6,
-                      color: active ? 'var(--gold)' : 'var(--text-4)',
-                      fontSize: 10,
-                      fontFamily: 'var(--font-jetbrains-mono), monospace',
-                    }}
-                  >
-                    {routineCount}
-                  </span>
-                )}
+                Sign In
               </Link>
-            ))}
-          </div>
-
-          {/* Right: XP counter + auth */}
-          <div
-            className="nav-right"
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 16,
-            }}
-          >
-            <div
-              className="nav-xp"
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 5,
-                fontFamily: 'var(--font-jetbrains-mono), monospace',
-                fontSize: 11,
-                fontWeight: 600,
-                color: 'var(--gold)',
-                letterSpacing: '1px',
-              }}
-            >
-              <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--gold)', boxShadow: '0 0 6px var(--gold-glow)' }} />
-              {xp} XP
-            </div>
-            {!authLoading && (
-              user ? (
-                <Link
-                  href="/account"
-                  className="nav-auth"
-                  style={{
-                    fontFamily: 'var(--font-cinzel), serif',
-                    fontSize: 10,
-                    fontWeight: 600,
-                    letterSpacing: '1.6px',
-                    textTransform: 'uppercase',
-                    color: isMe ? 'var(--gold)' : 'var(--text-3)',
-                    textDecoration: 'none',
-                    transition: 'color 150ms var(--ease)',
-                  }}
-                >
-                  Hero
-                </Link>
-              ) : (
-                <Link
-                  href="/login"
-                  className="nav-auth"
-                  style={{
-                    fontFamily: 'var(--font-cinzel), serif',
-                    fontSize: 10,
-                    fontWeight: 600,
-                    letterSpacing: '1.6px',
-                    textTransform: 'uppercase',
-                    color: 'var(--gold)',
-                    textDecoration: 'none',
-                    padding: '6px 12px',
-                    border: '1px solid var(--gold)',
-                    borderRadius: 3,
-                  }}
-                >
-                  Sign In
-                </Link>
-              )
-            )}
-          </div>
+            )
+          )}
         </div>
+      </div>
 
-        {/* Mobile: hide center nav links + XP block (replaced by bottom tab bar) */}
-        <style>{`
-          @media (max-width: 820px) {
-            .nav-inner {
-              grid-template-columns: auto 1fr auto !important;
-              padding: 12px 20px !important;
-              gap: 12px !important;
-            }
-            .nav-links { display: none !important; }
-            .nav-xp { font-size: 10px !important; }
+      {/* Mobile: compact — hide REFERENCE label + date, shrink padding/gap, keep nav links visible */}
+      <style>{`
+        @media (max-width: 820px) {
+          .nav-inner {
+            grid-template-columns: auto 1fr !important;
+            padding: 14px 20px !important;
+            gap: 16px !important;
           }
-        `}</style>
-      </nav>
-
-      {/* Mobile bottom tab bar — L+ */}
-      <nav className="g-tabbar" aria-label="Primary mobile navigation">
-        <Link href="/" data-active={isToday && !isLibrary ? 'true' : undefined} className="g-tab">
-          <span className="tab-icon" />
-          Today
-        </Link>
-        <Link href="/save" data-active={isSave ? 'true' : undefined} className="g-tab">
-          <span className="tab-icon" />
-          Save
-        </Link>
-        <Link href="/optimize" data-active={isOptimize ? 'true' : undefined} className="g-tab">
-          <span className="tab-icon" />
-          Optimize
-        </Link>
-        <Link href="/?view=library" data-active={isLibrary ? 'true' : undefined} className="g-tab">
-          <span className="tab-icon" />
-          Library
-        </Link>
-        <Link href={user ? '/account' : '/login'} data-active={isMe ? 'true' : undefined} className="g-tab">
-          <span className="tab-icon" />
-          Me
-        </Link>
-      </nav>
-    </>
+          .nav-ref, .nav-date { display: none !important; }
+          .nav-links { gap: 20px !important; justify-self: end !important; }
+          .nav-links a { font-size: 13px !important; }
+        }
+        @media (max-width: 380px) {
+          .nav-links { gap: 14px !important; }
+        }
+      `}</style>
+    </nav>
   );
 }

@@ -24,34 +24,16 @@ export default async function AccountPage() {
   const created = user.created_at ? new Date(user.created_at) : null;
 
   return (
-    <article style={{ maxWidth: 720, margin: '0 auto', padding: '64px 24px 80px' }}>
-      <div
-        style={{
-          fontFamily: 'var(--font-cinzel), serif',
-          fontSize: 11,
-          color: 'var(--gold)',
-          letterSpacing: '2px',
-          textTransform: 'uppercase',
-          fontWeight: 600,
-          marginBottom: 8,
-          display: 'flex',
-          alignItems: 'center',
-          gap: 8,
-        }}
+    <article className="mx-auto max-w-[720px] px-5 py-12 md:px-10 md:py-16">
+      <span
+        className="font-mono text-[11px] font-bold uppercase tracking-[1.4px]"
+        style={{ color: 'var(--accent)' }}
       >
-        <span style={{ display: 'inline-block', width: 24, height: 1, background: 'var(--gold)' }} />
-        ⚜ Hero
-      </div>
+        Account
+      </span>
       <h1
-        style={{
-          margin: 0,
-          fontFamily: 'var(--font-cinzel), serif',
-          fontSize: 'clamp(28px, 4.4vw, 40px)',
-          fontWeight: 600,
-          letterSpacing: '-0.4px',
-          lineHeight: 1.1,
-          color: 'var(--text)',
-        }}
+        className="mt-2 text-[32px] font-extrabold tracking-[-0.5px] md:text-[40px]"
+        style={{ color: 'var(--fg)' }}
       >
         Your Stack Lab account
       </h1>
@@ -66,11 +48,11 @@ export default async function AccountPage() {
       </Card>
 
       <Card title="Your data">
-        <p style={{ margin: 0, fontSize: 15, lineHeight: 1.6, color: 'var(--text-2)' }}>
+        <p className="text-[14px] leading-[22px]" style={{ color: 'var(--fg-muted)' }}>
           Stack Lab stores your stack, medications, biometrics, and structured bloodwork markers
           (raw PDFs are never persisted). You own this data.
         </p>
-        <ul style={{ marginTop: 16, padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 10 }}>
+        <ul className="mt-4 flex flex-col gap-3">
           <ActionItem
             label="Manage your stack"
             description="Edit your supplements, medications, and routine."
@@ -80,14 +62,14 @@ export default async function AccountPage() {
           <ActionItem
             label="Export your data"
             description="Email us to request a JSON export of your stack and bloodwork markers. Self-serve coming soon."
-            href="mailto:hello@stacklab.science?subject=Data%20export%20request"
+            href="mailto:hello@materia.app?subject=Data%20export%20request"
             kind="link"
             external
           />
           <ActionItem
             label="Delete your account"
             description="Email us to request permanent deletion of your account and all associated data. Self-serve coming soon."
-            href="mailto:hello@stacklab.science?subject=Account%20deletion%20request"
+            href="mailto:hello@materia.app?subject=Account%20deletion%20request"
             kind="link"
             external
             destructive
@@ -100,20 +82,24 @@ export default async function AccountPage() {
       </Card>
 
       <Card title="Legal">
-        <ul style={{ padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 10 }}>
+        <ul className="flex flex-col gap-3">
           <ActionItem label="Medical disclaimer" description="" href="/disclaimer" kind="link" />
           <ActionItem label="Terms of service" description="" href="/terms" kind="link" />
           <ActionItem label="Privacy policy" description="" href="/privacy" kind="link" />
         </ul>
       </Card>
 
-      <p style={{ marginTop: 40, fontSize: 13, color: 'var(--text-3)' }}>
+      <p
+        className="mt-10 text-[12px]"
+        style={{ color: 'var(--fg-dim)' }}
+      >
         Need help with something not listed here?{' '}
         <Link
-          href="mailto:hello@stacklab.science"
-          style={{ color: 'var(--gold)', borderBottom: '1px solid var(--gold)' }}
+          href="mailto:hello@materia.app"
+          className="underline"
+          style={{ color: 'var(--accent-ink)' }}
         >
-          hello@stacklab.science
+          hello@materia.app
         </Link>
       </p>
     </article>
@@ -123,31 +109,15 @@ export default async function AccountPage() {
 function Card({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section
-      style={{
-        marginTop: 28,
-        padding: '20px 24px 22px',
-        background: 'linear-gradient(160deg, var(--bg-card) 0%, var(--bg-card-end) 100%)',
-        border: '1px solid var(--rule)',
-        borderRadius: 6,
-      }}
+      className="mt-8 rounded-[16px] p-6 md:p-8"
+      style={{ background: 'var(--surface)', border: '1px solid var(--hair)' }}
     >
-      <div
-        style={{
-          fontFamily: 'var(--font-cinzel), serif',
-          fontSize: 10,
-          color: 'var(--gold)',
-          letterSpacing: '2px',
-          textTransform: 'uppercase',
-          fontWeight: 600,
-          marginBottom: 14,
-          display: 'flex',
-          alignItems: 'center',
-          gap: 8,
-        }}
+      <h2
+        className="mb-5 text-[16px] font-bold uppercase tracking-[0.5px]"
+        style={{ color: 'var(--fg)' }}
       >
-        <span style={{ display: 'inline-block', width: 18, height: 1, background: 'var(--gold)' }} />
         {title}
-      </div>
+      </h2>
       {children}
     </section>
   );
@@ -156,33 +126,18 @@ function Card({ title, children }: { title: string; children: React.ReactNode })
 function Row({ label, value, mono }: { label: string; value: string; mono?: boolean }) {
   return (
     <div
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 4,
-        padding: '12px 0',
-        borderBottom: '1px solid var(--rule-soft)',
-      }}
+      className="flex flex-col gap-1 border-b py-3 last:border-b-0 md:flex-row md:items-center md:justify-between md:gap-6"
+      style={{ borderColor: 'var(--hair)' }}
     >
       <span
-        style={{
-          fontFamily: 'var(--font-jetbrains-mono), var(--mono)',
-          fontSize: 10,
-          fontWeight: 600,
-          textTransform: 'uppercase',
-          letterSpacing: '1.2px',
-          color: 'var(--text-3)',
-        }}
+        className="font-mono text-[11px] font-bold uppercase tracking-[1.2px]"
+        style={{ color: 'var(--fg-muted)' }}
       >
         {label}
       </span>
       <span
-        style={{
-          fontSize: mono ? 12 : 14,
-          fontFamily: mono ? 'var(--font-jetbrains-mono), var(--mono)' : undefined,
-          color: 'var(--text)',
-          wordBreak: 'break-all',
-        }}
+        className={`text-[14px] ${mono ? 'font-mono text-[12px]' : ''} break-all`}
+        style={{ color: 'var(--fg)' }}
       >
         {value}
       </span>
@@ -200,44 +155,29 @@ interface ActionItemProps {
 }
 
 function ActionItem({ label, description, href, external, destructive }: ActionItemProps) {
-  const labelColor = destructive ? 'var(--bad)' : 'var(--text)';
-  const arrowColor = destructive ? 'var(--bad)' : 'var(--gold)';
+  const labelColor = destructive ? '#dc2626' : 'var(--fg)';
   return (
     <li>
       <Link
         href={href}
         target={external ? '_blank' : undefined}
         rel={external ? 'noopener noreferrer' : undefined}
-        style={{
-          display: 'flex',
-          alignItems: 'flex-start',
-          justifyContent: 'space-between',
-          gap: 16,
-          padding: '12px 14px',
-          border: '1px solid var(--rule)',
-          borderRadius: 4,
-          background: 'var(--bg-2)',
-          transition: 'border-color 150ms var(--ease), background 150ms var(--ease)',
-        }}
+        className="flex items-start justify-between gap-4 rounded-[10px] px-4 py-3 transition-colors hover:bg-[var(--paper)]"
+        style={{ border: '1px solid var(--hair)' }}
       >
-        <span style={{ display: 'flex', flexDirection: 'column' }}>
-          <span style={{ fontSize: 14, fontWeight: 600, color: labelColor }}>{label}</span>
+        <span className="flex flex-col">
+          <span className="text-[14px] font-bold" style={{ color: labelColor }}>
+            {label}
+          </span>
           {description && (
-            <span style={{ marginTop: 4, fontSize: 12, color: 'var(--text-3)', lineHeight: 1.5 }}>
+            <span className="mt-1 text-[12px]" style={{ color: 'var(--fg-muted)' }}>
               {description}
             </span>
           )}
         </span>
         <span
-          style={{
-            fontFamily: 'var(--font-jetbrains-mono), var(--mono)',
-            fontSize: 10,
-            fontWeight: 600,
-            textTransform: 'uppercase',
-            letterSpacing: '1.2px',
-            color: arrowColor,
-            whiteSpace: 'nowrap',
-          }}
+          className="font-mono text-[10px] font-bold uppercase tracking-[1.2px]"
+          style={{ color: destructive ? '#dc2626' : 'var(--fg-muted)' }}
         >
           {external ? 'Email →' : 'Open →'}
         </span>
