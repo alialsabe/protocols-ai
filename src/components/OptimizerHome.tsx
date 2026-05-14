@@ -54,6 +54,7 @@ interface OptimizerHomeProps {
 }
 
 const DRAFT_KEY = 'stacklab.optimizer.draft.v1';
+const ROUTINE_KEY = 'protocolsai.routine.v2';
 
 const GOAL_META: Record<Goal, { label: string; tagline: string; icon: string; subhead: string }> = {
   sleep: {
@@ -114,6 +115,7 @@ export function OptimizerHome({ mode: variant, goal, onGoalChange }: OptimizerHo
   const [error, setError] = useState<string | null>(null);
   const [pasteText, setPasteText] = useState('');
   const [urlText, setUrlText] = useState('');
+  const [saveMessage, setSaveMessage] = useState<string | null>(null);
   const [inputStartedTracked, setInputStartedTracked] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -286,11 +288,56 @@ export function OptimizerHome({ mode: variant, goal, onGoalChange }: OptimizerHo
     setState(variant === 'optimize' && !goal ? { kind: 'goal' } : { kind: 'empty', mode });
   }
 
-  function saveOptimizedStack() {
+  async function saveOptimizedStack() {
+    if (state.kind !== 'results') return;
     track('optimizer_save_clicked', { variant, ...(goal ? { goal } : {}) });
-    if (state.kind === 'results') {
+    setSaveMessage('Saving to routine...');
+
+    try {
+      const res = await fetch('/api/stack/import', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: goal ? `${GOAL_META[goal].label} Stack` : 'Optimized Stack',
+          supplements: state.result.optimized_stack.map((s) => ({ name: s.name })),
+        }),
+      });
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err?.error || `Save failed (${res.status})`);
+      }
+
+      const data = await res.json() as {
+        slugs?: string[];
+        matched?: Array<{ name: string }>;
+        unmatched?: string[];
+      };
+
+      const nextSlugs = Array.isArray(data.slugs) ? data.slugs : [];
+      if (nextSlugs.length === 0) {
+        setSaveMessage('No catalog matches found yet.');
+        return;
+      }
+
+      const existing = JSON.parse(localStorage.getItem(ROUTINE_KEY) || '[]');
+      const currentSlugs = Array.isArray(existing) ? existing.map(String) : [];
+      const merged = Array.from(new Set([...currentSlugs, ...nextSlugs]));
+      localStorage.setItem(ROUTINE_KEY, JSON.stringify(merged));
+      window.dispatchEvent(new CustomEvent('routine:update'));
+
       setStack(state.result.optimized_stack);
-      try { localStorage.setItem(DRAFT_KEY, JSON.stringify(state.result.optimized_stack)); } catch {}
+      localStorage.setItem(DRAFT_KEY, JSON.stringify(state.result.optimized_stack));
+
+      const missed = Array.isArray(data.unmatched) ? data.unmatched.length : 0;
+      const imported = nextSlugs.length;
+      setSaveMessage(
+        missed > 0
+          ? `Saved ${imported} to My Routine. ${missed} item${missed === 1 ? '' : 's'} need manual lookup.`
+          : `Saved ${imported} to My Routine.`,
+      );
+    } catch (err) {
+      setSaveMessage(err instanceof Error ? err.message : 'Save failed');
     }
   }
 
@@ -597,6 +644,7 @@ export function OptimizerHome({ mode: variant, goal, onGoalChange }: OptimizerHo
           result={state.result}
           onStartOver={startOver}
           onSave={saveOptimizedStack}
+          saveMessage={saveMessage}
         />
       )}
     </div>
@@ -610,6 +658,7 @@ function ResultsView({
   result,
   onStartOver,
   onSave,
+  saveMessage,
 }: {
   variant: Variant;
   goal?: Goal;
@@ -617,6 +666,7 @@ function ResultsView({
   result: OptimizerResult;
   onStartOver: () => void;
   onSave: () => void;
+  saveMessage: string | null;
 }) {
   const dropNames = new Set(result.drop.map((d) => d.name.toLowerCase()));
   const upgradeFromNames = new Set(result.upgrade.map((u) => u.from.toLowerCase()));
@@ -726,9 +776,10 @@ function ResultsView({
       )}
 
       <div className="sl-actions">
-        <button className="sl-cta" onClick={onSave} type="button">Save Optimized Stack</button>
+        <button className="sl-cta" onClick={onSave} type="button">Save to My Routine</button>
         <button className="sl-cta sl-cta-ghost" onClick={onStartOver} type="button">Start a new stack</button>
       </div>
+      {saveMessage && <div className="sl-foot">{saveMessage}</div>}
     </>
   );
 }
