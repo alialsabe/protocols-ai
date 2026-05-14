@@ -11,6 +11,7 @@ export function Nav() {
   const isResearch  = pathname.startsWith('/research');
   const isRoutine   = pathname === '/routine' || pathname === '/routine/'
                     || pathname === '/stack'   || pathname === '/stack/';
+  const isStacks    = pathname === '/stacks' || pathname.startsWith('/stack/');
   const isAbout     = pathname === '/about';
 
   const { user, loading: authLoading } = useAuth();
@@ -93,6 +94,7 @@ export function Nav() {
           {([
             ['Browse',     '/',          isHome],
             ['My Routine', '/routine',   isRoutine],
+            ['Popular',    '/stacks',    isStacks],
             ['About',      '/about',     isAbout],
           ] as const).map(([label, href, active]) => (
             <Link

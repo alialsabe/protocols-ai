@@ -1,15 +1,16 @@
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import type { Metadata } from 'next';
+import { eq, sql } from 'drizzle-orm';
 import { db } from '@/lib/drizzle';
 import { sharedProtocols, savedStacks, supplements } from '@/lib/schema-postgres';
-import { eq } from 'drizzle-orm';
+import { CopySharedStackButton } from '@/components/stack/CopySharedStackButton';
 
 interface SharedPageProps {
   params: Promise<{ publicId: string }>;
 }
 
-async function loadShared(publicId: string) {
+async function loadShared(publicId: string, options: { trackView?: boolean } = {}) {
   const shared = await db
     .select()
     .from(sharedProtocols)
@@ -18,6 +19,18 @@ async function loadShared(publicId: string) {
 
   if (shared.length === 0) return null;
   const row = shared[0];
+
+  if (options.trackView) {
+    await db
+      .update(sharedProtocols)
+      .set({
+        viewCount: sql`${sharedProtocols.viewCount} + 1`,
+        updatedAt: new Date().toISOString(),
+      })
+      .where(eq(sharedProtocols.id, row.id))
+      .catch(() => undefined);
+    row.viewCount = (row.viewCount ?? 0) + 1;
+  }
 
   let snapshot: {
     name?: string;
@@ -65,12 +78,12 @@ export async function generateMetadata({ params }: SharedPageProps): Promise<Met
   const { publicId } = await params;
   const data = await loadShared(publicId).catch(() => null);
   if (!data) {
-    return { title: 'Shared Protocol — Protocols.ai' };
+    return { title: 'Shared Protocol - Stack Lab' };
   }
   const name = data.snapshot.name ?? 'Shared Protocol';
   const count = data.snapshot.supplementNames?.length ?? 0;
   return {
-    title: `${name} — Protocols.ai`,
+    title: `${name} - Stack Lab`,
     description: `A shared supplement protocol with ${count} supplement${count === 1 ? '' : 's'}.`,
     alternates: {
       canonical: `/stack/${publicId}`,
@@ -106,6 +119,8 @@ export default async function SharedStackPage({ params }: SharedPageProps) {
           {supplementNames.length} COMPOUND{supplementNames.length === 1 ? '' : 'S'}
           <span className="mx-2" style={{ color: 'var(--fg-faint)' }}>·</span>
           {row.viewCount ?? 0} VIEW{row.viewCount === 1 ? '' : 'S'}
+          <span className="mx-2" style={{ color: 'var(--fg-faint)' }}> / </span>
+          {row.copyCount ?? 0} COP{row.copyCount === 1 ? 'Y' : 'IES'}
         </p>
       </section>
 
@@ -173,15 +188,11 @@ export default async function SharedStackPage({ params }: SharedPageProps) {
           }}
         >
           <p className="text-[13px]" style={{ color: 'var(--fg-muted)' }}>
-            Want to save your own protocol?
+            Want to save this protocol?
           </p>
-          <Link
-            href="/signup"
-            className="mt-4 inline-flex items-center rounded-md px-5 py-2.5 font-mono text-[11px] font-bold uppercase tracking-[1.4px] transition-opacity hover:opacity-90"
-            style={{ background: 'var(--accent)', color: '#09090b' }}
-          >
-            CREATE ACCOUNT →
-          </Link>
+          <div className="mt-4 flex justify-center">
+            <CopySharedStackButton publicId={publicId} />
+          </div>
         </div>
       </section>
 

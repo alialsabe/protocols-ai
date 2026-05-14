@@ -306,5 +306,6 @@ export const sharedProtocols = pgTable('shared_protocols', {
   ownerUserId: text('owner_user_id').notNull(), // references auth.users(id)
   snapshot: text('snapshot').notNull().default('{}'), // frozen JSON of stack at share time
   viewCount: integer('view_count').notNull().default(0),
+  copyCount: integer('copy_count').notNull().default(0),
   ...timestamps(),
 });
