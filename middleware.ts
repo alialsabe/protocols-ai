@@ -13,7 +13,10 @@ export const config = {
      * - _next/image (image optimization)
      * - favicon.ico
      * - image/video/font assets
+     * - research/* (public, read-only, ISR-cached content pages — the auth
+     *   session refresh sets cookies that would make these responses
+     *   uncacheable at the CDN; auth on these pages is handled client-side)
      */
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|woff|woff2)$).*)',
+    '/((?!_next/static|_next/image|favicon.ico|research|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|woff|woff2)$).*)',
   ],
 };

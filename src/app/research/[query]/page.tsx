@@ -11,8 +11,10 @@ import { AddToRoutineButton } from '@/components/research/AddToRoutineButton';
 import { lookupSupplement } from '@/lib/supplement-lookup';
 import Link from 'next/link';
 
-// ISR: each supplement/peptide page renders once then serves cached HTML,
-// keeping repeat loads well under 700ms. Revalidates hourly.
+// ISR: each supplement/peptide page renders once, then serves cached HTML from the
+// edge (revalidated hourly), keeping repeat loads well under 700ms. This route is
+// excluded from the Supabase auth middleware (see middleware.ts) so its responses
+// carry no Set-Cookie and are cacheable by the CDN.
 export const revalidate = 3600;
 
 function letterGrade(score: number): { tier: 'a' | 'b' | 'c' | 'neutral'; label: string } {
