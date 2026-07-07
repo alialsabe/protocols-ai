@@ -11,11 +11,20 @@ import { AddToRoutineButton } from '@/components/research/AddToRoutineButton';
 import { lookupSupplement } from '@/lib/supplement-lookup';
 import Link from 'next/link';
 
-// ISR: each supplement/peptide page renders once, then serves cached HTML from the
-// edge (revalidated hourly), keeping repeat loads well under 700ms. This route is
-// excluded from the Supabase auth middleware (see middleware.ts) so its responses
-// carry no Set-Cookie and are cacheable by the CDN.
+// ISR: serve cached HTML from the edge, revalidated hourly, so repeat loads stay
+// well under 700ms. Also excluded from the Supabase auth middleware (see
+// middleware.ts) so responses carry no Set-Cookie and stay cacheable.
 export const revalidate = 3600;
+
+// A dynamic segment only enters ISR mode when generateStaticParams is defined;
+// without it the route renders fully dynamic (no-store) on every request (~2.7s).
+// Returning [] prerenders nothing at build (prerendering ~280 DB-backed pages
+// starves the connection pool and times out), but still flips the route into ISR
+// mode. With dynamicParams defaulting to true, every supplement/peptide page is
+// generated on first hit and then cached at the edge for subsequent visitors.
+export async function generateStaticParams() {
+  return [];
+}
 
 function letterGrade(score: number): { tier: 'a' | 'b' | 'c' | 'neutral'; label: string } {
   if (score >= 0.85) return { tier: 'a', label: score >= 0.92 ? 'A+' : 'A' };
