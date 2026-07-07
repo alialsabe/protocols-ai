@@ -22,6 +22,7 @@ const CATEGORIES = [
   'nootropics',
   'longevity',
   'protein',
+  'peptide',
 ] as const;
 
 const CAT_LABEL: Record<string, string> = {
@@ -34,6 +35,7 @@ const CAT_LABEL: Record<string, string> = {
   nootropics: 'Nootropics',
   longevity: 'Longevity',
   protein: 'Protein',
+  peptide: 'Peptides',
 };
 
 const CAT_COLOR: Record<string, string> = {
@@ -46,6 +48,7 @@ const CAT_COLOR: Record<string, string> = {
   nootropics: '#446573',
   longevity: '#4a754f',
   protein: '#9a413d',
+  peptide: '#6c4a9c',
 };
 
 /** Derive a letter grade from study count */

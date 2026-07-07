@@ -11,6 +11,10 @@ import { AddToRoutineButton } from '@/components/research/AddToRoutineButton';
 import { lookupSupplement } from '@/lib/supplement-lookup';
 import Link from 'next/link';
 
+// ISR: each supplement/peptide page renders once then serves cached HTML,
+// keeping repeat loads well under 700ms. Revalidates hourly.
+export const revalidate = 3600;
+
 function letterGrade(score: number): { tier: 'a' | 'b' | 'c' | 'neutral'; label: string } {
   if (score >= 0.85) return { tier: 'a', label: score >= 0.92 ? 'A+' : 'A' };
   if (score >= 0.65) return { tier: 'b', label: score >= 0.78 ? 'B+' : 'B' };

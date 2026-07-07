@@ -3,7 +3,8 @@ import { desc } from 'drizzle-orm';
 import { db } from '@/lib/drizzle';
 import { sharedProtocols } from '@/lib/schema-postgres';
 
-export const dynamic = 'force-dynamic';
+// ISR: cached HTML with a short freshness window for community stacks.
+export const revalidate = 600;
 
 type StackSnapshot = {
   name?: string;

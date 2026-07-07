@@ -8,7 +8,9 @@ import { db } from '@/lib/drizzle';
 import { unstable_cache } from 'next/cache';
 import { HomepageClient, type CompoundRow } from '@/components/HomepageClient';
 
-export const dynamic = 'force-dynamic';
+// ISR: render once, serve cached HTML from the edge, revalidate hourly.
+// force-dynamic re-rendered on every request (slow); this keeps loads well under 700ms.
+export const revalidate = 3600;
 
 const loadCompounds = unstable_cache(
   async (): Promise<CompoundRow[]> => {
