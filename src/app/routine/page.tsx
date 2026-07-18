@@ -12,20 +12,14 @@ export default function StackPage() {
   return (
     <div>
       <header className="mb-8">
-        <span
-          className="font-mono text-[11px] font-bold uppercase tracking-[1.4px]"
-          style={{ color: 'var(--accent)' }}
-        >
-          Stack
-        </span>
         <h1
-          className="mt-1 text-[28px] font-extrabold tracking-[-0.5px]"
+          className="text-[32px] font-extrabold tracking-[-0.7px]"
           style={{ color: 'var(--fg)' }}
         >
-          Build & schedule
+          Your daily protocol
         </h1>
         <p className="mt-2 text-[14px]" style={{ color: 'var(--fg-muted)' }}>
-          Add supplements, set times, and persist your routine. Audit and bloodwork analysis live in the sidebar.
+          Manage supplements and peptides, then let Stack Lab resolve timing, conflicts, and the shape of your day.
         </p>
       </header>
       <StackBuilder />

@@ -1,0 +1,9 @@
+{
+  "date": "2026-07-18",
+  "font_stack": "Outfit + Geist Mono via next/font",
+  "palette": "Warm paper, sage rules, botanical green accent",
+  "motion": "Motion-cut; CSS transform and opacity only",
+  "spacing": "4-point named scale",
+  "framework": "Next.js 16 App Router",
+  "source": "DESIGN.md and src/app/globals.css"
+}

@@ -325,7 +325,7 @@ export function StackBuilder() {
   if (loading) {
     return (
       <div
-        className="mx-auto max-w-[1200px] px-5 py-12 md:px-10 lg:px-16"
+        className="stack-loading"
         style={{ color: 'var(--fg-muted)' }}
       >
         <span className="font-mono text-[11px] uppercase tracking-[1.4px]">Loading...</span>
@@ -334,11 +334,11 @@ export function StackBuilder() {
   }
 
   return (
-    <div className="mx-auto max-w-[1200px] px-5 py-8 md:px-10 lg:px-16">
+    <div className="stack-workspace">
 
       {/* Header row: stack name + actions */}
       <div
-        className="flex flex-col gap-4 pb-6 md:flex-row md:items-center md:justify-between"
+        className="stack-workspace__header flex flex-col gap-4 pb-6 md:flex-row md:items-center md:justify-between"
         style={{ borderBottom: '1px solid var(--hair)' }}
       >
         <div className="flex flex-1 flex-col gap-1">
@@ -359,7 +359,7 @@ export function StackBuilder() {
           />
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="stack-workspace__actions flex items-center gap-3">
           {saveStatus === 'saved' && (
             <span
               className="font-mono text-[11px] font-bold uppercase tracking-[1.4px]"
@@ -380,7 +380,7 @@ export function StackBuilder() {
           <button
             onClick={handleSave}
             disabled={saving || !isLoggedIn}
-            className="inline-flex min-h-[44px] items-center px-5 font-mono text-[11px] font-bold uppercase tracking-[1.4px] transition-colors disabled:opacity-40"
+            className="stack-action stack-action--ghost inline-flex min-h-[44px] items-center gap-2 px-5 font-mono text-[11px] font-bold uppercase tracking-[1.4px] transition-colors disabled:opacity-40"
             style={{
               background: 'var(--surface)',
               border: '1px solid var(--hair)',
@@ -394,7 +394,7 @@ export function StackBuilder() {
           <button
             onClick={handleShare}
             disabled={sharing || !isLoggedIn || items.length === 0}
-            className="inline-flex min-h-[44px] items-center px-5 font-mono text-[11px] font-bold uppercase tracking-[1.4px] transition-colors disabled:opacity-40"
+            className="stack-action stack-action--primary inline-flex min-h-[44px] items-center gap-2 px-5 font-mono text-[11px] font-bold uppercase tracking-[1.4px] transition-colors disabled:opacity-40"
             style={{
               background: 'var(--accent)',
               color: '#000',
@@ -440,32 +440,39 @@ export function StackBuilder() {
         </div>
       )}
 
+      <div className="stack-workspace__grid">
+        <div className="stack-editor-column">
       {/* Search bar */}
-      <div className="relative py-6" style={{ borderBottom: '1px solid var(--hair)' }} ref={dropdownRef}>
+      <div className="stack-editor relative py-6" style={{ borderBottom: '1px solid var(--hair)' }} ref={dropdownRef}>
         <span
           className="mb-2 block font-mono text-[11px] font-bold uppercase tracking-[1.4px]"
           style={{ color: 'var(--fg-dim)' }}
         >
           Add Compound
         </span>
+        <div className="stack-editor__search">
         <input
           type="text"
           value={query}
           onChange={handleQueryChange}
           onFocus={() => suggestions.length > 0 && setShowDropdown(true)}
-          placeholder="Search supplements..."
+          placeholder="Search supplements or peptides"
           className="w-full bg-transparent py-3 text-[15px] outline-none"
           style={{
             color: 'var(--fg)',
             borderBottom: '1px solid var(--hair)',
           }}
           aria-label="Search supplements"
+          role="combobox"
           aria-autocomplete="list"
+          aria-controls="stack-suggestions"
           aria-expanded={showDropdown}
         />
+        </div>
 
         {showDropdown && suggestions.length > 0 && (
           <ul
+            id="stack-suggestions"
             className="absolute left-0 right-0 z-20 mt-1 overflow-hidden"
             style={{
               background: 'var(--surface)',
@@ -493,20 +500,20 @@ export function StackBuilder() {
       </div>
 
       {/* Stack list */}
-      <div className="py-6">
+      <div className="stack-list py-6">
         {items.length === 0 ? (
           <p
             className="font-mono text-[13px] tracking-[0.5px]"
             style={{ color: 'var(--fg-muted)' }}
           >
-            Search above to add your first supplement.
+            Your stack is empty. Search above to add the first compound.
           </p>
         ) : (
           <ol className="flex flex-col">
             {items.map((item, idx) => (
               <li
                 key={item.id}
-                className="flex items-center gap-4 py-4"
+                className="stack-list__item flex items-center gap-4 py-4"
                 style={{ borderBottom: '1px solid var(--hair)' }}
               >
                 <span
@@ -525,16 +532,16 @@ export function StackBuilder() {
                   className="inline-flex min-h-[44px] items-center font-mono text-[11px] font-bold uppercase tracking-[1.4px] transition-colors hover:text-white"
                   style={{ color: 'var(--accent)' }}
                 >
-                  View Report
+                  Report
                 </Link>
 
                 <button
                   onClick={() => removeItem(item.id)}
-                  className="inline-flex min-h-[44px] w-10 items-center justify-center font-mono text-[14px] transition-colors hover:text-white"
+                  className="inline-flex min-h-[44px] items-center justify-center px-2 font-mono text-[9px] font-bold uppercase tracking-[0.08em] transition-colors hover:text-white"
                   style={{ color: 'var(--fg-dim)' }}
                   aria-label={`Remove ${item.name}`}
                 >
-                  x
+                  Remove
                 </button>
               </li>
             ))}
@@ -543,12 +550,22 @@ export function StackBuilder() {
       </div>
 
       {/* Your Routine — Timeline ribbon + scheduler-generated block list */}
-      <RoutineView names={itemNames} />
+        </div>
+        <div className="stack-schedule-column">
+          <RoutineView names={itemNames} />
+          {items.length === 0 && (
+            <div className="stack-schedule-empty">
+              <h2>Your schedule will appear here.</h2>
+              <p>Add what you take. Stack Lab will group doses and flag spacing conflicts.</p>
+            </div>
+          )}
+        </div>
+      </div>
 
       {/* Soft gate for unauthenticated users */}
       {isLoggedIn === false && (
         <div
-          className="flex flex-col items-start gap-3 rounded-none p-5 md:flex-row md:items-center md:justify-between"
+          className="stack-soft-gate flex flex-col items-start gap-3 p-5 md:flex-row md:items-center md:justify-between"
           style={{
             background: 'var(--surface)',
             border: '1px solid var(--hair)',
@@ -566,7 +583,7 @@ export function StackBuilder() {
             </p>
           </div>
           <Link
-            href="/signin"
+            href="/login"
             className="inline-flex min-h-[44px] items-center px-5 font-mono text-[11px] font-bold uppercase tracking-[1.4px] transition-colors hover:opacity-90"
             style={{
               background: 'var(--accent)',

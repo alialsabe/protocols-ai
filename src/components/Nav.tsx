@@ -3,193 +3,116 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import {
+  House,
+  MagnifyingGlass,
+  StackSimple,
+  UserCircle,
+} from '@phosphor-icons/react';
 import { useAuth } from '@/lib/use-auth';
+
+const ROUTINE_KEY = 'protocolsai.routine.v2';
 
 export function Nav() {
   const pathname = usePathname();
-  const isHome      = pathname === '/';
-  const isResearch  = pathname.startsWith('/research');
-  const isRoutine   = pathname === '/routine' || pathname === '/routine/'
-                    || pathname === '/stack'   || pathname === '/stack/';
-  const isStacks    = pathname === '/stacks' || pathname.startsWith('/stack/');
-  const isAbout     = pathname === '/about';
-
   const { user, loading: authLoading } = useAuth();
-
-  const [now, setNow] = useState('');
   const [routineCount, setRoutineCount] = useState(0);
-
-  useEffect(() => {
-    const tick = () => {
-      const d = new Date();
-      const p = (n: number) => String(n).padStart(2, '0');
-      setNow(`${d.getFullYear()}.${p(d.getMonth() + 1)}.${p(d.getDate())}`);
-    };
-    tick();
-    const id = setInterval(tick, 60_000);
-    return () => clearInterval(id);
-  }, []);
 
   useEffect(() => {
     const read = () => {
       try {
-        const ids: string[] = JSON.parse(
-          localStorage.getItem('protocolsai.routine.v2') || '[]',
-        );
+        const ids: string[] = JSON.parse(localStorage.getItem(ROUTINE_KEY) || '[]');
         setRoutineCount(ids.length);
       } catch {
         setRoutineCount(0);
       }
     };
+
     read();
     window.addEventListener('routine:update', read);
     return () => window.removeEventListener('routine:update', read);
   }, []);
 
+  const accountHref = user ? '/account' : '/login';
+  const links = [
+    { label: 'Today', href: '/', active: pathname === '/' },
+    {
+      label: 'My Stack',
+      href: '/routine',
+      active: pathname.startsWith('/routine') || pathname === '/stack',
+      count: routineCount,
+    },
+    {
+      label: 'Discover',
+      href: '/#library',
+      active: pathname.startsWith('/research') || pathname === '/stacks',
+    },
+  ];
+
   return (
-    <nav
-      style={{
-        position: 'sticky',
-        top: 0,
-        zIndex: 20,
-        background: 'var(--paper)',
-        borderBottom: '1px solid var(--rule)',
-      }}
-    >
-      <div
-        className="nav-inner"
-        style={{
-          maxWidth: 1200,
-          margin: '0 auto',
-          padding: '18px 40px',
-          display: 'grid',
-          gridTemplateColumns: 'auto 1fr auto',
-          alignItems: 'center',
-          gap: 48,
-        }}
-      >
-        {/* Brand */}
-        <Link href="/" style={{ display: 'flex', alignItems: 'baseline', gap: 10, fontWeight: 600, fontSize: 17, letterSpacing: '-0.3px', color: 'var(--ink)', textDecoration: 'none' }}>
-          <span
-            style={{
-              display: 'inline-block',
-              width: 7,
-              height: 7,
-              background: 'var(--accent)',
-              transform: 'translateY(-1px)',
-              flexShrink: 0,
-            }}
-          />
-          <span>Stack Lab</span>
-          <span
-            className="footnote nav-ref"
-            style={{ marginLeft: 8, fontSize: 10, letterSpacing: '0.8px', textTransform: 'uppercase' }}
-          >
-            Reference · 2026
-          </span>
+    <>
+      <header className="top-nav">
+        <div className="top-nav__inner">
+          <Link href="/" className="brand-lockup" aria-label="Stack Lab home">
+            <span className="brand-lockup__mark" aria-hidden="true">
+              <span />
+              <span />
+              <span />
+            </span>
+            <span>
+              <strong>Stack Lab</strong>
+              <small>by Revive One</small>
+            </span>
+          </Link>
+
+          <nav className="top-nav__links" aria-label="Primary navigation">
+            {links.map((item) => (
+              <Link
+                key={item.label}
+                href={item.href}
+                data-active={item.active ? 'true' : undefined}
+                aria-current={item.active ? 'page' : undefined}
+              >
+                {item.label}
+                {item.count ? <span>{item.count}</span> : null}
+              </Link>
+            ))}
+          </nav>
+
+          <div className="top-nav__account">
+            <span className="member-label">Included with Revive One</span>
+            {!authLoading && (
+              <Link href={accountHref}>{user ? 'Account' : 'Sign in'}</Link>
+            )}
+          </div>
+        </div>
+      </header>
+
+      <nav className="mobile-tabs" aria-label="Mobile navigation">
+        <Link href="/" data-active={pathname === '/' ? 'true' : undefined} aria-current={pathname === '/' ? 'page' : undefined}>
+          <House size={20} weight="regular" />
+          <span>Today</span>
         </Link>
-
-        {/* Nav links */}
-        <div className="nav-links" style={{ display: 'flex', gap: 32, justifySelf: 'center' }}>
-          {([
-            ['Browse',     '/',          isHome],
-            ['My Routine', '/routine',   isRoutine],
-            ['Popular',    '/stacks',    isStacks],
-            ['About',      '/about',     isAbout],
-          ] as const).map(([label, href, active]) => (
-            <Link
-              key={href}
-              href={href}
-              style={{
-                fontSize: 13,
-                fontWeight: 500,
-                color: active ? 'var(--ink)' : 'var(--ink-3)',
-                paddingBottom: 4,
-                borderBottom: active ? '1px solid var(--ink)' : '1px solid transparent',
-                transition: 'color 150ms var(--ease), border-color 150ms var(--ease)',
-                textDecoration: 'none',
-              }}
-            >
-              {label}
-              {label === 'My Routine' && routineCount > 0 && (
-                <span className="footnote" style={{ marginLeft: 6, color: 'var(--ink-4)', fontSize: 11 }}>
-                  ({routineCount})
-                </span>
-              )}
-            </Link>
-          ))}
-        </div>
-
-        {/* Date + Auth */}
-        <div
-          className="footnote nav-date"
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 20,
-            letterSpacing: '0.4px',
-          }}
+        <Link
+          href="/routine"
+          data-active={pathname.startsWith('/routine') || pathname === '/stack' ? 'true' : undefined}
+          aria-current={pathname.startsWith('/routine') || pathname === '/stack' ? 'page' : undefined}
         >
-          {now}
-          {!authLoading && (
-            user ? (
-              <Link
-                href="/account"
-                style={{
-                  fontFamily: 'var(--font-mono)',
-                  fontSize: 10,
-                  fontWeight: 700,
-                  letterSpacing: '1.2px',
-                  textTransform: 'uppercase',
-                  color: pathname.startsWith('/account') ? 'var(--ink)' : 'var(--ink-4)',
-                  textDecoration: 'none',
-                  transition: 'color 150ms var(--ease)',
-                }}
-                onMouseEnter={e => (e.currentTarget.style.color = 'var(--ink)')}
-                onMouseLeave={e => {
-                  if (!pathname.startsWith('/account')) {
-                    e.currentTarget.style.color = 'var(--ink-4)';
-                  }
-                }}
-              >
-                Account
-              </Link>
-            ) : (
-              <Link
-                href="/login"
-                style={{
-                  fontFamily: 'var(--font-mono)',
-                  fontSize: 10,
-                  fontWeight: 700,
-                  letterSpacing: '1.2px',
-                  textTransform: 'uppercase',
-                  color: 'var(--accent)',
-                  textDecoration: 'none',
-                }}
-              >
-                Sign In
-              </Link>
-            )
-          )}
-        </div>
-      </div>
-
-      {/* Mobile: compact — hide REFERENCE label + date, shrink padding/gap, keep nav links visible */}
-      <style>{`
-        @media (max-width: 820px) {
-          .nav-inner {
-            grid-template-columns: auto 1fr !important;
-            padding: 14px 20px !important;
-            gap: 16px !important;
-          }
-          .nav-ref, .nav-date { display: none !important; }
-          .nav-links { gap: 20px !important; justify-self: end !important; }
-          .nav-links a { font-size: 13px !important; }
-        }
-        @media (max-width: 380px) {
-          .nav-links { gap: 14px !important; }
-        }
-      `}</style>
-    </nav>
+          <span className="mobile-tabs__icon">
+            <StackSimple size={20} weight="regular" />
+            {routineCount > 0 ? <small>{routineCount}</small> : null}
+          </span>
+          <span>Stack</span>
+        </Link>
+        <Link href="/#library" data-active={pathname.startsWith('/research') ? 'true' : undefined} aria-current={pathname.startsWith('/research') ? 'page' : undefined}>
+          <MagnifyingGlass size={20} weight="regular" />
+          <span>Discover</span>
+        </Link>
+        <Link href={accountHref} data-active={pathname.startsWith('/account') ? 'true' : undefined} aria-current={pathname.startsWith('/account') ? 'page' : undefined}>
+          <UserCircle size={20} weight="regular" />
+          <span>{user ? 'Account' : 'Sign in'}</span>
+        </Link>
+      </nav>
+    </>
   );
 }
