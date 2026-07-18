@@ -103,7 +103,7 @@ export default async function ResearchQueryPage({
         }}
       >
         {/* ── Left: title + reading-level overview ── */}
-        <div>
+        <div className="research-hero-title" style={{ gridColumn: 1, gridRow: 1 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16, flexWrap: 'wrap' }}>
             <span className="tag" data-cat={category}>{category}</span>
           </div>
@@ -141,19 +141,23 @@ export default async function ResearchQueryPage({
             <AddToRoutineButton slug={q} />
           </div>
 
-          {/* Reading-level summary */}
-          <div style={{ marginTop: 28 }}>
-            <ReadingLevelOverview report={report} />
-          </div>
+        </div>
+
+        <div className="research-hero-overview" style={{ gridColumn: 1, gridRow: 2 }}>
+          <ReadingLevelOverview report={report} />
         </div>
 
         {/* ── Right: At a glance + Buy options ── */}
         <div
+          className="research-hero-aside"
           style={{
             display: 'flex',
             flexDirection: 'column',
             gap: 16,
             alignSelf: 'start',
+            gridColumn: 2,
+            gridRow: 2,
+            marginTop: 92,
             position: 'sticky',
             top: 88,
           }}
@@ -232,7 +236,7 @@ export default async function ResearchQueryPage({
               {/* How it's made */}
               <div style={{ borderTop: '1px solid var(--rule-soft)', paddingTop: 14 }}>
                 <span className="footnote" style={{ letterSpacing: '1.2px', textTransform: 'uppercase' }}>
-                  How it's made
+                  How it&apos;s made
                 </span>
                 <p
                   style={{

@@ -22,7 +22,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: 'Stack Lab — Supplement & Peptide Stack Manager',
   description:
-    'Plan, schedule, and audit your supplement and peptide stack with evidence-backed research. Included with Revive One.',
+    'Plan, schedule, and audit your supplement and peptide stack with evidence-backed research.',
 };
 
 export default function RootLayout({

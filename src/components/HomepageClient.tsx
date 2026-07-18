@@ -471,12 +471,6 @@ export function HomepageClient({
         </div>
       </section>
 
-      <section className="revive-benefit">
-        <span>Revive One member benefit</span>
-        <p>Stack Lab is designed to be included with your Revive One subscription, with no separate app fee.</p>
-        <Link href="/about">How Stack Lab supports your care <ArrowRight size={15} weight="regular" /></Link>
-      </section>
-
       <section id="library" className="library-section">
         <div className="library-heading">
           <div>

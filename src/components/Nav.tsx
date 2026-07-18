@@ -80,7 +80,6 @@ export function Nav() {
           </nav>
 
           <div className="top-nav__account">
-            <span className="member-label">Included with Revive One</span>
             {!authLoading && (
               <Link href={accountHref}>{user ? 'Account' : 'Sign in'}</Link>
             )}

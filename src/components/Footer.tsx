@@ -9,7 +9,7 @@ export function Footer() {
       <div className="site-footer__primary">
         <div className="site-footer__identity">
           <strong>Stack Lab</strong>
-          <span>Supplement and peptide stack management, included with Revive One.</span>
+          <span>Supplement and peptide stack management.</span>
         </div>
         <nav aria-label="Footer navigation" className="site-footer__links">
           <Link href="/about">About</Link>

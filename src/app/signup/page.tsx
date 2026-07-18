@@ -64,6 +64,13 @@ export default function SignupPage() {
             </span>
             . Click it to activate your account.
           </p>
+          <p className="mt-3 text-[12px] leading-[19px]" style={{ color: 'var(--fg-dim)' }}>
+            If you do not see it, check spam. If this email already has a Stack Lab account,{' '}
+            <Link href="/login" className="underline underline-offset-2" style={{ color: 'var(--accent)' }}>
+              sign in instead
+            </Link>
+            .
+          </p>
           <Link
             href="/login"
             className="mt-6 inline-block font-mono text-[11px] uppercase tracking-[1.4px] transition-colors hover:text-white"
