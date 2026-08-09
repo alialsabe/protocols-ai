@@ -36,27 +36,31 @@ npm run db:push
 npm run db:seed   # bootstrap schema/data if the database is empty
 npm run db:reset  # wipe and reseed from the canonical dataset
 
-Supabase / Vercel setup
+Neon / Vercel setup
 
-1. Create a Supabase project.
-2. Copy the Postgres connection string from Supabase.
-3. In Vercel project settings, add one of these connection sources:
-   - DATABASE_URL=your_supabase_postgres_connection_string
-   - or SUPABASE_POOLER_URL=your_supabase_session_pooler_connection_string
-   - optionally set SUPABASE_PREFER_POOLER=true to prefer the pooler when both are present
+The production database is Neon Postgres. (Supabase is still used for Auth only — login/signup/session — not for data.)
+
+1. Create a Neon project and copy the pooled connection string.
+2. In Vercel project settings, add:
+   - DATABASE_URL=your_neon_pooled_connection_string
    - DATABASE_DIALECT=postgres
    - DB_AUTO_BOOTSTRAP=false
-4. From a machine with access to the same env vars, run:
+   - NEXT_PUBLIC_SUPABASE_URL / NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY (auth only)
+3. From a machine with access to the same env vars, run:
 
 npm run db:push
 npm run db:seed   # only if the database is brand new / empty
 
+Migrating data from Supabase to Neon (one-shot):
+
+1. Put the Neon connection string in .env.local as NEON_DATABASE_URL=...
+2. npx tsx scripts/migrate-to-neon.ts          # dry run, prints row counts
+3. npx tsx scripts/migrate-to-neon.ts --write  # copies all public tables (FK-safe order, ON CONFLICT DO NOTHING)
+
 Notes:
 - DATABASE_URL should be a server-only connection string, not a public anon key.
-- For WSL, prefer the Supabase pooler URL if the direct host is IPv6-only or unreachable.
-- SUPABASE_PREFER_POOLER=true makes the app and drizzle config prefer SUPABASE_POOLER_URL/SUPABASE_POOLER_CONNECTION_STRING before direct Supabase URLs.
 - For hosted Postgres, SSL defaults to required.
-- The app uses postgres-js with prepared statements disabled, which is safer for serverless/pooling setups.
+- The app uses postgres-js with prepared statements disabled, which works with Neon's pooled connections and serverless driver model.
 
 Environment variables
 
@@ -64,18 +68,20 @@ Required for local SQLite:
 - DATABASE_DIALECT=sqlite
 - DATABASE_PATH=./data/protocols.db
 
-Required for Supabase Postgres:
+Required for Neon Postgres:
 - DATABASE_DIALECT=postgres
-- DATABASE_URL=postgres connection string from Supabase
+- DATABASE_URL=postgres connection string from Neon
+
+Required for auth (Supabase Auth, free tier):
+- NEXT_PUBLIC_SUPABASE_URL
+- NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY
 
 Optional:
 - DB_AUTO_BOOTSTRAP=true|false
 - POSTGRES_SSL=require|disable
 - POSTGRES_MAX_CONNECTIONS=1
-- SUPABASE_PREFER_POOLER=true|false
-- SUPABASE_POOLER_URL=postgres connection string from Supabase session pooler
-- SUPABASE_POOLER_CONNECTION_STRING=alternate name for the pooler URL
-- SUPABASE_DIRECT_URL=optional direct Supabase host fallback
+- NEON_DATABASE_URL=used by scripts/migrate-to-neon.ts as the migration target
+- SUPABASE_POOLER_URL=legacy fallback connection URL (checked before DATABASE_URL)
 
 Scripts
 

@@ -14,7 +14,7 @@ function getDb(): PostgresJsDatabase<typeof schema> {
 
   if (!poolerUrl) {
     throw new Error(
-      'Missing SUPABASE_POOLER_URL. Set it in .env.local or your Vercel environment.',
+      'Missing database URL. Set DATABASE_URL (Neon) or SUPABASE_POOLER_URL in .env.local or your Vercel environment.',
     );
   }
 

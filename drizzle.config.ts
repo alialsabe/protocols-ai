@@ -7,7 +7,7 @@ const dialect = getConfiguredDatabaseDialect() === 'postgres' ? 'postgresql' : '
 const postgresUrl = getPoolerUrl();
 
 if (dialect === 'postgresql' && !postgresUrl) {
-  throw new Error('Missing SUPABASE_POOLER_URL. Production postgres bootstrap/config now requires the pooler URL and will not fall back to a direct host.');
+  throw new Error('Missing DATABASE_URL (Neon) or SUPABASE_POOLER_URL. Postgres bootstrap/config requires a connection URL.');
 }
 
 export default defineConfig({
