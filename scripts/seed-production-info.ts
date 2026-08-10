@@ -50,6 +50,8 @@ function templateFor(row: SupplementRow): ProductionTriple {
 
   switch (cat) {
     case 'mineral':
+    case 'essential_mineral':
+    case 'trace_mineral':
       return {
         source: `${subject} is produced by reacting elemental ${row.base_compound ?? 'mineral salt'} with an organic carrier (glycinate, citrate, malate, or picolinate) selected for absorption.`,
         method: `Chelation in aqueous solution: the elemental mineral and the carrier are combined under controlled pH and temperature, then the resulting complex is crystallized, filtered, dried, and milled to a uniform powder.`,
@@ -57,6 +59,7 @@ function templateFor(row: SupplementRow): ProductionTriple {
       };
 
     case 'vitamin':
+    case 'essential_vitamin':
       return {
         source: `${subject} is sourced from chemical synthesis or microbial fermentation; the resulting molecule is identical to the food-derived form.`,
         method: `Multi-step organic synthesis (or precursor fermentation) followed by recrystallization and chromatography to isolate the active isomer at >98% purity.`,
@@ -64,6 +67,7 @@ function templateFor(row: SupplementRow): ProductionTriple {
       };
 
     case 'botanical':
+    case 'herb_botanical':
       return {
         source: `Dried plant material — typically the part with the highest marker-compound concentration — is selected for ${subject}.`,
         method: `Solvent extraction (water, ethanol, or hydroethanolic) followed by concentration, spray-drying, and standardization to a fixed percentage of the active constituent.`,
@@ -86,6 +90,7 @@ function templateFor(row: SupplementRow): ProductionTriple {
 
     case 'amino_acid':
     case 'amino-acid':
+    case 'amino_acid_derivative':
       return {
         source: `Modern ${subject} is produced by microbial fermentation of glucose with engineered bacteria; some forms still come from synthetic precursors.`,
         method: `The fermentation broth is filtered, the target amino acid is crystallized, then dried and milled. Pharma-grade lots add recrystallization and tighter spec limits.`,
@@ -119,6 +124,27 @@ function templateFor(row: SupplementRow): ProductionTriple {
         source: `${subject} is sourced from hydrolyzed animal (bovine, marine, porcine) or plant (pea, rice, hemp) protein fractions.`,
         method: `Enzymatic hydrolysis cleaves the protein into smaller peptides for easier absorption, followed by filtration, neutralization, and spray-drying into the finished powder.`,
         qualityMarkers: `Average molecular weight, full amino-acid profile, and an allergen panel are the key COA items. Check for the specific peptide range advertised — that's where the bioavailability claims come from.`,
+      };
+
+    case 'nootropics':
+      return {
+        source: `${subject} is either extracted/purified from natural sources or produced by chemical synthesis, depending on the specific compound.`,
+        method: `For bioidentical or synthetic nootropic compounds, multi-step organic synthesis followed by recrystallization and HPLC purification isolates the active molecule at high purity; botanically derived nootropics use standardized solvent extraction and spray-drying.`,
+        qualityMarkers: `Look for published assay purity (HPLC), third-party batch analysis, and a Certificate of Analysis covering identity, potency, residual solvents, and heavy metals. Favor brands that disclose the exact marker/compound percentage.`,
+      };
+
+    case 'longevity':
+      return {
+        source: `${subject} is typically manufactured by controlled chemical synthesis or biotechnological fermentation and purified to pharmaceutical or research grade.`,
+        method: `Synthesis routes (often multi-step, e.g. for NAD+ precursors or senolytics) are followed by rigorous purification, characterization, and stability testing to ensure consistent potency and shelf life.`,
+        qualityMarkers: `Reputable suppliers publish HPLC purity, mass-spectrometry confirmation, heavy-metal panels, and contaminant screens on every lot. Because longevity compounds are frequently sold as grey-market "research chemicals", independent third-party assay is the key differentiator.`,
+      };
+
+    case 'specialty_dietary_substance':
+      return {
+        source: `${subject} is manufactured by specialized synthesis or extraction that varies by compound family; reputable producers disclose the exact origin and process on the lot-level Certificate of Analysis.`,
+        method: `${subject} is typically produced by standardized extraction, biofermentation, or chemical synthesis, then purified, dried, and milled to a consistent finished powder or filled into capsules.`,
+        qualityMarkers: `Look for a Certificate of Analysis covering identity, potency / assay, and contaminant panels (heavy metals, residual solvents, microbial counts) before comparing brands on price. Favor lots with full compound-specific spec data.`,
       };
 
     default:
